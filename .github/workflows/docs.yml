@@ -1,0 +1,45 @@
+name: Docgen
+on:
+  push:
+    branches:
+      - master
+      - docs
+  workflow_dispatch:
+
+jobs:
+  build:
+    timeout-minutes: 20
+
+    name: 'Generate & upload documentation'
+    runs-on: 'ubuntu-latest'
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/*.nimble') }}
+      - uses: jiro4989/setup-nim-action@v1
+        with:
+          nim-version: '2.2.4'
+
+      - name: Generate doc
+        run: |
+          nim --version
+          nimble --version
+          nimble mdbook
+          nimble docs || true
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/book
+          force_orphan: true

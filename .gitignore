@@ -1,0 +1,8 @@
+nimcache
+*.exe
+nimble.develop
+nimble-win.paths
+nimble-linux.paths
+build/
+vendor/
+tests/test_all
