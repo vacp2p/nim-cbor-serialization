@@ -234,3 +234,15 @@ suite "CborReader basic test":
 
       expect(CborReaderError):
         discard r.readValue(NoFields)
+
+# quick dirty test
+block:
+  proc testct =
+    static:
+      var stream = VMInputStream(pos: 0, data: "0x83F4F5F4".fromHex)
+      var r = CborReader[DefaultFlavor].init(stream)
+      var list: seq[bool]
+      for x in r.readArray(bool):
+        list.add x
+      doAssert list == @[false, true, false]
+  testct()

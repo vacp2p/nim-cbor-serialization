@@ -254,3 +254,20 @@ func `==`*(lhs, rhs: CborValueRef): bool =
     lhs.boolVal == rhs.boolVal
   of CborValueKind.Null, CborValueKind.Undefined:
     true
+
+import faststreams/inputs
+
+type
+  VMInputStream* = ref object of InputStream
+    pos*: int
+    data*: string
+
+proc read*(s: VMInputStream): byte =
+  result = byte s.data[s.pos]
+  inc s.pos
+
+proc readable*(s: VMInputStream): bool =
+  s.pos < s.data.len
+
+proc peek*(s: VMInputStream): byte =
+  byte s.data[s.pos]

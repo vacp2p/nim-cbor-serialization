@@ -7,14 +7,24 @@ export
   reader_desc
 
 template peek(p: CborParser): byte =
-  if not p.stream.readable:
-    raiseUnexpectedValue(p, "unexpected eof")
-  inputs.peek(p.stream)
+  when nimvm:
+    if not types.readable(p.stream.VMInputStream):
+      raiseUnexpectedValue(p, "unexpected eof")
+    types.peek(p.stream.VMInputStream)
+  else:
+    if not p.stream.readable:
+      raiseUnexpectedValue(p, "unexpected eof")
+    inputs.peek(p.stream)
 
 template read(p: CborParser): byte =
-  if not p.stream.readable:
-    raiseUnexpectedValue(p, "unexpected eof")
-  inputs.read(p.stream)
+  when nimvm:
+    if not types.readable(p.stream.VMInputStream):
+      raiseUnexpectedValue(p, "unexpected eof")
+    types.read(p.stream.VMInputStream)
+  else:
+    if not p.stream.readable:
+      raiseUnexpectedValue(p, "unexpected eof")
+    inputs.read(p.stream)
 
 proc read(p: CborParser, n: int): uint64 =
   assert n in 1 .. 8
