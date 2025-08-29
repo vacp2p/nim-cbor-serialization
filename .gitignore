@@ -6,3 +6,4 @@ nimble-linux.paths
 build/
 vendor/
 tests/test_all
+docs/book
