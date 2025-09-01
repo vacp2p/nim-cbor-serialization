@@ -20,26 +20,26 @@ proc hex*(s: seq[byte]): string =
 proc checkCbor*[T](cbor: seq[byte], val: T) =
   check Cbor.decode(cbor, T) == val
 
-proc numNode*(x: int): CborValueRef[uint64] =
-  CborValueRef[uint64](
+proc numNode*(x: int): CborValueRef =
+  CborValueRef(
     kind: CborValueKind.Number,
-    numVal: CborNumber[uint64](integer: x.uint64, sign: CborSign.None),
+    numVal: CborNumber(integer: x.uint64, sign: CborSign.None),
   )
 
-proc arrNode*(x: seq[CborValueRef[uint64]]): CborValueRef[uint64] =
-  CborValueRef[uint64](kind: CborValueKind.Array, arrayVal: x)
+proc arrNode*(x: seq[CborValueRef]): CborValueRef =
+  CborValueRef(kind: CborValueKind.Array, arrayVal: x)
 
-template objNode*(x): CborValueRef[uint64] =
-  CborValueRef[uint64](kind: CborValueKind.Object, objVal: x)
+template objNode*(x): CborValueRef =
+  CborValueRef(kind: CborValueKind.Object, objVal: x)
 
-proc strNode*(x: string): CborValueRef[uint64] =
-  CborValueRef[uint64](kind: CborValueKind.String, strVal: x)
+proc strNode*(x: string): CborValueRef =
+  CborValueRef(kind: CborValueKind.String, strVal: x)
 
-proc boolNode*(x: bool): CborValueRef[uint64] =
-  CborValueRef[uint64](kind: CborValueKind.Bool, boolVal: x)
+proc boolNode*(x: bool): CborValueRef =
+  CborValueRef(kind: CborValueKind.Bool, boolVal: x)
 
-proc nullNode*(): CborValueRef[uint64] =
-  CborValueRef[uint64](kind: CborValueKind.Null)
+proc nullNode*(): CborValueRef =
+  CborValueRef(kind: CborValueKind.Null)
 
-proc floatNode*(x: float): CborValueRef[uint64] =
-  CborValueRef[uint64](kind: CborValueKind.Float, floatVal: x)
+proc floatNode*(x: float): CborValueRef =
+  CborValueRef(kind: CborValueKind.Float, floatVal: x)

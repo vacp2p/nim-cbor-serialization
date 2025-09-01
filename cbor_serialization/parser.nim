@@ -13,22 +13,9 @@ import ./[reader_desc, utils]
 
 export reader_desc
 
-type
-  NumberPart* = enum
-    SignPart
-    IntegerPart
-
-  CustomNumberHandler* = ##\
-    ## Custom number parser, result values need to be captured
-    proc(part: NumberPart, dgt: int) {.gcsafe, raises: [].}
-
-  CustomIntHandler* = ##\
-    ## Custom integer parser, result values need to be captured
-    proc(dgt: int) {.gcsafe, raises: [].}
-
-  CustomStringHandler* = ##\
-    ## Custom text or binary parser, result values need to be captured.
-    proc(b: char) {.gcsafe, raises: [].}
+type CustomStringHandler* = ##\
+  ## Custom text or binary parser, result values need to be captured.
+  proc(b: char) {.gcsafe, raises: [].}
 
 template peek(p: CborParser): byte =
   if not p.stream.readable:
@@ -185,70 +172,7 @@ template parseTag(p: var CborParser, tag: var uint64, body: untyped) =
   body
   exitNestedStructure(p)
 
-proc parseIntTagValue(
-    p: var CborParser, tag: uint64, val: var CborVoid
-) {.raises: [IOError, CborReaderError].} =
-  if tag notin {2, 3}:
-    raiseUnexpectedValue("tag number 2 or 3", $tag)
-  p.parseByteString(p.conf.integerDigitsLimit, val)
-
-proc parseIntTagValue(
-    p: var CborParser, tag: uint64, val: var CborNumber
-) {.raises: [IOError, CborReaderError].} =
-  val.sign =
-    case tag
-    of 2:
-      CborSign.None
-    of 3:
-      CborSign.Neg
-    else:
-      raiseUnexpectedValue("tag number 2 or 3", $tag)
-  when val.integer is string:
-    when not hasBigints:
-      {.fatal: "`bigints` dependency is required for int string support".}
-    var bint = initBigInt(0)
-    var digits = 1
-    let bigint10 = initBigInt(10)
-    var threshold = bigint10
-    var leadingZero = true
-    for v in parseByteStringIt(p, p.conf.integerDigitsLimit):
-      leadingZero = leadingZero and v == 0
-      if not leadingZero:
-        bint = bint shl 8
-        inc(bint, v.int)
-        if p.conf.integerDigitsLimit > 0:
-          while threshold <= bint:
-            threshold *= bigint10
-            inc digits
-            if digits > p.conf.integerDigitsLimit:
-              raiseUnexpectedValue("`integerDigitsLimit` reached")
-    if val.sign == CborSign.Neg:
-      inc(bint, 1)
-      if threshold <= bint and digits + 1 > p.conf.integerDigitsLimit:
-        raiseUnexpectedValue("`integerDigitsLimit` reached")
-    val.integer = $bint
-  else:
-    var leadingZero = true
-    val.integer = 0
-    for v in parseByteStringIt(p, p.conf.integerDigitsLimit):
-      leadingZero = leadingZero and v == 0
-      if not leadingZero:
-        if val.integer > uint64.high shr 8:
-          raiseIntOverflow(val.integer, val.sign == CborSign.Neg)
-        val.integer = (val.integer shl 8) or v
-    if val.sign == CborSign.Neg:
-      if val.integer == uint64.high:
-        raiseIntOverflow(val.integer, true)
-      val.integer += 1
-
-proc parseIntTag[T](
-    p: var CborParser, val: var T
-) {.raises: [IOError, CborReaderError].} =
-  var tag: uint64
-  parseTag(p, tag):
-    parseIntTagValue(p, tag, val)
-
-proc parseIntImpl(
+proc parseNumberImpl(
     p: var CborParser, val: var CborVoid
 ) {.raises: [IOError, CborReaderError].} =
   let c = p.read()
@@ -256,7 +180,7 @@ proc parseIntImpl(
     raiseUnexpectedValue("number", c.major.toMeaning)
   discard p.readMinorValue(c.minor)
 
-proc parseIntImpl(
+proc parseNumberImpl(
     p: var CborParser, val: var CborNumber
 ) {.raises: [IOError, CborReaderError].} =
   let c = p.read()
@@ -268,32 +192,18 @@ proc parseIntImpl(
       CborSign.Neg
     else:
       raiseUnexpectedValue("number", c.major.toMeaning)
-  let integer = p.readMinorValue(c.minor)
-  when val.integer is string:
-    when not hasBigints:
-      {.fatal: "`bigints` dependency is required for int string support".}
-    if c.major == majorNegative:
-      var bint = initBigInt(integer)
-      inc(bint, 1)
-      val.integer = $bint
-    else:
-      val.integer = $integer
-    if val.integer.len > p.conf.integerDigitsLimit:
-      raiseUnexpectedValue("`integerDigitsLimit` reached")
-  else:
-    val.integer = integer
-    if c.major == majorNegative:
-      if integer == uint64.high:
-        raiseIntOverflow(integer, true)
-      val.integer += 1
+  val.integer = p.readMinorValue(c.minor)
+  #if c.major == majorNegative:
+  #  if val.integer == uint64.high:
+  #    raiseIntOverflow(val.integer, true)
+  #  val.integer += 1
 
-proc parseInt[T](p: var CborParser, val: var T) {.raises: [IOError, CborReaderError].} =
+proc parseNumber[T](
+    p: var CborParser, val: var T
+) {.raises: [IOError, CborReaderError].} =
   when T isnot (CborNumber or CborVoid):
-    {.fatal: "`parseInt` only accepts `CborNumber` and `CborVoid`".}
-  if p.peek().major == majorTag:
-    parseIntTag(p, val)
-  else:
-    parseIntImpl(p, val)
+    {.fatal: "`parseNumber` only accepts `CborNumber` and `CborVoid`".}
+  parseNumberImpl(p, val)
 
 proc parseFloat(
     p: var CborParser, T: type SomeFloat
@@ -416,9 +326,7 @@ proc cborKind*(p: CborParser): CborValueKind {.raises: [IOError, CborReaderError
   of majorMap:
     CborValueKind.Object
   of majorTag:
-    case c.minor
-    of 2, 3: CborValueKind.Number
-    else: CborValueKind.Tag
+    CborValueKind.Tag
   of majorSimple: # or majorFloat
     if c.minor in minorLen0 + {minorLen1}:
       case c.minor
@@ -432,15 +340,17 @@ proc cborKind*(p: CborParser): CborValueKind {.raises: [IOError, CborReaderError
     raiseUnexpectedValue("major type expected", $c.major)
 
 proc toInt*(
-    p: var CborParser, val: CborNumber, T: type SomeSignedInt, portable: bool
+    val: CborNumber, T: type SomeSignedInt, portable = false
 ): T {.raises: [CborReaderError].} =
   if val.sign == CborSign.Neg:
-    if val.integer.uint64 > T.high.uint64 + 1:
+    if val.integer == uint64.high:
       raiseIntOverflow(val.integer, true)
-    elif val.integer == T.high.uint64 + 1:
+    elif val.integer > T.high.uint64:
+      raiseIntOverflow(val.integer, true)
+    elif val.integer == T.high.uint64:
       result = T.low
     else:
-      result = -T(val.integer)
+      result = -T(val.integer + 1)
   else:
     if val.integer > T.high.uint64:
       raiseIntOverflow(val.integer, false)
@@ -452,7 +362,7 @@ proc toInt*(
     raiseIntOverflow(result.BiggestUInt, true)
 
 proc toInt*(
-    p: var CborParser, val: CborNumber, T: type SomeUnsignedInt, portable: bool
+    val: CborNumber, T: type SomeUnsignedInt, portable = false
 ): T {.raises: [CborReaderError].} =
   if val.sign == CborSign.Neg:
     raiseUnexpectedValue("negative int", "unsigned int")
@@ -465,11 +375,11 @@ proc toInt*(
   T(val.integer)
 
 proc parseInt*(
-    r: var CborReader, T: type SomeInteger, portable: bool = false
+    r: var CborReader, T: type SomeInteger, portable = false
 ): T {.raises: [IOError, CborReaderError].} =
-  var val: CborNumber[uint64]
-  r.parser.parseInt(val)
-  r.parser.toInt(val, T, portable)
+  var val: CborNumber
+  r.parser.parseNumber(val)
+  toInt(val, T, portable)
 
 proc parseByteString*(
     r: var CborReader, limit: int
@@ -512,22 +422,15 @@ template parseObject*(r: var CborReader, key: untyped, body: untyped) =
 template parseTag*(p: var CborReader, tag: untyped, body: untyped) =
   parseTag(r.parser, tag, body)
 
-proc parseNumberImpl[F, T](
-    r: var CborReader[F]
-): CborNumber[T] {.raises: [IOError, CborReaderError].} =
-  r.parser.parseInt(result)
-
-template parseNumber*(r: var CborReader, T: type): auto =
-  ## workaround Nim inablity to instantiate result type
-  ## when one the argument is generic type and the other
-  ## is a typedesc
-  type F = typeof(r)
-  parseNumberImpl[F.Flavor, T](r)
-
 proc parseNumber*(
     r: var CborReader, val: var CborNumber
 ) {.raises: [IOError, CborReaderError].} =
-  r.parser.parseInt(val)
+  r.parser.parseNumber(val)
+
+proc parseNumber*(
+    r: var CborReader
+): CborNumber {.raises: [IOError, CborReaderError].} =
+  r.parser.parseNumber(result)
 
 proc parseFloat*(
     r: var CborReader, T: type SomeFloat
@@ -551,7 +454,7 @@ proc parseValue(
 ) {.raises: [IOError, CborReaderError].} =
   case p.cborKind()
   of CborValueKind.Number:
-    parseInt(p, val)
+    parseNumber(p, val)
   of CborValueKind.Bytes:
     parseByteString(p, val)
   of CborValueKind.String:
@@ -575,13 +478,13 @@ proc parseValue(
     parseTag(p, tag):
       parseValue(p, val)
 
-proc parseValue[T](
-    p: var CborParser, val: var CborValueRef[T]
+proc parseValue(
+    p: var CborParser, val: var CborValueRef
 ) {.raises: [IOError, CborReaderError].} =
-  val = CborValueRef[T](kind: p.cborKind())
+  val = CborValueRef(kind: p.cborKind())
   case val.kind
   of CborValueKind.Number:
-    parseInt(p, val.numVal)
+    parseNumber(p, val.numVal)
   of CborValueKind.Bytes:
     parseByteString(p, val.bytesVal)
   of CborValueKind.String:
@@ -593,7 +496,7 @@ proc parseValue[T](
       parseValue(p, val.arrayVal[lastPos])
   of CborValueKind.Object:
     parseObject(p, false, key):
-      var v: CborValueRef[T]
+      var v: CborValueRef
       parseValue(p, v)
       val.objVal[key] = v
   of CborValueKind.Bool:
@@ -612,25 +515,18 @@ proc parseValue[T](
   of CborValueKind.Tag:
     var tag: uint64
     parseTag(p, tag):
-      val.tagVal = CborTag[CborValueRef[T]](tag: tag)
+      val.tagVal = CborTag[CborValueRef](tag: tag)
       parseValue(p, val.tagVal.val)
-
-proc parseValueImpl[F, T](
-    r: var CborReader[F]
-): CborValueRef[T] {.raises: [IOError, CborReaderError].} =
-  parseValue(r.parser, result)
-
-template parseValue*(r: var CborReader, T: type): auto =
-  ## workaround Nim inablity to instantiate result type
-  ## when one the argument is generic type and the other
-  ## is a typedesc
-  type F = typeof(r)
-  parseValueImpl[F.Flavor, T](r)
 
 proc parseValue*(
     r: var CborReader, val: var CborValueRef
 ) {.raises: [IOError, CborReaderError].} =
   parseValue(r.parser, val)
+
+proc parseValue*(
+    r: var CborReader
+): CborValueRef {.raises: [IOError, CborReaderError].} =
+  parseValue(r.parser, result)
 
 proc parseValue*(
     r: var CborReader, val: var CborRaw
@@ -670,26 +566,6 @@ proc skipSingleValue*(r: var CborReader) {.raises: [IOError, CborReaderError].} 
   var val: CborVoid
   r.parser.parseValue(val)
 
-proc customIntHandler*(
-    r: var CborReader, handler: CustomIntHandler
-) {.raises: [IOError, CborReaderError].} =
-  ## Apply the `handler` argument function for parsing only integer part
-  ## of CborNumber
-  var val: CborNumber[string]
-  parseNumber(r, val)
-  for c in val.integer:
-    handler(ord(c) - ord('0'))
-
-proc customNumberHandler*(
-    r: var CborReader, handler: CustomNumberHandler
-) {.raises: [IOError, CborReaderError].} =
-  ## Apply the `handler` argument function for parsing complete CborNumber
-  var val: CborNumber[string]
-  parseNumber(r, val)
-  handler(SignPart, val.sign.toInt)
-  for c in val.integer:
-    handler(IntegerPart, ord(c) - ord('0'))
-
 proc customStringHandler*(
     r: var CborReader, limit: int, handler: CustomStringHandler
 ) {.raises: [IOError, CborReaderError].} =
@@ -698,27 +574,6 @@ proc customStringHandler*(
   let val = r.parseString(limit)
   for c in val:
     handler(c)
-
-template customIntValueIt*(r: var CborReader, body: untyped) =
-  ## Convenience wrapper around `customIntHandler()` for parsing integers.
-  ##
-  ## The `body` argument represents a virtual function body. So the current
-  ## digit processing can be exited with `return`.
-  var handler: CustomIntHandler = proc(digit: int) =
-    let it {.inject.} = digit
-    body
-  r.customIntHandler(handler)
-
-template customNumberValueIt*(r: var CborReader, body: untyped) =
-  ## Convenience wrapper around `customIntHandler()` for parsing numbers.
-  ##
-  ## The `body` argument represents a virtual function body. So the current
-  ## digit processing can be exited with `return`.
-  let handler: CustomNumberHandler = proc(part: NumberPart, digit: int) =
-    let it {.inject.} = digit
-    let part {.inject.} = part
-    body
-  r.customNumberHandler(handler)
 
 # !!!: don't change limit from untyped to int, it will trigger Nim bug
 # the second overloaded customStringValueIt will fail to compile

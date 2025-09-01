@@ -43,11 +43,14 @@ suite "Test spec":
     check enc(1000000) == "0x1a000f4240"
     check enc(1000000000000) == "0x1b000000e8d4a51000"
     check enc(18446744073709551615'u64) == "0x1bffffffffffffffff"
-    check enc(CborNumber[string](integer: "18446744073709551616", sign: CborSign.None)) ==
+    # 18446744073709551616
+    check enc(CborTag[seq[byte]](tag: 2, val: "0x010000000000000000".unhex)) ==
       "0xc249010000000000000000"
-    check enc(CborNumber[string](integer: "18446744073709551616", sign: CborSign.Neg)) ==
-      "0xc348ffffffffffffffff" # output is a tag
-    check enc(CborNumber[string](integer: "18446744073709551617", sign: CborSign.Neg)) ==
+    # -18446744073709551616
+    check enc(CborNumber(integer: 18446744073709551615'u64, sign: CborSign.Neg)) ==
+      "0x3bffffffffffffffff"
+    # -18446744073709551617
+    check enc(CborTag[seq[byte]](tag: 3, val: "0x010000000000000000".unhex)) ==
       "0xc349010000000000000000"
     check enc(-1) == "0x20"
     check enc(-10) == "0x29"
@@ -126,14 +129,17 @@ suite "Test spec":
     check decode("0x1903e8", int) == 1000
     check decode("0x1a000f4240", int) == 1000000
     check decode("0x1b000000e8d4a51000", int64) == 1000000000000
-    check decode("0x1bffffffffffffffff", CborNumber[string]) ==
-      CborNumber[string](integer: "18446744073709551615", sign: CborSign.None)
-    check decode("0xc249010000000000000000", CborNumber[string]) ==
-      CborNumber[string](integer: "18446744073709551616", sign: CborSign.None)
-    check decode("0x3bffffffffffffffff", CborNumber[string]) ==
-      CborNumber[string](integer: "18446744073709551616", sign: CborSign.Neg)
-    check decode("0xc349010000000000000000", CborNumber[string]) ==
-      CborNumber[string](integer: "18446744073709551617", sign: CborSign.Neg)
+    check decode("0x1bffffffffffffffff", CborNumber) ==
+      CborNumber(integer: 18446744073709551615'u64, sign: CborSign.None)
+    # 18446744073709551616
+    check decode("0xc249010000000000000000", CborTag[seq[byte]]) ==
+      CborTag[seq[byte]](tag: 2, val: "0x010000000000000000".unhex)
+    # -18446744073709551616
+    check decode("0x3bffffffffffffffff", CborNumber) ==
+      CborNumber(integer: 18446744073709551615'u64, sign: CborSign.Neg)
+    # -18446744073709551617
+    check decode("0xc349010000000000000000", CborTag[seq[byte]]) ==
+      CborTag[seq[byte]](tag: 3, val: "0x010000000000000000".unhex)
     check decode("0x20", int) == -1
     check decode("0x29", int) == -10
     check decode("0x3863", int) == -100
@@ -192,7 +198,7 @@ suite "Test spec":
     check decode("0x80", seq[int]) == newSeq[int]()
     check decode("0x83010203", seq[int]) == @[1, 2, 3]
     check decode("0x83010203", array[3, int]) == [1, 2, 3]
-    check decode("0x8301820203820405", seq[CborValueRef[uint64]]) ==
+    check decode("0x8301820203820405", seq[CborValueRef]) ==
       @[
         numNode(1),
         arrNode(@[numNode(2), numNode(3)]),
@@ -208,32 +214,32 @@ suite "Test spec":
     check decode("0xa0", EmptyObj) == EmptyObj()
     # XXX support {1: 2, 3: 4} 0xa201020304
     check decode("0xa26161016162820203", Obj1) == Obj1(a: 1, b: [2, 3])
-    check decode("0x826161a161626163", seq[CborValueRef[uint64]]) ==
+    check decode("0x826161a161626163", seq[CborValueRef]) ==
       @[strNode("a"), objNode({"b": strNode("c")}.toOrderedTable)]
     check decode("0xa56161614161626142616361436164614461656145", Obj2) ==
       Obj2(a: "A", b: "B", c: "C", d: "D", e: "E")
     check decode("0x5f42010243030405ff", seq[byte]) == @[1.byte, 2, 3, 4, 5]
     check decode("0x7f657374726561646d696e67ff", string) == "streaming"
     check decode("0x9fff", seq[int]) == newSeq[int]()
-    check decode("0x9f018202039f0405ffff", seq[CborValueRef[uint64]]) ==
+    check decode("0x9f018202039f0405ffff", seq[CborValueRef]) ==
       @[
         numNode(1),
         arrNode(@[numNode(2), numNode(3)]),
         arrNode(@[numNode(4), numNode(5)]),
       ]
-    check decode("0x9f01820203820405ff", seq[CborValueRef[uint64]]) ==
+    check decode("0x9f01820203820405ff", seq[CborValueRef]) ==
       @[
         numNode(1),
         arrNode(@[numNode(2), numNode(3)]),
         arrNode(@[numNode(4), numNode(5)]),
       ]
-    check decode("0x83018202039f0405ff", seq[CborValueRef[uint64]]) ==
+    check decode("0x83018202039f0405ff", seq[CborValueRef]) ==
       @[
         numNode(1),
         arrNode(@[numNode(2), numNode(3)]),
         arrNode(@[numNode(4), numNode(5)]),
       ]
-    check decode("0x83019f0203ff820405", seq[CborValueRef[uint64]]) ==
+    check decode("0x83019f0203ff820405", seq[CborValueRef]) ==
       @[
         numNode(1),
         arrNode(@[numNode(2), numNode(3)]),
@@ -247,6 +253,6 @@ suite "Test spec":
         23, 24, 25,
       ]
     check decode("0xbf61610161629f0203ffff", Obj1) == Obj1(a: 1, b: [2, 3])
-    check decode("0x826161bf61626163ff", seq[CborValueRef[uint64]]) ==
+    check decode("0x826161bf61626163ff", seq[CborValueRef]) ==
       @[strNode("a"), objNode({"b": strNode("c")}.toOrderedTable)]
     check decode("0xbf6346756ef563416d7421ff", Obj3) == Obj3(Fun: true, Amt: -2)

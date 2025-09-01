@@ -73,7 +73,7 @@ type
     two: bool
 
   MasterReader = object
-    one: CborValueRef[uint64]
+    one: CborValueRef
     two: int
     three: string
     four: seq[char]
@@ -90,11 +90,11 @@ type
 
   SpecialTypes = object
     `string`: CborVoid
-    `number`: CborValueRef[uint64] #CborNumber[uint64]
-    `int`: CborNumber[string]
-    `bool`: CborValueRef[uint64]
-    `null`: CborValueRef[uint64]
-    `array`: CborValueRef[uint64]
+    `number`: CborValueRef
+    `int`: CborNumber
+    `bool`: CborValueRef
+    `null`: CborValueRef
+    `array`: CborValueRef
 
 suite "CborReader basic test":
   test "readArray iterator":
@@ -107,7 +107,7 @@ suite "CborReader basic test":
   test "readObjectFields iterator":
     var r = toReader cbor1.unhex
     var keys: seq[string]
-    var val: CborValueRef[uint64]
+    var val: CborValueRef
     for key in r.readObjectFields(string):
       keys.add key
       r.parseValue(val)
@@ -155,7 +155,7 @@ suite "CborReader basic test":
     check:
       val.`number`.kind == CborValueKind.Float
       val.`number`.floatVal == -123.456
-      val.`int`.integer == "789"
+      val.`int`.integer == 789
       val.`bool`.kind == CborValueKind.Bool
       val.`bool`.boolVal == true
       val.`null`.kind == CborValueKind.Null
@@ -171,7 +171,7 @@ suite "CborReader basic test":
         )
 
   proc execReadObjectFields(r: var CborReader): int =
-    var val: CborValueRef[uint64]
+    var val: CborValueRef
     for key in r.readObjectFields():
       r.parseValue(val)
       inc result

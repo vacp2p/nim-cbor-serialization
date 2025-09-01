@@ -24,11 +24,7 @@
 {.push raises: [], gcsafe.}
 
 import
-  std/[math],
-  faststreams/[outputs],
-  stew/[endians2],
-  serialization,
-  "."/[format, types, utils]
+  std/[math], faststreams/[outputs], stew/[endians2], serialization, "."/[format, types]
 
 export outputs, format, types, DefaultFlavor
 
@@ -338,32 +334,11 @@ proc writeRecordValue*(w: var CborWriter, value: object | tuple) {.raises: [IOEr
   w.endObject(stopCode = false)
 
 proc writeValue*(w: var CborWriter, value: CborNumber) {.raises: [IOError].} =
-  template writeVal(val: uint64): untyped =
-    if value.sign == CborSign.Neg and val > 0:
-      w.writeHead(majorNegative, val - 1)
+  w.streamElement(_):
+    if value.sign == CborSign.Neg:
+      w.writeHead(majorNegative, value.integer)
     else:
-      w.writeHead(majorUnsigned, val)
-
-  when value.integer is uint64:
-    w.streamElement(_):
-      writeVal(value.integer)
-  else:
-    when not hasBigints:
-      {.fatal: "`bigints` dependency is required for int string support".}
-    w.streamElement(s):
-      var val: uint64
-      if parseBigInt(value.integer, val):
-        writeVal(val)
-      else:
-        var bint = value.integer.toBigInt().abs()
-        if value.sign == CborSign.Neg and 0.initBigInt < bint:
-          w.writeHead(majorTag, 3)
-          dec(bint, 1)
-        else:
-          w.writeHead(majorTag, 2)
-        let bytes = bint.toBytes()
-        w.writeHead(majorBytes, bytes.len.uint64)
-        s.write(bytes)
+      w.writeHead(majorUnsigned, value.integer)
 
 proc writeValue*(w: var CborWriter, value: CborObjectType) {.raises: [IOError].} =
   var fieldCount = 0

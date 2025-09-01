@@ -53,9 +53,9 @@ type
 
   SpecialTypes = object
     one: CborVoid
-    two: CborNumber[uint64]
-    three: CborNumber[string]
-    four: CborValueRef[uint64]
+    two: CborNumber
+    three: CborNumber
+    four: CborValueRef
 
   ListOnly = object
     list: seq[int64]

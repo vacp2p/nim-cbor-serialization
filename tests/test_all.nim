@@ -12,3 +12,9 @@
 import
   test_spec, test_serialization, test_cbor_flavor, test_parser, test_reader,
   test_writer, test_valueref, test_cbor_raw
+
+template importBigints() =
+  import bigints
+
+when compiles(importBigints):
+  import test_bigints

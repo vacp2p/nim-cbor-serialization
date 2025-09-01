@@ -9,55 +9,50 @@
 
 import unittest2, ../cbor_serialization, ../cbor_serialization/value_ops
 
-func cborBool(x: bool): CborValueRef[uint64] =
-  CborValueRef[uint64](kind: CborValueKind.Bool, boolVal: x)
+func cborBool(x: bool): CborValueRef =
+  CborValueRef(kind: CborValueKind.Bool, boolVal: x)
 
-func cborNull(): CborValueRef[uint64] =
-  CborValueRef[uint64](kind: CborValueKind.Null)
+func cborNull(): CborValueRef =
+  CborValueRef(kind: CborValueKind.Null)
 
 suite "Test CborValueRef":
-  let objA = CborValueRef[uint64](
+  let objA = CborValueRef(
     kind: CborValueKind.Object, objVal: [("a", cborBool(true))].toOrderedTable
   )
 
-  let objA2 = CborValueRef[uint64](
+  let objA2 = CborValueRef(
     kind: CborValueKind.Object, objVal: [("a", cborBool(true))].toOrderedTable
   )
 
-  let objABNull = CborValueRef[uint64](
+  let objABNull = CborValueRef(
     kind: CborValueKind.Object,
     objVal: [("a", cborBool(true)), ("b", cborNull())].toOrderedTable,
   )
 
-  let objAB = CborValueRef[uint64](
+  let objAB = CborValueRef(
     kind: CborValueKind.Object,
     objVal: [("a", cborBool(true)), ("b", cborBool(true))].toOrderedTable,
   )
 
-  let objInArrayA = CborValueRef[uint64](kind: CborValueKind.Array, arrayVal: @[objA])
+  let objInArrayA = CborValueRef(kind: CborValueKind.Array, arrayVal: @[objA])
 
-  let objInArrayA2 = CborValueRef[uint64](kind: CborValueKind.Array, arrayVal: @[objA2])
+  let objInArrayA2 = CborValueRef(kind: CborValueKind.Array, arrayVal: @[objA2])
 
-  let objInArrayAB = CborValueRef[uint64](kind: CborValueKind.Array, arrayVal: @[objAB])
+  let objInArrayAB = CborValueRef(kind: CborValueKind.Array, arrayVal: @[objAB])
 
-  let objInArrayABNull =
-    CborValueRef[uint64](kind: CborValueKind.Array, arrayVal: @[objABNull])
+  let objInArrayABNull = CborValueRef(kind: CborValueKind.Array, arrayVal: @[objABNull])
 
-  let objInObjA = CborValueRef[uint64](
-    kind: CborValueKind.Object, objVal: [("x", objA)].toOrderedTable
-  )
+  let objInObjA =
+    CborValueRef(kind: CborValueKind.Object, objVal: [("x", objA)].toOrderedTable)
 
-  let objInObjA2 = CborValueRef[uint64](
-    kind: CborValueKind.Object, objVal: [("x", objA2)].toOrderedTable
-  )
+  let objInObjA2 =
+    CborValueRef(kind: CborValueKind.Object, objVal: [("x", objA2)].toOrderedTable)
 
-  let objInObjAB = CborValueRef[uint64](
-    kind: CborValueKind.Object, objVal: [("x", objAB)].toOrderedTable
-  )
+  let objInObjAB =
+    CborValueRef(kind: CborValueKind.Object, objVal: [("x", objAB)].toOrderedTable)
 
-  let objInObjABNull = CborValueRef[uint64](
-    kind: CborValueKind.Object, objVal: [("x", objABNull)].toOrderedTable
-  )
+  let objInObjABNull =
+    CborValueRef(kind: CborValueKind.Object, objVal: [("x", objABNull)].toOrderedTable)
 
   test "Test table keys equality":
     check objA != objAB

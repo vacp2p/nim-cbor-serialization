@@ -7,16 +7,7 @@
 # This file may not be copied, modified, or distributed except according to
 # those terms.
 
-import std/[math, options, algorithm]
-
-template importBigints() =
-  import bigints
-
-when compiles(importBigints):
-  import pkg/bigints
-  export bigints
-
-const hasBigints* = compiles(importBigints)
+import std/[math]
 
 proc ldexp(x: float64, exp: int): float64 =
   return x * pow(2.0, float64(exp))
@@ -37,45 +28,3 @@ proc decodeHalf*(half: uint16): float =
       -val
     else:
       val
-
-func parseBigInt*(s: string, val: var uint64): bool =
-  ## Parse valid digits into val. Return false on overflow.
-  const validChars = {'0' .. '9'}
-  var i = 0
-  val = 0
-  while i < s.len:
-    if s[i].char in validChars:
-      let c = uint64(ord(s[i].char) - ord('0'))
-      if val > (uint64.high - c) div 10:
-        return false
-      val = val * 10 + c
-    inc i
-  return true
-
-when hasBigints:
-  func toBigInt*(s: string): BigInt =
-    try:
-      return initBigInt(s)
-    except ValueError:
-      return initBigInt(0)
-
-  func toBytesImpl(bint: BigInt): seq[byte] {.raises: [Exception].} =
-    var bint = bint
-    result = newSeq[byte]()
-    let stop = initBigInt(0)
-    let ff = initBigInt(0xff)
-    while bint > stop:
-      result.add toInt[uint8](bint and ff).get()
-      bint = bint shr 8
-    if result.len == 0:
-      result.add 0'u8
-    result.reverse()
-
-  func toBytes*(bint: BigInt): seq[byte] {.raises: [].} =
-    # XXX fix bigint `shr` & `and` to not raise Exception
-    try:
-      return toBytesImpl(bint)
-    except Defect as e:
-      raise e
-    except Exception:
-      doAssert false

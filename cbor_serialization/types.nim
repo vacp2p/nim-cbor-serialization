@@ -60,9 +60,9 @@ type
     None
     Neg
 
-  CborNumber*[T: string or uint64] = object
+  CborNumber* = object
     sign*: CborSign
-    integer*: T
+    integer*: uint64
 
   CborSimpleValue* = distinct uint8
 
@@ -98,25 +98,25 @@ type
     tag*: uint64
     val*: T
 
-  CborObjectType*[T: string or uint64] = OrderedTable[string, CborValueRef[T]]
+  CborObjectType* = OrderedTable[string, CborValueRef]
 
-  CborValueRef*[T: string or uint64] = ref CborValue[T]
-  CborValue*[T: string or uint64] = object
+  CborValueRef* = ref CborValue
+  CborValue* = object
     case kind*: CborValueKind
     of CborValueKind.Bytes:
       bytesVal*: seq[byte]
     of CborValueKind.String:
       strVal*: string
     of CborValueKind.Number:
-      numVal*: CborNumber[T]
+      numVal*: CborNumber
     of CborValueKind.Float:
       floatVal*: float64
     of CborValueKind.Object:
-      objVal*: CborObjectType[T]
+      objVal*: CborObjectType
     of CborValueKind.Array:
-      arrayVal*: seq[CborValueRef[T]]
+      arrayVal*: seq[CborValueRef]
     of CborValueKind.Tag:
-      tagVal*: CborTag[CborValueRef[T]]
+      tagVal*: CborTag[CborValueRef]
     of CborValueKind.Simple:
       simpleVal*: CborSimpleValue
     of CborValueKind.Bool:

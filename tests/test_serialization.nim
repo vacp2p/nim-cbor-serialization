@@ -55,7 +55,7 @@ type
 
   HasCborNode = object
     name: string
-    data: CborValueRef[uint64]
+    data: CborValueRef
     id: int
 
   HasCstring = object
@@ -261,8 +261,11 @@ proc readValue(reader: var CborReader, value: var FancyUInt) =
       var accu = 0u
       case reader.parser.cborKind()
       of CborValueKind.Number:
-        reader.customIntValueIt:
-          accu = accu * 10u + it.uint
+        var val: int64
+        reader.readValue(val)
+        if val < 0:
+          val *= -1
+        accu = val.uint
       of CborValueKind.String:
         var s = ""
         reader.customStringValueIt:
@@ -1017,45 +1020,6 @@ suite "Parser limits":
     expect UnexpectedValueError:
       discard Cbor.decode(
         cbor, Obj1, flags = cborFlags, conf = CborReaderConf(objectMembersLimit: 2)
-      )
-
-  test "Int integerDigitsLimit":
-    let val = CborNumber[string](integer: "123", sign: CborSign.None)
-    let cbor = Cbor.encode(val)
-    check:
-      Cbor.decode(cbor, CborNumber[string]) == val
-      Cbor.decode(
-        cbor,
-        CborNumber[string],
-        flags = cborFlags,
-        conf = CborReaderConf(integerDigitsLimit: 3),
-      ) == val
-    expect UnexpectedValueError:
-      discard Cbor.decode(
-        cbor,
-        CborNumber[string],
-        flags = cborFlags,
-        conf = CborReaderConf(integerDigitsLimit: 2),
-      )
-
-  test "Tag Bignum integerDigitsLimit":
-    let bigNum = repeat('9', 128)
-    let val = CborNumber[string](integer: bigNum, sign: CborSign.None)
-    let cbor = Cbor.encode(val)
-    check:
-      Cbor.decode(cbor, CborNumber[string]) == val
-      Cbor.decode(
-        cbor,
-        CborNumber[string],
-        flags = cborFlags,
-        conf = CborReaderConf(integerDigitsLimit: 128),
-      ) == val
-    expect UnexpectedValueError:
-      discard Cbor.decode(
-        cbor,
-        CborNumber[string],
-        flags = cborFlags,
-        conf = CborReaderConf(integerDigitsLimit: 127),
       )
 
   test "String stringLengthLimit":
