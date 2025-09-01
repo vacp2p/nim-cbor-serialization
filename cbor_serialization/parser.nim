@@ -193,10 +193,6 @@ proc parseNumberImpl(
     else:
       raiseUnexpectedValue("number", c.major.toMeaning)
   val.integer = p.readMinorValue(c.minor)
-  #if c.major == majorNegative:
-  #  if val.integer == uint64.high:
-  #    raiseIntOverflow(val.integer, true)
-  #  val.integer += 1
 
 proc parseNumber[T](
     p: var CborParser, val: var T

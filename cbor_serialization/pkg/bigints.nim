@@ -9,7 +9,7 @@
 
 {.push raises: [], gcsafe.}
 
-import std/[math, options, algorithm]
+import std/[options, algorithm]
 import pkg/bigints, ../../cbor_serialization/[reader, writer]
 
 export bigints

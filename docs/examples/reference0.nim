@@ -8,7 +8,7 @@ type
     port: int
 
   MixedServer = object
-    name: CborValueRef[uint64]
+    name: CborValueRef
     port: int
 
   RawServer = object
@@ -28,7 +28,7 @@ let mixed = Cbor.decode(rawCbor, MixedServer)
 let raw = Cbor.decode(rawCbor, RawServer)
 
 # decode any valid CBOR, using the `cbor_serialization` node type
-let value = Cbor.decode(rawCbor, CborValueRef[uint64])
+let value = Cbor.decode(rawCbor, CborValueRef)
 
 # ANCHOR_END: Decode
 

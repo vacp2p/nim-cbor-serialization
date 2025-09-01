@@ -9,7 +9,7 @@
 
 {.push raises: [], gcsafe.}
 
-import std/[tables, strutils], ./types
+import std/[tables], ./types
 
 proc len*(n: CborValueRef): int =
   ## If `n` is a `CborValueKind.Array`, it returns the number of elements.
