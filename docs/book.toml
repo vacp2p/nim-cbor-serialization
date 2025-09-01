@@ -1,5 +1,5 @@
 [book]
-authors = ["Jacek Sieka"]
+authors = ["Jacek Sieka", "Esteban C Borsani"]
 language = "en"
 multilingual = false
 src = "src"
