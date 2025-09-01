@@ -65,7 +65,7 @@ You can adjust these defaults to suit your needs:
   - **CborRaw**: Holds a CBOR value as a distinct `seq[byte]`.
   - **CborVoid**: Skips a valid CBOR value.
   - **CborNumber**: Holds a CBOR number.
-    - Use `toInt(n: CborNumber, T: SomeInteger): T` to convert it to an integer.
+    - Use `toInt(n: CborNumber, T: SomeInteger): Opt[T]` to convert it to an integer.
     - The `integer` field for negative numbers is set to `abs(value)-1` as per the CBOR spec. This allows to hold a negative `uint64.high` value.
   - **CborValueRef**: Holds any valid CBOR value, it uses `CborNumber` instead of `int`.
 

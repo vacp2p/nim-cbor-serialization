@@ -33,6 +33,13 @@ proc read(p: CborParser, n: int): uint64 {.raises: [IOError, CborReaderError].} 
   for _ in 0 ..< n:
     result = (result shl 8) or p.read()
 
+func minorLen(minor: uint8): int =
+  assert minor in minorLens
+  if minor < minorLen1:
+    0
+  else:
+    1 shl (minor - minorLen1)
+
 proc readMinorValue(
     p: CborParser, minor: uint8
 ): uint64 {.raises: [IOError, CborReaderError].} =
@@ -48,6 +55,18 @@ func major(x: byte): uint8 =
 
 func minor(x: byte): uint8 =
   return x and 0b0001_1111
+
+func toMeaning(major: uint8): string =
+  case major
+  of majorUnsigned: "unsigned integer"
+  of majorNegative: "negative integer"
+  of majorBytes: "byte string"
+  of majorText: "text string"
+  of majorArray: "array"
+  of majorMap: "map"
+  of majorTag: "tag"
+  of majorFloat: "simple/float/break"
+  else: "unknown/invalid"
 
 template parseStringLike(p: var CborParser, majorExpected: uint8, body: untyped) =
   let c = p.read()
@@ -335,47 +354,16 @@ proc cborKind*(p: CborParser): CborValueKind {.raises: [IOError, CborReaderError
   else:
     raiseUnexpectedValue("major type expected", $c.major)
 
-proc toInt*(
-    val: CborNumber, T: type SomeSignedInt, portable = false
-): T {.raises: [CborReaderError].} =
-  if val.sign == CborSign.Neg:
-    if val.integer == uint64.high:
-      raiseIntOverflow(val.integer, true)
-    elif val.integer > T.high.uint64:
-      raiseIntOverflow(val.integer, true)
-    elif val.integer == T.high.uint64:
-      result = T.low
-    else:
-      result = -T(val.integer + 1)
-  else:
-    if val.integer > T.high.uint64:
-      raiseIntOverflow(val.integer, false)
-    result = T(val.integer)
-
-  if portable and result.int64 > maxPortableInt.int64:
-    raiseIntOverflow(result.BiggestUInt, false)
-  if portable and result.int64 < minPortableInt.int64:
-    raiseIntOverflow(result.BiggestUInt, true)
-
-proc toInt*(
-    val: CborNumber, T: type SomeUnsignedInt, portable = false
-): T {.raises: [CborReaderError].} =
-  if val.sign == CborSign.Neg:
-    raiseUnexpectedValue("negative int", "unsigned int")
-  if val.integer > T.high.uint64:
-    raiseIntOverflow(val.integer, false)
-
-  if portable and val.integer > maxPortableInt.uint64:
-    raiseIntOverflow(val.integer.BiggestUInt, false)
-
-  T(val.integer)
-
 proc parseInt*(
     r: var CborReader, T: type SomeInteger, portable = false
 ): T {.raises: [IOError, CborReaderError].} =
   var val: CborNumber
   r.parser.parseNumber(val)
-  toInt(val, T, portable)
+  when T is SomeUnsignedInt:
+    if val.sign == CborSign.Neg:
+      raiseUnexpectedValue("negative int", "unsigned int")
+  toInt(val, T, portable).valueOr:
+    raiseIntOverflow(val.integer, val.sign == CborSign.Neg)
 
 proc parseByteString*(
     r: var CborReader, limit: int

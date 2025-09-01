@@ -87,7 +87,7 @@ suite "Public parser":
     var r = toReader "0x3904D1".unhex # -1234
     let val = r.parseNumber()
     check:
-      val.toInt(int) == -1234
+      val.toInt(int) == Opt.some(-1234)
       val.sign == CborSign.Neg
       val.integer == 1233
 

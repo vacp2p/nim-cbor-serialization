@@ -69,6 +69,18 @@ func initialByte(major, minor: uint8): byte =
   assert minor <= 31
   return (major shl 5) or minor
 
+func toMinorLen(val: uint64): uint8 =
+  if val < minorLen1:
+    val.uint8
+  elif val <= uint8.high:
+    minorLen1
+  elif val <= uint16.high:
+    minorLen2
+  elif val <= uint32.high:
+    minorLen4
+  else:
+    minorLen8
+
 proc writeHead(
     w: var CborWriter, majorType: uint8, argument: uint64
 ) {.raises: [IOError].} =

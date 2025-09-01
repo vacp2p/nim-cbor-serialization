@@ -9,9 +9,9 @@
 
 {.push raises: [], gcsafe.}
 
-import std/tables, serialization/errors
+import std/tables, results, serialization/errors
 
-export tables, errors
+export tables, results, errors
 
 const
   majorUnsigned* = 0
@@ -153,25 +153,6 @@ proc `==`*(a: seq[byte], b: CborRaw): bool {.borrow.}
 template toBytes*(val: CborRaw): untyped =
   seq[byte](val)
 
-func minorLen*(minor: uint8): int =
-  assert minor in minorLens
-  if minor < minorLen1:
-    0
-  else:
-    1 shl (minor - minorLen1)
-
-func toMeaning*(major: uint8): string =
-  case major
-  of majorUnsigned: "unsigned integer"
-  of majorNegative: "negative integer"
-  of majorBytes: "byte string"
-  of majorText: "text string"
-  of majorArray: "array"
-  of majorMap: "map"
-  of majorTag: "tag"
-  of majorFloat: "simple/float/break"
-  else: "unknown/invalid"
-
 func isTrue*(v: CborSimpleValue): bool =
   return v.int == simpleTrue
 
@@ -205,25 +186,47 @@ func `$`*(v: CborSimpleValue): string =
 func `==`*(a, b: CborSimpleValue): bool =
   return a.int == b.int
 
-func toMinorLen*(val: uint64): uint8 =
-  if val < minorLen1:
-    val.uint8
-  elif val <= uint8.high:
-    minorLen1
-  elif val <= uint16.high:
-    minorLen2
-  elif val <= uint32.high:
-    minorLen4
-  else:
-    minorLen8
-
-func toMinorLen*(val: int): uint8 =
-  toMinorLen(val.uint64)
-
 func toInt*(sign: CborSign): int =
   case sign
   of CborSign.None: 1
   of CborSign.Neg: -1
+
+proc toInt*(val: CborNumber, T: type SomeSignedInt, portable = false): Opt[T] =
+  ## Converts a CborNumber to a signed integer, if it fits in `T`.
+  if val.sign == CborSign.Neg:
+    if val.integer == uint64.high:
+      Opt.none(T)
+    elif val.integer > T.high.uint64:
+      Opt.none(T)
+    elif val.integer == T.high.uint64:
+      if portable and T.low.int64 < minPortableInt.int64:
+        Opt.none(T)
+      else:
+        Opt.some(T.low)
+    else:
+      let v = -T(val.integer + 1)
+      if portable and v.int64 < minPortableInt.int64:
+        Opt.none(T)
+      else:
+        Opt.some(v)
+  else:
+    if val.integer > T.high.uint64:
+      Opt.none(T)
+    elif portable and val.integer.int64 > maxPortableInt.int64:
+      Opt.none(T)
+    else:
+      Opt.some(T(val.integer))
+
+proc toInt*(val: CborNumber, T: type SomeUnsignedInt, portable = false): Opt[T] =
+  ## Converts a CborNumber to a unsigned integer, if it fits in `T`.
+  if val.sign == CborSign.Neg:
+    Opt.none(T)
+  elif val.integer > T.high.uint64:
+    Opt.none(T)
+  elif portable and val.integer > maxPortableInt.uint64:
+    Opt.none(T)
+  else:
+    Opt.some(T(val.integer))
 
 func `==`*(lhs, rhs: CborValueRef): bool =
   if lhs.isNil and rhs.isNil:
