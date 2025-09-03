@@ -567,7 +567,7 @@ template customStringValueIt*(r: var CborReader, limit: untyped, body: untyped) 
   ##
   ## The `body` argument represents a virtual function body. So the current
   ## character processing can be exited with `return`.
-  let handler: CustomStringHandler = proc(c: char) =
+  let handler: CustomStringHandler = proc(c: char) {.gcsafe.} =
     let it {.inject.} = c
     body
   r.customStringHandler(limit, handler)
@@ -578,7 +578,7 @@ template customStringValueIt*(r: var CborReader, body: untyped) =
   ##
   ## The `body` argument represents a virtual function body. So the current
   ## character processing can be exited with `return`.
-  let handler: CustomStringHandler = proc(c: char) =
+  let handler: CustomStringHandler = proc(c: char) {.gcsafe.} =
     let it {.inject.} = c
     body
   r.customStringHandler(r.parser.conf.stringLengthLimit, handler)

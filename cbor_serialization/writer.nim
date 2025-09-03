@@ -206,18 +206,20 @@ proc write*(w: var CborWriter, val: SomeFloat) {.raises: [IOError].} =
   w.streamElement(s):
     case val.classify
     of fcNan:
-      w.stream.write [initialByte(majorFloat, minorLen2), 0x7E'u8, 0x00'u8]
+      s.write [initialByte(majorFloat, minorLen2), 0x7E'u8, 0x00'u8]
     of fcInf:
-      w.stream.write [initialByte(majorFloat, minorLen2), 0x7C'u8, 0x00'u8]
+      s.write [initialByte(majorFloat, minorLen2), 0x7C'u8, 0x00'u8]
     of fcNegInf:
-      w.stream.write [initialByte(majorFloat, minorLen2), 0xFC'u8, 0x00'u8]
+      s.write [initialByte(majorFloat, minorLen2), 0xFC'u8, 0x00'u8]
     else:
-      if val == float32(val):
+      # VM requires this cast dance because float32 has 64-bit precision
+      #if val == float32(val):
+      if val == cast[float32](cast[uint32](val.float32)):
         s.write initialByte(majorFloat, minorLen4)
-        w.stream.write cast[uint32](float32(val)).toBytesBE()
+        s.write cast[uint32](val.float32).toBytesBE()
       else:
         s.write initialByte(majorFloat, minorLen8)
-        w.stream.write cast[uint64](val).toBytesBE()
+        s.write cast[uint64](val.float64).toBytesBE()
 
 proc write*(w: var CborWriter, val: CborTag) {.raises: [IOError].} =
   w.streamElement(_):
