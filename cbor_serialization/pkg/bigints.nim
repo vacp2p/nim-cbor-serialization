@@ -34,7 +34,6 @@ func toBytes(bint: BigInt, bytes: var seq[byte]) {.raises: [].} =
   except Exception:
     doAssert false
 
-const maxIntLen = len($(uint64.high)) + 1 # + sign
 const unsignedTag = 2
 const negativeTag = 3
 
@@ -72,34 +71,28 @@ proc readValue*(
     if val.sign == CborSign.Neg:
       inc(value, 1)
       value *= -1.initBigInt
-    if p.conf.integerDigitsLimit in 1 .. maxIntLen and
-        len($value) > p.conf.integerDigitsLimit:
-      raiseUnexpectedValue("`integerDigitsLimit` reached")
   elif kind == CborValueKind.Tag:
     var tbint: CborTag[seq[byte]]
     reader.readValue(tbint)
     if tbint.tag notin {unsignedTag, negativeTag}:
       raiseUnexpectedValue("tag number 2 or 3", $tbint.tag)
     value = initBigInt(0)
-    var digits = 1
-    let bigint10 = initBigInt(10)
-    var threshold = bigint10
+    var bintSize = 0
     var leadingZero = true
     for v in tbint.val:
       leadingZero = leadingZero and v == 0
       if not leadingZero:
         value = value shl 8
         inc(value, v.int)
-        if p.conf.integerDigitsLimit > 0:
-          while threshold <= value:
-            threshold *= bigint10
-            inc digits
-            if digits > p.conf.integerDigitsLimit:
-              raiseUnexpectedValue("`integerDigitsLimit` reached")
+        inc bintSize
+        if p.conf.bigNumBytesLimit > 0 and bintSize > p.conf.bigNumBytesLimit:
+          raiseUnexpectedValue("`bigNumBytesLimit` reached")
     if tbint.tag == negativeTag:
       inc(value, 1)
-      if threshold <= value and digits + 1 > p.conf.integerDigitsLimit:
-        raiseUnexpectedValue("`integerDigitsLimit` reached")
+      if p.conf.bigNumBytesLimit > 0:
+        let maxVal = (initBigInt(1) shl (p.conf.bigNumBytesLimit * 8)) - initBigInt(1)
+        if value > maxVal:
+          raiseUnexpectedValue("`bigNumBytesLimit` reached")
       value *= -1.initBigInt
   else:
     raiseUnexpectedValue("number", $kind)

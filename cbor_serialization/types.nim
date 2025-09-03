@@ -77,9 +77,9 @@ type
     nestedDepthLimit*: int
     arrayElementsLimit*: int
     objectMembersLimit*: int
-    integerDigitsLimit*: int
     stringLengthLimit*: int
     byteStringLengthLimit*: int
+    bigNumBytesLimit*: int
 
   CborValueKind* {.pure.} = enum
     Bytes
@@ -140,9 +140,9 @@ const
     nestedDepthLimit: 512,
     arrayElementsLimit: 0,
     objectMembersLimit: 0,
-    integerDigitsLimit: 128,
     stringLengthLimit: 0,
     byteStringLengthLimit: 0,
+    bigNumBytesLimit: 64,
   )
 
 proc add*(a: var CborRaw, b: byte) {.borrow.}

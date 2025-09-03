@@ -56,9 +56,9 @@ You can adjust these defaults to suit your needs:
   - **nestedDepthLimit [=512]**: Maximum nesting depth for objects and arrays (0 = unlimited).
   - **arrayElementsLimit [=0]**: Maximum number of array elements (0 = unlimited).
   - **objectMembersLimit [=0]**: Maximum number of key-value pairs in an object (0 = unlimited).
-  - **integerDigitsLimit [=128]**: Maximum digits in the integer part of a number.
   - **stringLengthLimit [=0]**: Maximum string length in bytes (0 = unlimited).
   - **byteStringLengthLimit [=0]**: Maximum byte string length in bytes (0 = unlimited).
+  - **bigNumBytesLimit [=64]**: Maximum number of BigNum bytes (0 = unlimited).
 
 ### Special types
 

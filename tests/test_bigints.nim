@@ -68,29 +68,40 @@ suite "Test BigInt":
     let cbor = Cbor.decode(val, BigInt)
     check cbor == "1".initBigInt
 
-  test "Int integerDigitsLimit":
-    let val = 123.initBigInt
+  test "Tag Bignum bigNumBytesLimit":
+    let val = (initBigInt(1) shl 128) - initBigInt(1)
     let cbor = Cbor.encode(val)
     check:
       Cbor.decode(cbor, BigInt) == val
       Cbor.decode(
-        cbor, BigInt, flags = cborFlags, conf = CborReaderConf(integerDigitsLimit: 3)
+        cbor, BigInt, flags = cborFlags, conf = CborReaderConf(bigNumBytesLimit: 16)
       ) == val
     expect UnexpectedValueError:
       discard Cbor.decode(
-        cbor, BigInt, flags = cborFlags, conf = CborReaderConf(integerDigitsLimit: 2)
+        cbor, BigInt, flags = cborFlags, conf = CborReaderConf(bigNumBytesLimit: 15)
       )
 
-  test "Tag Bignum integerDigitsLimit":
-    let bigNum = repeat('9', 128)
-    let val = bigNum.initBigInt
-    let cbor = Cbor.encode(val)
-    check:
-      Cbor.decode(cbor, BigInt) == val
-      Cbor.decode(
-        cbor, BigInt, flags = cborFlags, conf = CborReaderConf(integerDigitsLimit: 128)
-      ) == val
-    expect UnexpectedValueError:
-      discard Cbor.decode(
-        cbor, BigInt, flags = cborFlags, conf = CborReaderConf(integerDigitsLimit: 127)
-      )
+test "Tag negative Bignum bigNumBytesLimit":
+  var val = (initBigInt(1) shl 128) - initBigInt(1)
+  val *= -1.initBigInt
+  let cbor = Cbor.encode(val)
+  check:
+    Cbor.decode(cbor, BigInt) == val
+    Cbor.decode(
+      cbor, BigInt, flags = cborFlags, conf = CborReaderConf(bigNumBytesLimit: 16)
+    ) == val
+  expect UnexpectedValueError:
+    discard Cbor.decode(
+      cbor, BigInt, flags = cborFlags, conf = CborReaderConf(bigNumBytesLimit: 15)
+    )
+
+test "Tag negative Bignum bigNumBytesLimit":
+  # this triggers the limit check for negativeTag
+  var val = (initBigInt(1) shl 128) #- initBigInt(1)
+  val *= -1.initBigInt
+  let cbor = Cbor.encode(val)
+  check Cbor.decode(cbor, BigInt) == val
+  expect UnexpectedValueError:
+    discard Cbor.decode(
+      cbor, BigInt, flags = cborFlags, conf = CborReaderConf(bigNumBytesLimit: 16)
+    )
