@@ -89,7 +89,7 @@ proc readValue*(
           raiseUnexpectedValue("`bigNumBytesLimit` reached")
     if tbint.tag == negativeTag:
       inc(value, 1)
-      if p.conf.bigNumBytesLimit > 0:
+      if p.conf.bigNumBytesLimit > 0 and bintSize + 1 > p.conf.bigNumBytesLimit:
         let maxVal = (initBigInt(1) shl (p.conf.bigNumBytesLimit * 8)) - initBigInt(1)
         if value > maxVal:
           raiseUnexpectedValue("`bigNumBytesLimit` reached")
