@@ -152,28 +152,6 @@ suite "Public parser":
   test "parseInt int64":
     testParseIntI(int64)
 
-  test "parseInt portable overflow":
-    expect CborReaderError:
-      var r = toReader (minPortableInt - 1).toCbor()
-      let val = r.parseInt(int64, true)
-      discard val
-
-    expect CborReaderError:
-      var r = toReader (maxPortableInt + 1).toCbor()
-      let val = r.parseInt(int64, true)
-      discard val
-
-    when sizeof(int) == 8:
-      expect CborReaderError:
-        var r = toReader (minPortableInt - 1).toCbor()
-        let val = r.parseInt(int, true)
-        discard val
-
-      expect CborReaderError:
-        var r = toReader (maxPortableInt + 1).toCbor()
-        let val = r.parseInt(int, true)
-        discard val
-
   test "parseFloat":
     var
       r = toReader "0xFB404C0126E978D4FE".unhex # 56.009 

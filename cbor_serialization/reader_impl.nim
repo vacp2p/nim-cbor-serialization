@@ -357,7 +357,7 @@ proc readValue*[T](
       r.parseEnum(value)
   elif value is SomeInteger:
     autoSerializeCheck(Flavor, SomeInteger, typeof(value)):
-      value = r.parseInt(typeof value, CborReaderFlag.portableInt in r.parser.flags)
+      value = r.parseInt(typeof value)
   elif value is SomeFloat:
     autoSerializeCheck(Flavor, SomeFloat, typeof(value)):
       value = r.parseFloat(typeof value)

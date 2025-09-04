@@ -357,14 +357,14 @@ proc cborKind*(p: CborParser): CborValueKind {.raises: [IOError, CborReaderError
     p.raiseUnexpectedValue("major type expected", $c.major)
 
 proc parseInt*(
-    r: var CborReader, T: type SomeInteger, portable = false
+    r: var CborReader, T: type SomeInteger
 ): T {.raises: [IOError, CborReaderError].} =
   var val: CborNumber
   r.parser.parseNumber(val)
   when T is SomeUnsignedInt:
     if val.sign == CborSign.Neg:
       r.parser.raiseUnexpectedValue("negative int", "unsigned int")
-  toInt(val, T, portable).valueOr:
+  toInt(val, T).valueOr:
     r.parser.raiseIntOverflow(val.integer, val.sign == CborSign.Neg)
 
 proc parseByteString*(

@@ -639,8 +639,6 @@ suite "toCbor tests":
       # 18446744073709551615
       cborValue == "0x1BFFFFFFFFFFFFFFFF".unhex
       Cbor.decode(cborValue, BiggestUInt) == uintVal
-    expect CborReaderError:
-      discard Cbor.decode(cborValue, BiggestUInt, flags = {CborReaderFlag.portableInt})
 
   test "max signed value":
     let intVal = BiggestInt.high

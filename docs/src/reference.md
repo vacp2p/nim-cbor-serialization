@@ -45,7 +45,6 @@ Flags control aspects of the parser that are not all part of the CBOR standard, 
 
   - **allowUnknownFields [=off]**: Skip unknown fields instead of raising an error.
   - **requireAllFields [=off]**: Raise an error if any required field is missing.
-  - **portableInt [=off]**: Restrict integers to the safe JavaScript range (`-2^53 + 1` to `2^53 - 1`).
 
 #### Limits
 

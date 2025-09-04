@@ -69,7 +69,6 @@ type
   CborReaderFlag* {.pure.} = enum
     allowUnknownFields
     requireAllFields
-    portableInt
 
   CborReaderFlags* = set[CborReaderFlag]
 
@@ -132,9 +131,6 @@ const
   cborUndefined* = simpleUndefined.CborSimpleValue
 
 const
-  minPortableInt* = -9007199254740991 # -2**53 + 1
-  maxPortableInt* = 9007199254740991 # +2**53 - 1
-
   defaultCborReaderFlags*: set[CborReaderFlag] = {}
 
   defaultCborReaderConf* = CborReaderConf(
@@ -192,7 +188,7 @@ func toInt*(sign: CborSign): int =
   of CborSign.None: 1
   of CborSign.Neg: -1
 
-proc toInt*(val: CborNumber, T: type SomeSignedInt, portable = false): Opt[T] =
+proc toInt*(val: CborNumber, T: type SomeSignedInt): Opt[T] =
   ## Converts a CborNumber to a signed integer, if it fits in `T`.
   if val.sign == CborSign.Neg:
     if val.integer == uint64.high:
@@ -200,31 +196,20 @@ proc toInt*(val: CborNumber, T: type SomeSignedInt, portable = false): Opt[T] =
     elif val.integer > T.high.uint64:
       Opt.none(T)
     elif val.integer == T.high.uint64:
-      if portable and T.low.int64 < minPortableInt.int64:
-        Opt.none(T)
-      else:
-        Opt.some(T.low)
+      Opt.some(T.low)
     else:
-      let v = -T(val.integer + 1)
-      if portable and v.int64 < minPortableInt.int64:
-        Opt.none(T)
-      else:
-        Opt.some(v)
+      Opt.some(-T(val.integer + 1))
   else:
     if val.integer > T.high.uint64:
-      Opt.none(T)
-    elif portable and val.integer.int64 > maxPortableInt.int64:
       Opt.none(T)
     else:
       Opt.some(T(val.integer))
 
-proc toInt*(val: CborNumber, T: type SomeUnsignedInt, portable = false): Opt[T] =
+proc toInt*(val: CborNumber, T: type SomeUnsignedInt): Opt[T] =
   ## Converts a CborNumber to a unsigned integer, if it fits in `T`.
   if val.sign == CborSign.Neg:
     Opt.none(T)
   elif val.integer > T.high.uint64:
-    Opt.none(T)
-  elif portable and val.integer > maxPortableInt.uint64:
     Opt.none(T)
   else:
     Opt.some(T(val.integer))
