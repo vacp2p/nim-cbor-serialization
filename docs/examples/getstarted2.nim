@@ -27,7 +27,7 @@ proc readValue*(
     r.parseValue(raw)
     val = CborRpcId(raw)
   else:
-    raiseUnexpectedValue("Invalid RequestId, got " & $ckind)
+    r.parser.raiseUnexpectedValue("Invalid RequestId, got " & $ckind)
 
 proc writeValue*(w: var CborWriter[CrpcSys], val: CborRpcId) {.raises: [IOError].} =
   w.writeValue(CborRaw(val)) # Preserve the original content

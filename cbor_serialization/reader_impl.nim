@@ -124,17 +124,17 @@ proc readRecordValue*[T](
       elif r.allowUnknownFields:
         r.skipSingleValue()
       else:
-        raiseUnexpectedField(key, cstring typeName)
+        r.parser.raiseUnexpectedField(key, cstring typeName)
 
     if r.requireAllFields and not expectedFields.isBitwiseSubsetOf(encounteredFields):
-      raiseIncompleteObject(typeName)
+      r.parser.raiseIncompleteObject(typeName)
   else:
     r.parseObject(key):
       # avoid bloat by putting this if inside parseObject
       if r.allowUnknownFields:
         r.skipSingleValue()
       else:
-        raiseUnexpectedField(key, cstring typeName)
+        r.parser.raiseUnexpectedField(key, cstring typeName)
 
 template autoSerializeCheck(F: distinct type, T: distinct type, body) =
   when declared(macrocache.hasKey): # Nim 1.6 have no macrocache.hasKey
@@ -213,7 +213,7 @@ proc parseStringEnum[T](
       genEnumCaseStmt(T, val, default = nil, ord(T.low), ord(T.high), stringNormalizer)
   except ValueError:
     const typeName = typetraits.name(T)
-    raiseUnexpectedValue("Invalid value for '" & typeName & "'")
+    r.parser.raiseUnexpectedValue("Invalid value for '" & typeName & "'")
 
 func strictNormalize(s: string): string = # Match enum value exactly
   s
@@ -234,20 +234,20 @@ proc parseEnum[T](
       of EnumStyle.Numeric:
         if not value.checkedEnumAssign(r.parseInt(int)):
           const typeName = typetraits.name(T)
-          raiseUnexpectedValue("Out of range for '" & typeName & "'")
+          r.parser.raiseUnexpectedValue("Out of range for '" & typeName & "'")
       of EnumStyle.AssociatedStrings:
-        raiseUnexpectedValue("string", $r.parser.cborKind())
+        r.parser.raiseUnexpectedValue("string", $r.parser.cborKind())
     else:
-      raiseUnexpectedValue("string", $r.parser.cborKind())
+      r.parser.raiseUnexpectedValue("string", $r.parser.cborKind())
   else:
     case style
     of EnumStyle.Numeric:
       when allowNumericRepr:
-        raiseUnexpectedValue("number or string", $r.parser.cborKind())
+        r.parser.raiseUnexpectedValue("number or string", $r.parser.cborKind())
       else:
-        raiseUnexpectedValue("number", $r.parser.cborKind())
+        r.parser.raiseUnexpectedValue("number", $r.parser.cborKind())
     of EnumStyle.AssociatedStrings:
-      raiseUnexpectedValue("string", $r.parser.cborKind())
+      r.parser.raiseUnexpectedValue("string", $r.parser.cborKind())
 
 iterator readArray*(
     r: var CborReader, ElemType: typedesc
@@ -334,7 +334,7 @@ proc readValue*[T](
     autoSerializeCheck(Flavor, array, typeof(value)):
       let val = r.parseString()
       if val.len != value.len:
-        raiseUnexpectedValue("string of wrong length")
+        r.parser.raiseUnexpectedValue("string of wrong length")
       for i in 0 ..< value.len:
         value[i] = val[i]
   elif value is seq[byte]:
@@ -375,7 +375,7 @@ proc readValue*[T](
           let i = IDX(idx + low(value).int)
           readValue(r, value[i])
         else:
-          raiseUnexpectedValue("Too many items for " & $(typeof(value)))
+          r.parser.raiseUnexpectedValue("Too many items for " & $(typeof(value)))
   elif value is object:
     when declared(macrocache.hasKey):
       # Nim 1.6 have no macrocache.hasKey and cannot accept `object` param

@@ -28,6 +28,7 @@ type
     parser*: CborParser
 
   CborReaderError* = object of CborError
+    pos*: int
 
   UnexpectedFieldError* = object of CborReaderError
     encounteredField*: string
@@ -49,58 +50,54 @@ func valueStr(err: ref IntOverflowError): string =
     result.add '-'
   result.add($err.absIntVal)
 
-template tryFmt(expr: untyped): string =
-  try:
-    expr
-  except CatchableError as err:
-    err.msg
-
 method formatMsg*(err: ref CborReaderError, filename: string): string =
-  tryFmt:
-    fmt"{filename} Error while reading json file: {err.msg}"
+  fmt"{filename}({err.pos}) Error while reading cbor data: {err.msg}"
 
 method formatMsg*(err: ref IntOverflowError, filename: string): string =
-  tryFmt:
-    fmt"{filename} The value '{err.valueStr}' is outside of the allowed range"
+  fmt"{filename}({err.pos}) The value '{err.valueStr}' is outside of the allowed range"
 
 method formatMsg*(err: ref UnexpectedValueError, filename: string): string =
-  tryFmt:
-    fmt"{filename} {err.msg}"
+  fmt"{filename}({err.pos}) {err.msg}"
 
 method formatMsg*(err: ref IncompleteObjectError, filename: string): string =
-  tryFmt:
-    fmt"{filename} Not all required fields were specified when reading '{err.objectType}'"
+  fmt"{filename}({err.pos}) Not all required fields were specified when reading '{err.objectType}'"
 
-func raiseUnexpectedValue*(msg: string) {.noreturn, raises: [CborReaderError].} =
+func raiseUnexpectedValue*(
+    p: CborParser, msg: string
+) {.noreturn, raises: [CborReaderError].} =
   var ex = new UnexpectedValueError
+  ex.pos = p.stream.pos
   ex.msg = msg
   raise ex
 
 func raiseUnexpectedValue*(
-    expected, found: string
+    p: CborParser, expected, found: string
 ) {.noreturn, raises: [CborReaderError].} =
-  raiseUnexpectedValue("Expected: " & expected & " but found: " & found)
+  p.raiseUnexpectedValue("Expected: " & expected & " but found: " & found)
 
 func raiseIntOverflow*(
-    absIntVal: BiggestUInt, isNegative: bool
+    p: CborParser, absIntVal: BiggestUInt, isNegative: bool
 ) {.noreturn, raises: [CborReaderError].} =
   var ex = new IntOverflowError
+  ex.pos = p.stream.pos
   ex.absIntVal = absIntVal
   ex.isNegative = isNegative
   raise ex
 
 func raiseUnexpectedField*(
-    fieldName: string, deserializedType: cstring
+    p: CborParser, fieldName: string, deserializedType: cstring
 ) {.noreturn, raises: [CborReaderError].} =
   var ex = new UnexpectedFieldError
+  ex.pos = p.stream.pos
   ex.encounteredField = fieldName
   ex.deserializedType = deserializedType
   raise ex
 
 func raiseIncompleteObject*(
-    objectType: cstring
+    p: CborParser, objectType: cstring
 ) {.noreturn, raises: [CborReaderError].} =
   var ex = new IncompleteObjectError
+  ex.pos = p.stream.pos
   ex.objectType = objectType
   raise ex
 

@@ -1,4 +1,4 @@
-# nim-json-serialization
+# nim-cbor-serialization
 
 [![License: Apache](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
@@ -44,7 +44,7 @@ type Request = object
 let cbor = hexToSeqByte "0xA26763626F7272706363322E30666D6574686F64646E616D65"
 let decoded = Cbor.decode(cbor, Request)
 
-echo decoded.jsonrpc
+echo decoded.cborrpc
 echo Cbor.encode(decoded).to0xHex()
 ```
 
@@ -56,7 +56,7 @@ See the [user guide](https://vacp2p.github.io/nim-cbor-serialization/).
 
 Contributions are welcome - please make sure to add test coverage for features and fixes!
 
-`json_serialization` follows the [Status Nim Style Guide](https://status-im.github.io/nim-style-guide/).
+`cbor_serialization` follows the [Status Nim Style Guide](https://status-im.github.io/nim-style-guide/).
 
 ## License
 

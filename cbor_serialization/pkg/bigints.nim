@@ -75,7 +75,7 @@ proc readValue*(
     var tbint: CborTag[seq[byte]]
     reader.readValue(tbint)
     if tbint.tag notin {unsignedTag, negativeTag}:
-      raiseUnexpectedValue("tag number 2 or 3", $tbint.tag)
+      reader.parser.raiseUnexpectedValue("tag number 2 or 3", $tbint.tag)
     value = initBigInt(0)
     var bintSize = 0
     var leadingZero = true
@@ -86,13 +86,13 @@ proc readValue*(
         inc(value, v.int)
         inc bintSize
         if p.conf.bigNumBytesLimit > 0 and bintSize > p.conf.bigNumBytesLimit:
-          raiseUnexpectedValue("`bigNumBytesLimit` reached")
+          reader.parser.raiseUnexpectedValue("`bigNumBytesLimit` reached")
     if tbint.tag == negativeTag:
       inc(value, 1)
       if p.conf.bigNumBytesLimit > 0 and bintSize + 1 > p.conf.bigNumBytesLimit:
         let maxVal = (initBigInt(1) shl (p.conf.bigNumBytesLimit * 8)) - initBigInt(1)
         if value > maxVal:
-          raiseUnexpectedValue("`bigNumBytesLimit` reached")
+          reader.parser.raiseUnexpectedValue("`bigNumBytesLimit` reached")
       value *= -1.initBigInt
   else:
-    raiseUnexpectedValue("number", $kind)
+    reader.parser.raiseUnexpectedValue("number", $kind)

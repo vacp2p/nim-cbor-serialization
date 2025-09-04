@@ -131,9 +131,13 @@ template readValueImpl(r: var CborReader, value: var CaseObject) =
         of A:
           r.readValue(value.a)
         of B:
-          raiseUnexpectedValue("The 'a' field is only allowed for 'kind' = 'A'")
+          raiseUnexpectedValue(
+            r.parser, "The 'a' field is only allowed for 'kind' = 'A'"
+          )
       else:
-        raiseUnexpectedValue("The 'a' field must be specified after the 'kind' field")
+        raiseUnexpectedValue(
+          r.parser, "The 'a' field must be specified after the 'kind' field"
+        )
       valueSpecified = true
     of "other":
       if kindSpecified:
@@ -141,10 +145,12 @@ template readValueImpl(r: var CborReader, value: var CaseObject) =
         of A:
           r.readValue(value.other)
         of B:
-          raiseUnexpectedValue("The 'other' field is only allowed for 'kind' = 'A'")
+          raiseUnexpectedValue(
+            r.parser, "The 'other' field is only allowed for 'kind' = 'A'"
+          )
       else:
         raiseUnexpectedValue(
-          "The 'other' field must be specified after the 'kind' field"
+          r.parser, "The 'other' field must be specified after the 'kind' field"
         )
       otherSpecified = true
     of "b":
@@ -153,17 +159,22 @@ template readValueImpl(r: var CborReader, value: var CaseObject) =
         of B:
           r.readValue(value.b)
         of A:
-          raiseUnexpectedValue("The 'b' field is only allowed for 'kind' = 'B'")
+          raiseUnexpectedValue(
+            r.parser, "The 'b' field is only allowed for 'kind' = 'B'"
+          )
       else:
-        raiseUnexpectedValue("The 'b' field must be specified after the 'kind' field")
+        raiseUnexpectedValue(
+          r.parser, "The 'b' field must be specified after the 'kind' field"
+        )
       valueSpecified = true
     else:
-      raiseUnexpectedField(fieldName, "CaseObject")
+      raiseUnexpectedField(r.parser, fieldName, "CaseObject")
 
   if not (kindSpecified and valueSpecified and otherSpecified):
     raiseUnexpectedValue(
+      r.parser,
       "The CaseObject value should have sub-fields named " &
-        "'kind', and ('a' and 'other') or 'b' depending on 'kind'"
+        "'kind', and ('a' and 'other') or 'b' depending on 'kind'",
     )
 
 {.push warning[ProveField]: off.} # https://github.com/nim-lang/Nim/issues/22060
@@ -195,11 +206,11 @@ template readValueImpl(r: var CborReader, value: var MyCaseObject) =
           r.readValue(value.banana)
         of Apple:
           raiseUnexpectedValue(
-            "The 'banana' field is only allowed for 'kind' = 'Banana'"
+            r.parser, "The 'banana' field is only allowed for 'kind' = 'Banana'"
           )
       else:
         raiseUnexpectedValue(
-          "The 'banana' field must be specified after the 'kind' field"
+          r.parser, "The 'banana' field must be specified after the 'kind' field"
         )
       valueSpecified = true
     of "apple":
@@ -208,19 +219,22 @@ template readValueImpl(r: var CborReader, value: var MyCaseObject) =
         of Apple:
           r.readValue(value.apple)
         of Banana:
-          raiseUnexpectedValue("The 'apple' field is only allowed for 'kind' = 'Apple'")
+          raiseUnexpectedValue(
+            r.parser, "The 'apple' field is only allowed for 'kind' = 'Apple'"
+          )
       else:
         raiseUnexpectedValue(
-          "The 'apple' field must be specified after the 'kind' field"
+          r.parser, "The 'apple' field must be specified after the 'kind' field"
         )
       valueSpecified = true
     else:
-      raiseUnexpectedField(fieldName, "MyCaseObject")
+      raiseUnexpectedField(r.parser, fieldName, "MyCaseObject")
 
   if not (nameSpecified and kindSpecified and valueSpecified):
     raiseUnexpectedValue(
+      r.parser,
       "The MyCaseObject value should have sub-fields named " &
-        "'name', 'kind', and 'banana' or 'apple' depending on 'kind'"
+        "'name', 'kind', and 'banana' or 'apple' depending on 'kind'",
     )
 
 {.push warning[ProveField]: off.} # https://github.com/nim-lang/Nim/issues/22060
@@ -238,7 +252,7 @@ Cbor.useCustomSerialization(WithCustomFieldRule.intVal):
     try:
       parseInt reader.readValue(string)
     except ValueError:
-      raiseUnexpectedValue("string encoded integer expected")
+      raiseUnexpectedValue(reader.parser, "string encoded integer expected")
   write:
     writer.writeValue $value
 
@@ -252,7 +266,7 @@ proc readValue(reader: var CborReader, value: var FancyInt) =
     reader.registerVisit:
       value = reader.readValue(int).FancyInt
   except ValueError:
-    raiseUnexpectedValue("string encoded integer expected")
+    raiseUnexpectedValue(reader.parser, "string encoded integer expected")
 
 # Customised numeric parser for integer and stringified integer
 proc readValue(reader: var CborReader, value: var FancyUInt) =
@@ -275,7 +289,7 @@ proc readValue(reader: var CborReader, value: var FancyUInt) =
         discard
       value = accu.FancyUInt
   except ValueError:
-    raiseUnexpectedValue("string encoded integer expected")
+    raiseUnexpectedValue(reader.parser, "string encoded integer expected")
 
 # Customised numeric parser for text, accepts embedded quote
 proc readValue(reader: var CborReader, value: var FancyText) =
@@ -286,7 +300,7 @@ proc readValue(reader: var CborReader, value: var FancyText) =
         s.add it
       value = s.FancyText
   except ValueError:
-    raiseUnexpectedValue("string encoded integer expected")
+    raiseUnexpectedValue(reader.parser, "string encoded integer expected")
 
 # TODO `borrowSerialization` still doesn't work
 # properly when it's placed in another module:

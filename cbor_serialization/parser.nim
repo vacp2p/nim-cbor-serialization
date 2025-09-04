@@ -19,12 +19,12 @@ type CustomStringHandler* = ##\
 
 template peek(p: CborParser): byte =
   if not p.stream.readable:
-    raiseUnexpectedValue("unexpected eof")
+    p.raiseUnexpectedValue("unexpected eof")
   inputs.peek(p.stream)
 
 template read(p: CborParser): byte =
   if not p.stream.readable:
-    raiseUnexpectedValue("unexpected eof")
+    p.raiseUnexpectedValue("unexpected eof")
   inputs.read(p.stream)
 
 proc read(p: CborParser, n: int): uint64 {.raises: [IOError, CborReaderError].} =
@@ -48,7 +48,7 @@ proc readMinorValue(
   elif minor in minorLens:
     p.read(minor.minorLen())
   else:
-    raiseUnexpectedValue("argument len", "value: " & $minor)
+    p.raiseUnexpectedValue("argument len", "value: " & $minor)
 
 func major(x: byte): uint8 =
   return x shr 5
@@ -71,12 +71,12 @@ func toMeaning(major: uint8): string =
 template parseStringLike(p: var CborParser, majorExpected: uint8, body: untyped) =
   let c = p.read()
   if c.major != majorExpected:
-    raiseUnexpectedValue(majorExpected.toMeaning, c.major.toMeaning)
+    p.raiseUnexpectedValue(majorExpected.toMeaning, c.major.toMeaning)
   if c.minor == minorIndef:
     while p.peek() != breakStopCode:
       let c2 = p.read()
       if c2.major != majorExpected:
-        raiseUnexpectedValue(majorExpected.toMeaning, c2.major.toMeaning)
+        p.raiseUnexpectedValue(majorExpected.toMeaning, c2.major.toMeaning)
       for _ in 0 ..< readMinorValue(p, c2.minor):
         body
     discard p.read() # stop code
@@ -91,7 +91,7 @@ iterator parseByteStringIt(
   parseStringLike(p, majorBytes):
     inc strLen
     if limit > 0 and strLen > limit:
-      raiseUnexpectedValue(majorBytes.toMeaning & " length limit reached")
+      p.raiseUnexpectedValue(majorBytes.toMeaning & " length limit reached")
     yield p.read()
 
 proc parseByteString[T](
@@ -119,7 +119,7 @@ proc parseString[T](
   parseStringLike(p, majorText):
     inc strLen
     if limit > 0 and strLen > limit:
-      raiseUnexpectedValue(majorText.toMeaning & " length limit reached")
+      p.raiseUnexpectedValue(majorText.toMeaning & " length limit reached")
     when T is CborVoid:
       discard p.read()
     else:
@@ -133,7 +133,7 @@ proc parseString[T](
 template enterNestedStructure(p: CborParser) =
   inc p.currDepth
   if p.conf.nestedDepthLimit > 0 and p.currDepth > p.conf.nestedDepthLimit:
-    raiseUnexpectedValue("`nestedDepthLimit` reached")
+    p.raiseUnexpectedValue("`nestedDepthLimit` reached")
 
 template exitNestedStructure(p: CborParser) =
   dec p.currDepth
@@ -142,7 +142,7 @@ template parseArrayLike(p: var CborParser, majorExpected: uint8, body: untyped) 
   enterNestedStructure(p)
   let c = p.read()
   if c.major != majorExpected:
-    raiseUnexpectedValue(majorExpected.toMeaning, c.major.toMeaning)
+    p.raiseUnexpectedValue(majorExpected.toMeaning, c.major.toMeaning)
   if c.minor == minorIndef:
     while p.peek() != breakStopCode:
       body
@@ -156,7 +156,7 @@ template parseArray(p: var CborParser, idx, body: untyped) =
   var idx {.inject.} = 0
   parseArrayLike(p, majorArray):
     if p.conf.arrayElementsLimit > 0 and idx + 1 > p.conf.arrayElementsLimit:
-      raiseUnexpectedValue("`arrayElementsLimit` reached")
+      p.raiseUnexpectedValue("`arrayElementsLimit` reached")
     body
     inc idx
 
@@ -165,7 +165,7 @@ template parseObjectImpl(p: var CborParser, skipNullFields, keyAction, body: unt
   parseArrayLike(p, majorMap):
     inc numElem
     if p.conf.objectMembersLimit > 0 and numElem > p.conf.objectMembersLimit:
-      raiseUnexpectedValue("`objectMembersLimit` reached")
+      p.raiseUnexpectedValue("`objectMembersLimit` reached")
     keyAction
     when skipNullFields:
       if r.parser.cborKind() in {CborValueKind.Null, CborValueKind.Undefined}:
@@ -186,7 +186,7 @@ template parseTag(p: var CborParser, tag: var uint64, body: untyped) =
   enterNestedStructure(p)
   let c = p.read()
   if c.major != majorTag:
-    raiseUnexpectedValue("tag", c.major.toMeaning)
+    p.raiseUnexpectedValue("tag", c.major.toMeaning)
   tag = p.readMinorValue(c.minor)
   body
   exitNestedStructure(p)
@@ -196,7 +196,7 @@ proc parseNumberImpl(
 ) {.raises: [IOError, CborReaderError].} =
   let c = p.read()
   if c.major notin {majorUnsigned, majorNegative}:
-    raiseUnexpectedValue("number", c.major.toMeaning)
+    p.raiseUnexpectedValue("number", c.major.toMeaning)
   discard p.readMinorValue(c.minor)
 
 proc parseNumberImpl(
@@ -210,7 +210,7 @@ proc parseNumberImpl(
     of majorNegative:
       CborSign.Neg
     else:
-      raiseUnexpectedValue("number", c.major.toMeaning)
+      p.raiseUnexpectedValue("number", c.major.toMeaning)
   val.integer = p.readMinorValue(c.minor)
 
 proc parseNumber[T](
@@ -225,7 +225,7 @@ proc parseFloat(
 ): T {.gcsafe, raises: [IOError, CborReaderError].} =
   let c = p.read()
   if c.major != majorFloat:
-    raiseUnexpectedValue("float value", c.major.toMeaning)
+    p.raiseUnexpectedValue("float value", c.major.toMeaning)
   let val = p.readMinorValue(c.minor)
   if c.minor == minorLen2:
     decodeHalf(val.uint16).T
@@ -235,18 +235,18 @@ proc parseFloat(
     when T is (float or float64):
       cast[float64](val).T
     else:
-      raiseUnexpectedValue($T, "float64")
+      p.raiseUnexpectedValue($T, "float64")
   else:
-    raiseUnexpectedValue("float value argument", $c.minor)
+    p.raiseUnexpectedValue("float value argument", $c.minor)
 
 proc parseSimpleValue(
     p: var CborParser, val: var CborSimpleValue
 ) {.gcsafe, raises: [IOError, CborReaderError].} =
   let c = p.read()
   if c.major != majorSimple:
-    raiseUnexpectedValue("simple value", c.major.toMeaning)
+    p.raiseUnexpectedValue("simple value", c.major.toMeaning)
   if c.minor notin minorLen0 + {minorLen1}:
-    raiseUnexpectedValue("simple value argument", $c.minor)
+    p.raiseUnexpectedValue("simple value argument", $c.minor)
   val = p.readMinorValue(c.minor).CborSimpleValue
 
 proc readMinorValue(
@@ -261,7 +261,7 @@ proc readMinorValue(
       result = (result shl 8) or m
       val.add m
   else:
-    raiseUnexpectedValue("argument len", "value: " & $minor)
+    p.raiseUnexpectedValue("argument len", "value: " & $minor)
 
 proc parseRawHead(
     p: var CborParser, val: var CborRaw
@@ -294,7 +294,7 @@ template parseRawArrayLike(
   parseRawArrayLikeImpl(p, val):
     inc rawLen
     if limit > 0 and rawLen > limit:
-      raiseUnexpectedValue(c.major.toMeaning & " length reached")
+      p.raiseUnexpectedValue(c.major.toMeaning & " length reached")
     body
   exitNestedStructure(p)
 
@@ -307,7 +307,7 @@ template parseRawStringLikeImpl(p: var CborParser, val: var CborRaw, body: untyp
       let c2 = p.read()
       val.add c2
       if c2.major != c.major:
-        raiseUnexpectedValue(c.major.toMeaning, c2.major.toMeaning)
+        p.raiseUnexpectedValue(c.major.toMeaning, c2.major.toMeaning)
       for _ in 0 ..< readMinorValue(p, val, c2.minor):
         body
     val.add p.read() # stop code
@@ -324,7 +324,7 @@ proc parseRawStringLike(
   parseRawStringLikeImpl(p, val):
     inc rawLen
     if limit > 0 and rawLen > limit:
-      raiseUnexpectedValue(c.major.toMeaning & " length reached")
+      p.raiseUnexpectedValue(c.major.toMeaning & " length reached")
     val.add p.read()
 
 proc cborKind*(p: CborParser): CborValueKind {.raises: [IOError, CborReaderError].} =
@@ -352,7 +352,7 @@ proc cborKind*(p: CborParser): CborValueKind {.raises: [IOError, CborReaderError
     else:
       CborValueKind.Float
   else:
-    raiseUnexpectedValue("major type expected", $c.major)
+    p.raiseUnexpectedValue("major type expected", $c.major)
 
 proc parseInt*(
     r: var CborReader, T: type SomeInteger, portable = false
@@ -361,9 +361,9 @@ proc parseInt*(
   r.parser.parseNumber(val)
   when T is SomeUnsignedInt:
     if val.sign == CborSign.Neg:
-      raiseUnexpectedValue("negative int", "unsigned int")
+      r.parser.raiseUnexpectedValue("negative int", "unsigned int")
   toInt(val, T, portable).valueOr:
-    raiseIntOverflow(val.integer, val.sign == CborSign.Neg)
+    r.parser.raiseIntOverflow(val.integer, val.sign == CborSign.Neg)
 
 proc parseByteString*(
     r: var CborReader, limit: int
@@ -431,7 +431,7 @@ proc parseBool*(r: var CborReader): bool {.raises: [IOError, CborReaderError].} 
   if val.int == simpleTrue or val.int == simpleFalse:
     val.int == simpleTrue
   else:
-    raiseUnexpectedValue("bool", $val)
+    r.parser.raiseUnexpectedValue("bool", $val)
 
 proc parseValue(
     p: var CborParser, val: var CborVoid
@@ -541,7 +541,7 @@ proc parseValue*(
   of majorSimple: # or majorFloat
     parseRawHead(p, val)
   else:
-    raiseUnexpectedValue("major type expected", $c.major)
+    p.raiseUnexpectedValue("major type expected", $c.major)
 
 template parseObjectCustomKey*(r: var CborReader, keyAction, body: untyped) =
   parseObjectImpl(r.parser, r.skipNullFields, keyAction, body)

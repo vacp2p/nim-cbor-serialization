@@ -32,13 +32,13 @@ proc readValue*(r: var CborReader[StringyCbor], v: var SomeSignedInt) =
   try:
     v = type(v) parseBiggestInt readValue(r, string)
   except ValueError as err:
-    raiseUnexpectedValue("A signed integer encoded as string " & err.msg)
+    raiseUnexpectedValue(r.parser, "A signed integer encoded as string " & err.msg)
 
 proc readValue*(r: var CborReader[StringyCbor], v: var SomeUnsignedInt) =
   try:
     v = type(v) parseBiggestUInt readValue(r, string)
   except ValueError as err:
-    raiseUnexpectedValue("An unsigned integer encoded as string " & err.msg)
+    raiseUnexpectedValue(r.parser, "An unsigned integer encoded as string " & err.msg)
 
 type
   Container = object
