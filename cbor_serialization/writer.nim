@@ -369,7 +369,7 @@ proc writeValue*(w: var CborWriter, value: CborValue) {.raises: [IOError].} =
     w.writeValue(value.bytesVal)
   of CborValueKind.String:
     w.writeValue(value.strVal)
-  of CborValueKind.Number:
+  of CborValueKind.Unsigned, CborValueKind.Negative:
     w.writeValue(value.numVal)
   of CborValueKind.Float:
     w.writeValue(value.floatVal)

@@ -119,7 +119,7 @@ func compare*(lhs, rhs: CborValueRef): bool =
     lhs.bytesVal == rhs.bytesVal
   of CborValueKind.String:
     lhs.strVal == rhs.strVal
-  of CborValueKind.Number:
+  of CborValueKind.Unsigned, CborValueKind.Negative:
     lhs.numVal == rhs.numVal
   of CborValueKind.Float:
     lhs.floatVal == rhs.floatVal

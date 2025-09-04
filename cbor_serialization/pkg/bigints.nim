@@ -64,7 +64,7 @@ proc readValue*(
     reader.parser
 
   let kind = p.cborKind()
-  if kind == CborValueKind.Number:
+  if kind in {CborValueKind.Unsigned, CborValueKind.Negative}:
     var val: CborNumber
     reader.readValue(val)
     value = initBigInt(val.integer)

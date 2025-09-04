@@ -21,8 +21,9 @@ proc checkCbor*[T](cbor: seq[byte], val: T) =
   check Cbor.decode(cbor, T) == val
 
 proc numNode*(x: int): CborValueRef =
+  doAssert x >= 0
   CborValueRef(
-    kind: CborValueKind.Number,
+    kind: CborValueKind.Unsigned,
     numVal: CborNumber(integer: x.uint64, sign: CborSign.None),
   )
 

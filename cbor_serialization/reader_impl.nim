@@ -228,7 +228,7 @@ proc parseEnum[T](
   case r.parser.cborKind()
   of CborValueKind.String:
     r.parseStringEnum(value, stringNormalizer)
-  of CborValueKind.Number:
+  of CborValueKind.Unsigned, CborValueKind.Negative:
     when allowNumericRepr:
       case style
       of EnumStyle.Numeric:

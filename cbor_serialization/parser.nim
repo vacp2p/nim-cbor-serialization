@@ -330,8 +330,10 @@ proc parseRawStringLike(
 proc cborKind*(p: CborParser): CborValueKind {.raises: [IOError, CborReaderError].} =
   let c = p.peek()
   case c.major
-  of majorUnsigned, majorNegative:
-    CborValueKind.Number
+  of majorUnsigned:
+    CborValueKind.Unsigned
+  of majorNegative:
+    CborValueKind.Negative
   of majorBytes:
     CborValueKind.Bytes
   of majorText:
@@ -437,7 +439,7 @@ proc parseValue(
     p: var CborParser, val: var CborVoid
 ) {.raises: [IOError, CborReaderError].} =
   case p.cborKind()
-  of CborValueKind.Number:
+  of CborValueKind.Unsigned, CborValueKind.Negative:
     parseNumber(p, val)
   of CborValueKind.Bytes:
     parseByteString(p, val)
@@ -467,7 +469,7 @@ proc parseValue(
 ) {.raises: [IOError, CborReaderError].} =
   val = CborValueRef(kind: p.cborKind())
   case val.kind
-  of CborValueKind.Number:
+  of CborValueKind.Unsigned, CborValueKind.Negative:
     parseNumber(p, val.numVal)
   of CborValueKind.Bytes:
     parseByteString(p, val.bytesVal)

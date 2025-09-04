@@ -84,7 +84,8 @@ type
   CborValueKind* {.pure.} = enum
     Bytes
     String
-    Number
+    Unsigned
+    Negative
     Float
     Object
     Array
@@ -107,7 +108,7 @@ type
       bytesVal*: seq[byte]
     of CborValueKind.String:
       strVal*: string
-    of CborValueKind.Number:
+    of CborValueKind.Unsigned, CborValueKind.Negative:
       numVal*: CborNumber
     of CborValueKind.Float:
       floatVal*: float64
@@ -246,7 +247,7 @@ func `==`*(lhs, rhs: CborValueRef): bool =
     lhs.bytesVal == rhs.bytesVal
   of CborValueKind.String:
     lhs.strVal == rhs.strVal
-  of CborValueKind.Number:
+  of CborValueKind.Unsigned, CborValueKind.Negative:
     lhs.numVal == rhs.numVal
   of CborValueKind.Float:
     lhs.floatVal == rhs.floatVal

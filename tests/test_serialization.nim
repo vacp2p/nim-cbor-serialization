@@ -274,7 +274,7 @@ proc readValue(reader: var CborReader, value: var FancyUInt) =
     reader.registerVisit:
       var accu = 0u
       case reader.parser.cborKind()
-      of CborValueKind.Number:
+      of CborValueKind.Unsigned, CborValueKind.Negative:
         var val: int64
         reader.readValue(val)
         if val < 0:
@@ -901,7 +901,7 @@ suite "Custom parser tests":
 
     check dData.name == "FancyInt"
     check dData.data.int == -12345
-    check customVisit.entry == CborValueKind.Number
+    check customVisit.entry == CborValueKind.Negative
 
   test "Uint parser on negative integer":
     customVisit = TokenRegistry.default
@@ -912,7 +912,7 @@ suite "Custom parser tests":
 
     check dData.name == "FancyUInt"
     check dData.data.uint == 12345u # abs value
-    check customVisit.entry == CborValueKind.Number
+    check customVisit.entry == CborValueKind.Negative
 
   test "Uint parser on string integer":
     customVisit = TokenRegistry.default

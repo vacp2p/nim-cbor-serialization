@@ -21,7 +21,8 @@ proc readValue*(
 ) {.raises: [IOError, CborReaderError].} =
   let ckind = r.parser.cborKind()
   case ckind
-  of CborValueKind.Number, CborValueKind.String, CborValueKind.Null:
+  of CborValueKind.Unsigned, CborValueKind.Negative, CborValueKind.String,
+      CborValueKind.Null:
     # Keep the original value without further processing
     var raw: CborRaw
     r.parseValue(raw)
