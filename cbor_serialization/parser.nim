@@ -85,7 +85,7 @@ template parseStringLike(p: var CborParser, majorExpected: uint8, body: untyped)
 
 iterator parseByteStringIt(
     p: var CborParser, limit: int
-): byte {.inline, gcsafe, raises: [IOError, CborReaderError].} =
+): byte {.inline, raises: [IOError, CborReaderError].} =
   var strLen = 0
   parseStringLike(p, majorBytes):
     inc strLen
@@ -95,7 +95,7 @@ iterator parseByteStringIt(
 
 proc parseByteString[T](
     p: var CborParser, limit: int, val: var T
-) {.gcsafe, raises: [IOError, CborReaderError].} =
+) {.raises: [IOError, CborReaderError].} =
   when T isnot (string or seq[byte] or CborVoid):
     {.fatal: "`parseByteString` only accepts string or `seq[byte]` or `CborVoid`".}
   for v in parseByteStringIt(p, limit):
@@ -106,12 +106,12 @@ proc parseByteString[T](
 
 proc parseByteString[T](
     p: var CborParser, val: var T
-) {.gcsafe, raises: [IOError, CborReaderError].} =
+) {.raises: [IOError, CborReaderError].} =
   parseByteString[T](p, p.conf.byteStringLengthLimit, val)
 
 proc parseString[T](
     p: var CborParser, limit: int, val: var T
-) {.gcsafe, raises: [IOError, CborReaderError].} =
+) {.raises: [IOError, CborReaderError].} =
   when T isnot (string or CborVoid):
     {.fatal: "`parseString` only accepts `string` or `CborVoid`".}
   var strLen = 0
@@ -126,7 +126,7 @@ proc parseString[T](
 
 proc parseString[T](
     p: var CborParser, val: var T
-) {.gcsafe, raises: [IOError, CborReaderError].} =
+) {.raises: [IOError, CborReaderError].} =
   parseString[T](p, p.conf.stringLengthLimit, val)
 
 template enterNestedStructure(p: CborParser) =
@@ -221,7 +221,7 @@ proc parseNumber[T](
 
 proc parseFloat(
     p: var CborParser, T: type SomeFloat
-): T {.gcsafe, raises: [IOError, CborReaderError].} =
+): T {.raises: [IOError, CborReaderError].} =
   let c = p.read()
   if c.major != majorFloat:
     p.raiseUnexpectedValue("float value", c.major.toMeaning)
@@ -240,7 +240,7 @@ proc parseFloat(
 
 proc parseSimpleValue(
     p: var CborParser, val: var CborSimpleValue
-) {.gcsafe, raises: [IOError, CborReaderError].} =
+) {.raises: [IOError, CborReaderError].} =
   let c = p.read()
   if c.major != majorSimple:
     p.raiseUnexpectedValue("simple value", c.major.toMeaning)
@@ -266,7 +266,7 @@ proc readMinorValue(
 
 proc parseRawHead(
     p: var CborParser, val: var CborBytes
-) {.gcsafe, raises: [IOError, CborReaderError].} =
+) {.raises: [IOError, CborReaderError].} =
   assert p.peek().major in
     {majorUnsigned, majorNegative, majorTag, majorFloat, majorSimple}
   let c = p.read()
@@ -318,7 +318,7 @@ template parseRawStringLikeImpl(p: var CborParser, val: var CborBytes, body: unt
 
 proc parseRawStringLike(
     p: var CborParser, val: var CborBytes, limit: int
-) {.gcsafe, raises: [IOError, CborReaderError].} =
+) {.raises: [IOError, CborReaderError].} =
   assert p.peek().major in {majorBytes, majorText}
   let c = p.peek()
   var rawLen = 0
@@ -370,22 +370,20 @@ proc parseInt*(
 
 proc parseByteString*(
     r: var CborReader, limit: int
-): seq[byte] {.gcsafe, raises: [IOError, CborReaderError].} =
+): seq[byte] {.raises: [IOError, CborReaderError].} =
   r.parser.parseByteString(limit, result)
 
 proc parseByteString*(
     r: var CborReader
-): seq[byte] {.gcsafe, raises: [IOError, CborReaderError].} =
+): seq[byte] {.raises: [IOError, CborReaderError].} =
   r.parser.parseByteString(r.parser.conf.byteStringLengthLimit, result)
 
 proc parseString*(
     r: var CborReader, limit: int
-): string {.gcsafe, raises: [IOError, CborReaderError].} =
+): string {.raises: [IOError, CborReaderError].} =
   r.parser.parseString(limit, result)
 
-proc parseString*(
-    r: var CborReader
-): string {.gcsafe, raises: [IOError, CborReaderError].} =
+proc parseString*(r: var CborReader): string {.raises: [IOError, CborReaderError].} =
   r.parser.parseString(r.parser.conf.stringLengthLimit, result)
 
 template parseArray*(r: var CborReader, body: untyped) =
