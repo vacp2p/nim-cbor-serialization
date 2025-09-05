@@ -12,8 +12,8 @@ type
     port: int
 
   RawServer = object
-    name: CborRaw
-    port: CborRaw
+    name: CborBytes
+    port: CborBytes
 
 var conf = defaultCborReaderConf
 conf.nestedDepthLimit = 0

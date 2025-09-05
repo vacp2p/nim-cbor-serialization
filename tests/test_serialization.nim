@@ -48,9 +48,9 @@ type
   MyUseCaseObject = object
     field: MyCaseObject
 
-  HasCborRaw = object
+  HasCborBytes = object
     name: string
-    data: CborRaw
+    data: CborBytes
     id: int
 
   HasCborNode = object
@@ -829,7 +829,7 @@ suite "toCbor tests":
       d1 = Cbor.decode(data1, HasCborData)
       d2 = Cbor.decode(data2, HasCborData)
       d3 = Cbor.decode(data3, HasCborData)
-    when HasCborData is HasCborRaw:
+    when HasCborData is HasCborBytes:
       check:
         d1.data == "0x8401020304".unhex # [1, 2, 3, 4]
         d2.data == "0x6B736F6D6520737472696E67".unhex # "some string"
@@ -865,8 +865,8 @@ suite "toCbor tests":
       d2Encoded == data2
       d3Encoded == data3
 
-  test "Holders of CborRaw":
-    testCborHolders HasCborRaw
+  test "Holders of CborBytes":
+    testCborHolders HasCborBytes
 
   test "Holders of CborNode":
     testCborHolders HasCborNode

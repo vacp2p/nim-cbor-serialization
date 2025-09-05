@@ -318,8 +318,8 @@ proc readValue*[T](
   elif value is CborVoid:
     autoSerializeCheck(Flavor, CborVoid):
       r.skipSingleValue()
-  elif value is CborRaw:
-    autoSerializeCheck(Flavor, CborRaw):
+  elif value is CborBytes:
+    autoSerializeCheck(Flavor, CborBytes):
       r.parseValue(value)
   elif value is string:
     autoSerializeCheck(Flavor, string):

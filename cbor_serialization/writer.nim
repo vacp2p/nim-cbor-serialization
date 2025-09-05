@@ -226,7 +226,7 @@ proc write*(w: var CborWriter, val: CborTag) {.raises: [IOError].} =
     w.writeHead(majorTag, val.tag)
     w.writeValue(val.val)
 
-proc write*(w: var CborWriter, val: CborRaw) {.raises: [IOError].} =
+proc write*(w: var CborWriter, val: CborBytes) {.raises: [IOError].} =
   w.streamElement(s):
     s.write(seq[byte](val))
 
@@ -499,8 +499,8 @@ proc writeValue*[V: not void](w: var CborWriter, value: V) {.raises: [IOError].}
   elif value is CborTag:
     autoSerializeCheck(Flavor, CborTag):
       w.write value
-  elif value is CborRaw:
-    autoSerializeCheck(Flavor, CborRaw):
+  elif value is CborBytes:
+    autoSerializeCheck(Flavor, CborBytes):
       w.write value
   elif value is ref:
     autoSerializeCheck(Flavor, ref, typeof(value)):

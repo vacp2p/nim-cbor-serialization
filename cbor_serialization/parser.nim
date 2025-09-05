@@ -249,7 +249,7 @@ proc parseSimpleValue(
   val = p.readMinorValue(c.minor).CborSimpleValue
 
 proc readMinorValue(
-    p: var CborParser, val: var CborRaw, minor: uint8
+    p: var CborParser, val: var CborBytes, minor: uint8
 ): uint64 {.raises: [IOError, CborReaderError].} =
   if minor in minorLen0:
     minor.uint64
@@ -265,7 +265,7 @@ proc readMinorValue(
     p.raiseUnexpectedValue("argument len", "value: " & $minor)
 
 proc parseRawHead(
-    p: var CborParser, val: var CborRaw
+    p: var CborParser, val: var CborBytes
 ) {.gcsafe, raises: [IOError, CborReaderError].} =
   assert p.peek().major in
     {majorUnsigned, majorNegative, majorTag, majorFloat, majorSimple}
@@ -273,7 +273,7 @@ proc parseRawHead(
   val.add c
   discard readMinorValue(p, val, c.minor)
 
-template parseRawArrayLikeImpl(p: var CborParser, val: var CborRaw, body: untyped) =
+template parseRawArrayLikeImpl(p: var CborParser, val: var CborBytes, body: untyped) =
   assert p.peek().major in {majorArray, majorMap}
   let c = p.read()
   val.add c
@@ -286,7 +286,7 @@ template parseRawArrayLikeImpl(p: var CborParser, val: var CborRaw, body: untype
       body
 
 template parseRawArrayLike(
-    p: var CborParser, val: var CborRaw, limit: int, body: untyped
+    p: var CborParser, val: var CborBytes, limit: int, body: untyped
 ) =
   assert p.peek().major in {majorArray, majorMap}
   enterNestedStructure(p)
@@ -299,7 +299,7 @@ template parseRawArrayLike(
     body
   exitNestedStructure(p)
 
-template parseRawStringLikeImpl(p: var CborParser, val: var CborRaw, body: untyped) =
+template parseRawStringLikeImpl(p: var CborParser, val: var CborBytes, body: untyped) =
   assert p.peek().major in {majorBytes, majorText}
   let c = p.read()
   val.add c
@@ -317,7 +317,7 @@ template parseRawStringLikeImpl(p: var CborParser, val: var CborRaw, body: untyp
       body
 
 proc parseRawStringLike(
-    p: var CborParser, val: var CborRaw, limit: int
+    p: var CborParser, val: var CborBytes, limit: int
 ) {.gcsafe, raises: [IOError, CborReaderError].} =
   assert p.peek().major in {majorBytes, majorText}
   let c = p.peek()
@@ -516,7 +516,7 @@ proc parseValue*(
   parseValue(r.parser, result)
 
 proc parseValue*(
-    r: var CborReader, val: var CborRaw
+    r: var CborReader, val: var CborBytes
 ) {.raises: [IOError, CborReaderError].} =
   template p(): untyped =
     r.parser

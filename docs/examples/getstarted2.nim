@@ -14,7 +14,7 @@ createCborFlavor CrpcSys,
 # ANCHOR_END: Create
 
 # ANCHOR: Custom
-type CborRpcId = distinct CborRaw
+type CborRpcId = distinct CborBytes
 
 proc readValue*(
     r: var CborReader[CrpcSys], val: var CborRpcId
@@ -24,14 +24,14 @@ proc readValue*(
   of CborValueKind.Unsigned, CborValueKind.Negative, CborValueKind.String,
       CborValueKind.Null:
     # Keep the original value without further processing
-    var raw: CborRaw
+    var raw: CborBytes
     r.parseValue(raw)
     val = CborRpcId(raw)
   else:
     r.parser.raiseUnexpectedValue("Invalid RequestId, got " & $ckind)
 
 proc writeValue*(w: var CborWriter[CrpcSys], val: CborRpcId) {.raises: [IOError].} =
-  w.writeValue(CborRaw(val)) # Preserve the original content
+  w.writeValue(CborBytes(val)) # Preserve the original content
 
 # ANCHOR_END: Custom
 
@@ -52,7 +52,7 @@ CrpcSys.useDefaultSerializationFor Request
 
 # ANCHOR: Encode
 let cbor = Cbor.encode(
-  (cborrpc: "2.0", `method`: "subtract", params: [42, 3], id: Cbor.encode(1).CborRaw)
+  (cborrpc: "2.0", `method`: "subtract", params: [42, 3], id: Cbor.encode(1).CborBytes)
 )
 
 let decoded = CrpcSys.decode(cbor, Request)

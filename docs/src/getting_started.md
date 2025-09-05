@@ -67,7 +67,7 @@ Of course, someone might give us some invalid data - `cbor_serialization` will r
 
 Happy we averted a crisis by adding the forgotten exception handler, we go back to the [JSON-RPC specification](https://www.jsonrpc.org/specification#request_object) and notice that strings are actually allowed in the `id` field - further, the only thing we have to do with `id` is to pass it back in the response - we don't really care about its contents.
 
-We'll define a helper type to deal with this situation and attach some custom parsing code to it that checks the type. Using `CborRaw` as underlying storage is an easy way to pass around snippets of CBOR whose contents we don't need.
+We'll define a helper type to deal with this situation and attach some custom parsing code to it that checks the type. Using `CborBytes` as underlying storage is an easy way to pass around snippets of CBOR whose contents we don't need.
 
 The custom code is added to `readValue`/`writeValue` procedures that take the stream and our custom type as arguments:
 

@@ -17,7 +17,7 @@
   - Efficient skipping of data items for partial CBOR parsing
 - Flexibility in mixing type-based and dynamic CBOR access
   - Structured `CborValueRef` node type for DOM-style access to parsed data
-  - Flat `CborRaw` type for passing nested CBOR data between abstraction layers
+  - Flat `CborBytes` type for passing nested CBOR data between abstraction layers
 - [RFC8949 spec compliance](https://www.rfc-editor.org/rfc/rfc8949.html)
   - Passes [CBORTestVectors](https://github.com/cbor/test-vectors/)
   - Customizable parser strictness including support for non-standard extensions

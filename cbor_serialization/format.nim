@@ -45,7 +45,7 @@ template generateCborAutoSerializationAddon*(FLAVOR: typed) {.dirty.} =
       F.setAutoSerialize(CborVoid, enable)
       F.setAutoSerialize(CborValueRef, enable)
       F.setAutoSerialize(CborSimpleValue, enable)
-      F.setAutoSerialize(CborRaw, enable)
+      F.setAutoSerialize(CborBytes, enable)
       F.setAutoSerialize(object, enable)
       F.setAutoSerialize(tuple, enable)
 

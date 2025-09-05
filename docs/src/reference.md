@@ -61,7 +61,7 @@ You can adjust these defaults to suit your needs:
 
 ### Special types
 
-  - **CborRaw**: Holds a CBOR value as a distinct `seq[byte]`.
+  - **CborBytes**: Holds a CBOR value as a distinct `seq[byte]`.
   - **CborVoid**: Skips a valid CBOR value.
   - **CborNumber**: Holds a CBOR number.
     - Use `toInt(n: CborNumber, T: SomeInteger): Opt[T]` to convert it to an integer.

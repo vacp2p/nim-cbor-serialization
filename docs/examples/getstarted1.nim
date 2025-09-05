@@ -5,7 +5,7 @@ import cbor_serialization
 # ANCHOR_END: Import
 
 # ANCHOR: Custom
-type CborRpcId = distinct CborRaw
+type CborRpcId = distinct CborBytes
 
 proc readValue*(
     r: var CborReader, val: var CborRpcId
@@ -15,14 +15,14 @@ proc readValue*(
   of CborValueKind.Unsigned, CborValueKind.Negative, CborValueKind.String,
       CborValueKind.Null:
     # Keep the original value without further processing
-    var raw: CborRaw
+    var raw: CborBytes
     r.parseValue(raw)
     val = CborRpcId(raw)
   else:
     r.parser.raiseUnexpectedValue("Invalid RequestId, got " & $ckind)
 
 proc writeValue*(w: var CborWriter, val: CborRpcId) {.raises: [IOError].} =
-  w.writeValue(CborRaw(val)) # Preserve the original content
+  w.writeValue(CborBytes(val)) # Preserve the original content
 
 # ANCHOR_END: Custom
 
@@ -35,6 +35,6 @@ type Request = object
 
 let encoded = Cbor.encode((id: Cbor.encode("test").CborRpcId))
 let decoded = Cbor.decode(encoded, Request)
-echo Cbor.decode(decoded.id.CborRaw.toBytes(), string)
+echo Cbor.decode(decoded.id.CborBytes.toBytes(), string)
 
 # ANCHOR_END: Custom

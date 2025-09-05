@@ -51,7 +51,7 @@ type
 
   CborVoid* = object ## Marker used for skipping a CBOR value during parsing
 
-  CborRaw* = distinct seq[byte]
+  CborBytes* = distinct seq[byte]
     ## A seq[byte] containing valid CBOR.
     ## Used to preserve and pass on parts of CBOR to another parser
     ## or layer without interpreting it further
@@ -142,12 +142,12 @@ const
     bigNumBytesLimit: 64,
   )
 
-proc add*(a: var CborRaw, b: byte) {.borrow.}
-proc `==`*(a, b: CborRaw): bool {.borrow.}
-proc `==`*(a: CborRaw, b: seq[byte]): bool {.borrow.}
-proc `==`*(a: seq[byte], b: CborRaw): bool {.borrow.}
+proc add*(a: var CborBytes, b: byte) {.borrow.}
+proc `==`*(a, b: CborBytes): bool {.borrow.}
+proc `==`*(a: CborBytes, b: seq[byte]): bool {.borrow.}
+proc `==`*(a: seq[byte], b: CborBytes): bool {.borrow.}
 
-template toBytes*(val: CborRaw): untyped =
+template toBytes*(val: CborBytes): untyped =
   seq[byte](val)
 
 func `==`*(a, b: CborSimpleValue): bool {.borrow.}
