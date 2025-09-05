@@ -51,10 +51,10 @@ proc readMinorValue(
     p.raiseUnexpectedValue("argument len", "value: " & $minor)
 
 func major(x: byte): uint8 =
-  return x shr 5
+  x shr 5
 
 func minor(x: byte): uint8 =
-  return x and 0b0001_1111
+  x and 0b0001_1111
 
 func toMeaning(major: uint8): string =
   case major
@@ -253,13 +253,15 @@ proc readMinorValue(
     p: var CborParser, val: var CborRaw, minor: uint8
 ): uint64 {.raises: [IOError, CborReaderError].} =
   if minor in minorLen0:
-    return minor
+    minor.uint64
   elif minor in minorLens:
+    var res = 0'u64
     var m: byte
     for _ in 0 ..< minor.minorLen():
       m = p.read()
-      result = (result shl 8) or m
+      res = (res shl 8) or m
       val.add m
+    res
   else:
     p.raiseUnexpectedValue("argument len", "value: " & $minor)
 

@@ -67,7 +67,7 @@ template shouldWriteObjectField*[FieldType](field: FieldType): bool =
 func initialByte(major, minor: uint8): byte =
   assert major <= 7
   assert minor <= 31
-  return (major shl 5) or minor
+  (major shl 5) or minor
 
 func toMinorLen(val: uint64): uint8 =
   if val < minorLen1:

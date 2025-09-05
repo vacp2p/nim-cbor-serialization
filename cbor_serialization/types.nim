@@ -150,23 +150,26 @@ proc `==`*(a: seq[byte], b: CborRaw): bool {.borrow.}
 template toBytes*(val: CborRaw): untyped =
   seq[byte](val)
 
+func `==`*(a, b: CborSimpleValue): bool {.borrow.}
+func contains*(x: set[uint8], y: CborSimpleValue): bool {.borrow.}
+
 func isTrue*(v: CborSimpleValue): bool =
-  return v.int == simpleTrue
+  v == cborTrue
 
 func isFalse*(v: CborSimpleValue): bool =
-  return v.int == simpleFalse
+  v == cborFalse
 
 func isFalsy*(v: CborSimpleValue): bool =
-  return v.int == simpleFalse or v.int == simpleNull or v.int == simpleUndefined
+  v in {cborFalse, cborNull, cborUndefined}
 
 func isNull*(v: CborSimpleValue): bool =
-  return v.int == simpleNull
+  v == cborNull
 
 func isUndefined*(v: CborSimpleValue): bool =
-  return v.int == simpleUndefined
+  v == cborUndefined
 
 func isNullish*(v: CborSimpleValue): bool =
-  return v.int == simpleNull or v.int == simpleUndefined
+  v in {cborNull, cborUndefined}
 
 func `$`*(v: CborSimpleValue): string =
   if v.isTrue:
@@ -179,9 +182,6 @@ func `$`*(v: CborSimpleValue): string =
     "undefined"
   else:
     "simple value " & $v
-
-func `==`*(a, b: CborSimpleValue): bool =
-  return a.int == b.int
 
 func toInt*(sign: CborSign): int =
   case sign

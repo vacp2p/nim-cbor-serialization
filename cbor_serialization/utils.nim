@@ -10,7 +10,7 @@
 import std/[math]
 
 proc ldexp(x: float64, exp: int): float64 =
-  return x * pow(2.0, float64(exp))
+  x * pow(2.0, float64(exp))
 
 # https://www.rfc-editor.org/rfc/rfc8949.html#name-half-precision
 proc decodeHalf*(half: uint16): float =
