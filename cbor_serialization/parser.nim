@@ -13,9 +13,8 @@ import ./[reader_desc, utils]
 
 export reader_desc
 
-type CustomStringHandler* = ##\
+type CustomStringHandler* = proc(b: char) {.gcsafe, raises: [].}
   ## Custom text or binary parser, result values need to be captured.
-  proc(b: char) {.gcsafe, raises: [].}
 
 template peek(p: CborParser): byte =
   if not p.stream.readable:
