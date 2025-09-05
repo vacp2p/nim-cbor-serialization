@@ -24,7 +24,7 @@
 {.push raises: [], gcsafe.}
 
 import
-  std/[math], faststreams/[outputs], stew/[endians2], serialization, "."/[format, types]
+  std/[math], faststreams/[outputs], stew/[endians2], serialization, ./[format, types]
 
 export outputs, format, types, DefaultFlavor
 

@@ -13,7 +13,7 @@ import
   std/[strformat],
   faststreams/inputs,
   serialization/[formats, errors, object_serialization],
-  "."/[format, types]
+  ./[format, types]
 
 export inputs, format, types, errors, DefaultFlavor
 

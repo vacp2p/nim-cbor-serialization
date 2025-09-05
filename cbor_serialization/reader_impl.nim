@@ -15,7 +15,7 @@ import
   stew/[enums, objects],
   faststreams/inputs,
   serialization/[object_serialization, errors],
-  "."/[format, types, parser, reader_desc]
+  ./[format, types, parser, reader_desc]
 
 export enumutils, inputs, format, types, errors, parser, reader_desc
 
