@@ -1,0 +1,18 @@
+import cbor_serialization, stew/[byteutils]
+
+var output = memoryOutput()
+var writer = CborWriter[DefaultFlavor].init(output)
+
+writer.beginArray()
+
+for i in 0 ..< 2:
+  writer.beginObject()
+
+  writer.writeMember("id", i)
+  writer.writeMember("name", "item" & $i)
+
+  writer.endObject()
+
+writer.endArray()
+
+echo output.getOutput(seq[byte]).to0xHex()
