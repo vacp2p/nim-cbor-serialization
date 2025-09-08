@@ -40,6 +40,7 @@ proc readMinorValue(
   if minor in minorLen0:
     minor.uint64
   elif minor in minorLens:
+    # https://www.rfc-editor.org/rfc/rfc8949#section-3-3.4
     var res = 0'u64
     for _ in 0 ..< minor.minorLen():
       res = (res shl 8) or p.read()
