@@ -368,6 +368,14 @@ EnumTestO.configureCborDeserialization(
 )
 
 createCborFlavor MyCbor
+createCborFlavor AutoCbor,
+  automaticObjectSerialization = true,
+  requireAllFields = true,
+  allowUnknownFields = true
+createCborFlavor RequireAllFieldsOffCbor,
+  automaticObjectSerialization = true, requireAllFields = false
+createCborFlavor AllowUnknownFieldsOffCbor,
+  automaticObjectSerialization = true, allowUnknownFields = false
 
 type
   HasMyCborDefaultBehavior = object
@@ -566,7 +574,7 @@ suite "toCbor tests":
     # {"x": -20, "futureObject": {"a": -1, "b": [1, 2.0, 3.1], "c": null, "d": true}, "futureBool": false, "y": "y value"}
     let cbor =
       "0xA46178336C6675747572654F626A656374A461612061628301F94000FB4008CCCCCCCCCCCD6163F66164F56A667574757265426F6F6CF4617967792076616C7565".unhex
-    let decoded = Cbor.decode(cbor, Simple, allowUnknownFields = true)
+    let decoded = RequireAllFieldsOffCbor.decode(cbor, Simple)
     check:
       decoded.x == -20
       decoded.y == "y value"
@@ -578,7 +586,7 @@ suite "toCbor tests":
   test "all fields are required and present":
     # {"x": 20, "distance": 10, "y": "y value"}
     let cbor = "0xA36178146864697374616E63650A617967792076616C7565".unhex
-    let decoded = Cbor.decode(cbor, Simple, requireAllFields = true)
+    let decoded = AutoCbor.decode(cbor, Simple)
     check:
       decoded.x == 20
       decoded.y == "y value"
@@ -588,7 +596,7 @@ suite "toCbor tests":
     # {"x": -20, "distance": 10}
     let cbor = "0xA26178336864697374616E63650A".unhex
     expect IncompleteObjectError:
-      let shouldNotDecode = Cbor.decode(cbor, Simple, requireAllFields = true)
+      let shouldNotDecode = AutoCbor.decode(cbor, Simple)
       echo "This should not have decoded ", shouldNotDecode
 
   test "all fields were required, but not all were provided (additional fields present instead)":
@@ -596,15 +604,14 @@ suite "toCbor tests":
     let cbor =
       "0xA46A667574757265426F6F6CF4617967792076616C75656C6675747572654F626A656374A461612061628301F94000FB4008CCCCCCCCCCCD6163F66164F56864697374616E63650A".unhex
     expect IncompleteObjectError:
-      let shouldNotDecode =
-        Cbor.decode(cbor, Simple, requireAllFields = true, allowUnknownFields = true)
+      let shouldNotDecode = AutoCbor.decode(cbor, Simple)
       echo "This should not have decoded ", shouldNotDecode
 
   test "all fields were required, but none were provided":
     # {}
     let cbor = "0xA0".unhex
     expect IncompleteObjectError:
-      let shouldNotDecode = Cbor.decode(cbor, Simple, requireAllFields = true)
+      let shouldNotDecode = AutoCbor.decode(cbor, Simple)
       echo "This should not have decoded ", shouldNotDecode
 
   test "all fields are required and provided, and additional ones are present":
@@ -613,7 +620,7 @@ suite "toCbor tests":
       "0xA56178146864697374616E63650A6A667574757265426F6F6CF4617967792076616C75656C6675747572654F626A656374A461612061628301F94000FB4008CCCCCCCCCCCD6163F66164F5".unhex
     let decoded =
       try:
-        Cbor.decode(cbor, Simple, requireAllFields = true, allowUnknownFields = true)
+        AutoCbor.decode(cbor, Simple)
       except SerializationError as err:
         checkpoint "Unexpected deserialization failure: " & err.formatMsg("<input>")
         raise
@@ -622,8 +629,7 @@ suite "toCbor tests":
       decoded.y == "y value"
       decoded.distance.int == 10
     expect UnexpectedFieldError:
-      let shouldNotDecode =
-        Cbor.decode(cbor, Simple, requireAllFields = true, allowUnknownFields = false)
+      let shouldNotDecode = AllowUnknownFieldsOffCbor.decode(cbor, Simple)
       echo "This should not have decoded ", shouldNotDecode
 
   test "arrays are printed correctly":
@@ -682,7 +688,7 @@ suite "toCbor tests":
     let
       h1 = HoldsOption(o: some Simple(x: 1, y: "2", distance: Meter(3)))
       h2 = HoldsOption(r: newSimple(1, "2", Meter(3)))
-      h3 = Cbor.decode(h2.toCbor(), HoldsOption, requireAllFields = true)
+      h3 = Cbor.decode(h2.toCbor(), HoldsOption)
 
     # {"r":null,"o":{"distance":3,"x":1,"y":"2"}}
     Cbor.roundtripTest h1, "0xA26172F6616FA36864697374616E63650361780161796132".unhex
@@ -691,10 +697,8 @@ suite "toCbor tests":
     check h3 == h2
     expect SerializationError:
       #{ "o":{"distance":3,"x":1,"y":"2"}}
-      let h4 = Cbor.decode(
-        "0xA1616FA36864697374616E63650361780161796132".unhex,
-        HoldsOption,
-        requireAllFields = true,
+      let h4 = AutoCbor.decode(
+        "0xA1616FA36864697374616E63650361780161796132".unhex, HoldsOption
       )
       discard h4
 
@@ -772,20 +776,16 @@ suite "toCbor tests":
       # {"r":{"distance":3,"x":1,"y":"2"}}
 
     # {"r":{"distance":3,"x":1,"y":"2"}}
-    let h3 = Cbor.decode(
-      "0xA16172A36864697374616E63650361780161796132".unhex,
-      HoldsResultOpt,
-      requireAllFields = true,
+    let h3 = AutoCbor.decode(
+      "0xA16172A36864697374616E63650361780161796132".unhex, HoldsResultOpt
     )
 
     check h3 == h2
 
     expect SerializationError:
       # {"o":{"distance":3,"x":1,"y":"2"}}
-      let h4 = Cbor.decode(
-        "0xA1616FA36864697374616E63650361780161796132".unhex,
-        HoldsResultOpt,
-        requireAllFields = true,
+      let h4 = AutoCbor.decode(
+        "0xA1616FA36864697374616E63650361780161796132".unhex, HoldsResultOpt
       )
       discard h4
 
@@ -923,8 +923,6 @@ suite "Custom parser tests":
     check dData.data.uint == 12345u
     check customVisit.entry == CborValueKind.String
 
-const cborFlags = defaultCborReaderFlags
-
 suite "Parser limits":
   test "Object nestedDepthLimit":
     type
@@ -940,13 +938,9 @@ suite "Parser limits":
     let cbor = Cbor.encode(Obj1())
     check:
       Cbor.decode(cbor, Obj1) == Obj1()
-      Cbor.decode(
-        cbor, Obj1, flags = cborFlags, conf = CborReaderConf(nestedDepthLimit: 3)
-      ) == Obj1()
+      Cbor.decode(cbor, Obj1, conf = CborReaderConf(nestedDepthLimit: 3)) == Obj1()
     expect UnexpectedValueError:
-      discard Cbor.decode(
-        cbor, Obj1, flags = cborFlags, conf = CborReaderConf(nestedDepthLimit: 2)
-      )
+      discard Cbor.decode(cbor, Obj1, conf = CborReaderConf(nestedDepthLimit: 2))
 
   test "Array nestedDepthLimit":
     type Arr3 = seq[seq[seq[string]]]
@@ -954,13 +948,9 @@ suite "Parser limits":
     let cbor = Cbor.encode(val)
     check:
       Cbor.decode(cbor, Arr3) == val
-      Cbor.decode(
-        cbor, Arr3, flags = cborFlags, conf = CborReaderConf(nestedDepthLimit: 3)
-      ) == val
+      Cbor.decode(cbor, Arr3, conf = CborReaderConf(nestedDepthLimit: 3)) == val
     expect UnexpectedValueError:
-      discard Cbor.decode(
-        cbor, Arr3, flags = cborFlags, conf = CborReaderConf(nestedDepthLimit: 2)
-      )
+      discard Cbor.decode(cbor, Arr3, conf = CborReaderConf(nestedDepthLimit: 2))
 
   test "Array/Object mix nestedDepthLimit":
     type
@@ -974,13 +964,9 @@ suite "Parser limits":
     let cbor = Cbor.encode(val)
     check:
       Cbor.decode(cbor, Obj1) == val
-      Cbor.decode(
-        cbor, Obj1, flags = cborFlags, conf = CborReaderConf(nestedDepthLimit: 3)
-      ) == val
+      Cbor.decode(cbor, Obj1, conf = CborReaderConf(nestedDepthLimit: 3)) == val
     expect UnexpectedValueError:
-      discard Cbor.decode(
-        cbor, Obj1, flags = cborFlags, conf = CborReaderConf(nestedDepthLimit: 2)
-      )
+      discard Cbor.decode(cbor, Obj1, conf = CborReaderConf(nestedDepthLimit: 2))
 
   test "Tag nestedDepthLimit":
     type
@@ -992,32 +978,19 @@ suite "Parser limits":
     let cbor = Cbor.encode(val)
     check:
       Cbor.decode(cbor, Tag1) == val
-      Cbor.decode(
-        cbor, Tag1, flags = cborFlags, conf = CborReaderConf(nestedDepthLimit: 3)
-      ) == val
+      Cbor.decode(cbor, Tag1, conf = CborReaderConf(nestedDepthLimit: 3)) == val
     expect UnexpectedValueError:
-      discard Cbor.decode(
-        cbor, Tag1, flags = cborFlags, conf = CborReaderConf(nestedDepthLimit: 2)
-      )
+      discard Cbor.decode(cbor, Tag1, conf = CborReaderConf(nestedDepthLimit: 2))
 
   test "Array arrayElementsLimit":
     let val = @["a", "b", "c"]
     let cbor = Cbor.encode(val)
     check:
       Cbor.decode(cbor, seq[string]) == val
-      Cbor.decode(
-        cbor,
-        seq[string],
-        flags = cborFlags,
-        conf = CborReaderConf(arrayElementsLimit: 3),
-      ) == val
+      Cbor.decode(cbor, seq[string], conf = CborReaderConf(arrayElementsLimit: 3)) == val
     expect UnexpectedValueError:
-      discard Cbor.decode(
-        cbor,
-        seq[string],
-        flags = cborFlags,
-        conf = CborReaderConf(arrayElementsLimit: 2),
-      )
+      discard
+        Cbor.decode(cbor, seq[string], conf = CborReaderConf(arrayElementsLimit: 2))
 
   test "Object objectMembersLimit":
     type Obj1 = object
@@ -1026,42 +999,26 @@ suite "Parser limits":
     let cbor = Cbor.encode(Obj1())
     check:
       Cbor.decode(cbor, Obj1) == Obj1()
-      Cbor.decode(
-        cbor, Obj1, flags = cborFlags, conf = CborReaderConf(objectMembersLimit: 3)
-      ) == Obj1()
+      Cbor.decode(cbor, Obj1, conf = CborReaderConf(objectMembersLimit: 3)) == Obj1()
     expect UnexpectedValueError:
-      discard Cbor.decode(
-        cbor, Obj1, flags = cborFlags, conf = CborReaderConf(objectMembersLimit: 2)
-      )
+      discard Cbor.decode(cbor, Obj1, conf = CborReaderConf(objectMembersLimit: 2))
 
   test "String stringLengthLimit":
     let val = "abc"
     let cbor = Cbor.encode(val)
     check:
       Cbor.decode(cbor, string) == val
-      Cbor.decode(
-        cbor, string, flags = cborFlags, conf = CborReaderConf(stringLengthLimit: 3)
-      ) == val
+      Cbor.decode(cbor, string, conf = CborReaderConf(stringLengthLimit: 3)) == val
     expect UnexpectedValueError:
-      discard Cbor.decode(
-        cbor, string, flags = cborFlags, conf = CborReaderConf(stringLengthLimit: 2)
-      )
+      discard Cbor.decode(cbor, string, conf = CborReaderConf(stringLengthLimit: 2))
 
   test "ByteString byteStringLengthLimit":
     let val = @[1'u8, 2'u8, 3'u8]
     let cbor = Cbor.encode(val)
     check:
       Cbor.decode(cbor, seq[byte]) == val
-      Cbor.decode(
-        cbor,
-        seq[byte],
-        flags = cborFlags,
-        conf = CborReaderConf(byteStringLengthLimit: 3),
-      ) == val
+      Cbor.decode(cbor, seq[byte], conf = CborReaderConf(byteStringLengthLimit: 3)) ==
+        val
     expect UnexpectedValueError:
-      discard Cbor.decode(
-        cbor,
-        seq[byte],
-        flags = cborFlags,
-        conf = CborReaderConf(byteStringLengthLimit: 2),
-      )
+      discard
+        Cbor.decode(cbor, seq[byte], conf = CborReaderConf(byteStringLengthLimit: 2))

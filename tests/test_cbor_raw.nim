@@ -18,8 +18,6 @@ proc specData(): seq[string] =
     result.add record["hex"].getStr()
   doAssert result.len > 0
 
-const cborFlags = defaultCborReaderFlags
-
 suite "Test CborBytes":
   test "decode spec vectors":
     let cborData = specData()
@@ -47,25 +45,17 @@ suite "Test CborBytes":
     let cbor = Cbor.encode((x: (y: (z: "a"))))
     check:
       Cbor.decode(cbor, CborBytes) == cbor
-      Cbor.decode(
-        cbor, CborBytes, flags = cborFlags, conf = CborReaderConf(nestedDepthLimit: 3)
-      ) == cbor
+      Cbor.decode(cbor, CborBytes, conf = CborReaderConf(nestedDepthLimit: 3)) == cbor
     expect UnexpectedValueError:
-      discard Cbor.decode(
-        cbor, CborBytes, flags = cborFlags, conf = CborReaderConf(nestedDepthLimit: 2)
-      )
+      discard Cbor.decode(cbor, CborBytes, conf = CborReaderConf(nestedDepthLimit: 2))
 
   test "Array nestedDepthLimit":
     let cbor = Cbor.encode(@[@[@["a", "b"], @["c", "d"]], @[@["e", "f"]]])
     check:
       Cbor.decode(cbor, CborBytes) == cbor
-      Cbor.decode(
-        cbor, CborBytes, flags = cborFlags, conf = CborReaderConf(nestedDepthLimit: 3)
-      ) == cbor
+      Cbor.decode(cbor, CborBytes, conf = CborReaderConf(nestedDepthLimit: 3)) == cbor
     expect UnexpectedValueError:
-      discard Cbor.decode(
-        cbor, CborBytes, flags = cborFlags, conf = CborReaderConf(nestedDepthLimit: 2)
-      )
+      discard Cbor.decode(cbor, CborBytes, conf = CborReaderConf(nestedDepthLimit: 2))
 
   test "Tag nestedDepthLimit":
     type
@@ -77,64 +67,40 @@ suite "Test CborBytes":
       Cbor.encode(Tag1(tag: 123, val: Tag2(tag: 456, val: Tag3(tag: 789, val: "foo"))))
     check:
       Cbor.decode(cbor, CborBytes) == cbor
-      Cbor.decode(
-        cbor, CborBytes, flags = cborFlags, conf = CborReaderConf(nestedDepthLimit: 3)
-      ) == cbor
+      Cbor.decode(cbor, CborBytes, conf = CborReaderConf(nestedDepthLimit: 3)) == cbor
     expect UnexpectedValueError:
-      discard Cbor.decode(
-        cbor, Tag1, flags = cborFlags, conf = CborReaderConf(nestedDepthLimit: 2)
-      )
+      discard Cbor.decode(cbor, Tag1, conf = CborReaderConf(nestedDepthLimit: 2))
 
   test "Array arrayElementsLimit":
     let cbor = Cbor.encode(@["a", "b", "c"])
     check:
       Cbor.decode(cbor, CborBytes) == cbor
-      Cbor.decode(
-        cbor, CborBytes, flags = cborFlags, conf = CborReaderConf(arrayElementsLimit: 3)
-      ) == cbor
+      Cbor.decode(cbor, CborBytes, conf = CborReaderConf(arrayElementsLimit: 3)) == cbor
     expect UnexpectedValueError:
-      discard Cbor.decode(
-        cbor, CborBytes, flags = cborFlags, conf = CborReaderConf(arrayElementsLimit: 2)
-      )
+      discard Cbor.decode(cbor, CborBytes, conf = CborReaderConf(arrayElementsLimit: 2))
 
   test "Object objectMembersLimit":
     let cbor = Cbor.encode((a: "a", b: "b", c: "c"))
     check:
       Cbor.decode(cbor, CborBytes) == cbor
-      Cbor.decode(
-        cbor, CborBytes, flags = cborFlags, conf = CborReaderConf(objectMembersLimit: 3)
-      ) == cbor
+      Cbor.decode(cbor, CborBytes, conf = CborReaderConf(objectMembersLimit: 3)) == cbor
     expect UnexpectedValueError:
-      discard Cbor.decode(
-        cbor, CborBytes, flags = cborFlags, conf = CborReaderConf(objectMembersLimit: 2)
-      )
+      discard Cbor.decode(cbor, CborBytes, conf = CborReaderConf(objectMembersLimit: 2))
 
   test "String stringLengthLimit":
     let cbor = Cbor.encode("abc")
     check:
       Cbor.decode(cbor, CborBytes) == cbor
-      Cbor.decode(
-        cbor, CborBytes, flags = cborFlags, conf = CborReaderConf(stringLengthLimit: 3)
-      ) == cbor
+      Cbor.decode(cbor, CborBytes, conf = CborReaderConf(stringLengthLimit: 3)) == cbor
     expect UnexpectedValueError:
-      discard Cbor.decode(
-        cbor, CborBytes, flags = cborFlags, conf = CborReaderConf(stringLengthLimit: 2)
-      )
+      discard Cbor.decode(cbor, CborBytes, conf = CborReaderConf(stringLengthLimit: 2))
 
   test "ByteString byteStringLengthLimit":
     let cbor = Cbor.encode(@[1.byte, 2, 3])
     check:
       Cbor.decode(cbor, CborBytes) == cbor
-      Cbor.decode(
-        cbor,
-        CborBytes,
-        flags = cborFlags,
-        conf = CborReaderConf(byteStringLengthLimit: 3),
-      ) == cbor
+      Cbor.decode(cbor, CborBytes, conf = CborReaderConf(byteStringLengthLimit: 3)) ==
+        cbor
     expect UnexpectedValueError:
-      discard Cbor.decode(
-        cbor,
-        CborBytes,
-        flags = cborFlags,
-        conf = CborReaderConf(byteStringLengthLimit: 2),
-      )
+      discard
+        Cbor.decode(cbor, CborBytes, conf = CborReaderConf(byteStringLengthLimit: 2))

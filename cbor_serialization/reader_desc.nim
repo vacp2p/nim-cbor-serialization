@@ -19,7 +19,6 @@ export inputs, format, types, errors, DefaultFlavor
 
 type CborParser* = object
   stream*: InputStream
-  flags*: CborReaderFlags
   conf*: CborReaderConf
   currDepth*: int
 
@@ -104,33 +103,15 @@ func raiseIncompleteObject*(
 proc init*(
     T: type CborParser,
     stream: InputStream,
-    flags: CborReaderFlags = defaultCborReaderFlags,
     conf: CborReaderConf = defaultCborReaderConf,
 ): T =
-  T(stream: stream, flags: flags, conf: conf, currDepth: 0)
+  T(stream: stream, conf: conf, currDepth: 0)
 
 proc init*(
     T: type CborReader,
     stream: InputStream,
-    flags: CborReaderFlags,
     conf: CborReaderConf = defaultCborReaderConf,
 ): T =
-  result.parser = CborParser.init(stream, flags, conf)
-
-proc init*(
-    T: type CborReader,
-    stream: InputStream,
-    allowUnknownFields = false,
-    requireAllFields = false,
-): T =
-  mixin flavorAllowsUnknownFields, flavorRequiresAllFields
-  type Flavor = T.Flavor
-
-  var flags = defaultCborReaderFlags
-  if allowUnknownFields or flavorAllowsUnknownFields(Flavor):
-    flags.incl CborReaderFlag.allowUnknownFields
-  if requireAllFields or flavorRequiresAllFields(Flavor):
-    flags.incl CborReaderFlag.requireAllFields
-  result.parser = CborParser.init(stream, flags)
+  result.parser = CborParser.init(stream, conf)
 
 {.pop.}

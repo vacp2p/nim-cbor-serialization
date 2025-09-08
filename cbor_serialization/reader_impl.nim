@@ -19,12 +19,6 @@ import
 
 export enumutils, inputs, format, types, errors, parser, reader_desc
 
-func allowUnknownFields(r: CborReader): bool =
-  CborReaderFlag.allowUnknownFields in r.parser.flags
-
-func requireAllFields(r: CborReader): bool =
-  CborReaderFlag.requireAllFields in r.parser.flags
-
 func allocPtr[T](p: var ptr T) =
   p = create(T)
 
@@ -121,17 +115,18 @@ proc readRecordValue*[T](
         let reader = fieldsTable[fieldIdx].reader
         reader(value, r)
         encounteredFields.setBitInArray(fieldIdx)
-      elif r.allowUnknownFields:
+      elif flavorAllowsUnknownFields(r.Flavor):
         r.skipSingleValue()
       else:
         r.parser.raiseUnexpectedField(key, cstring typeName)
 
-    if r.requireAllFields and not expectedFields.isBitwiseSubsetOf(encounteredFields):
+    if flavorRequiresAllFields(r.Flavor) and
+        not expectedFields.isBitwiseSubsetOf(encounteredFields):
       r.parser.raiseIncompleteObject(typeName)
   else:
     r.parseObject(key):
       # avoid bloat by putting this if inside parseObject
-      if r.allowUnknownFields:
+      if flavorAllowsUnknownFields(r.Flavor):
         r.skipSingleValue()
       else:
         r.parser.raiseUnexpectedField(key, cstring typeName)

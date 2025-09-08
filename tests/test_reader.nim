@@ -96,6 +96,11 @@ type
     `null`: CborValueRef
     `array`: CborValueRef
 
+createCborFlavor AllowUnknownOnCbor,
+  automaticObjectSerialization = true, allowUnknownFields = true
+createCborFlavor AllowUnknownOffCbor,
+  automaticObjectSerialization = true, allowUnknownFields = false
+
 suite "CborReader basic test":
   test "readArray iterator":
     var r = toReader "0x83F4F5F4".unhex
@@ -232,14 +237,14 @@ suite "CborReader basic test":
 
     block:
       var stream = memoryInput(cbor1.unhex)
-      var r = CborReader[DefaultFlavor].init(stream, allowUnknownFields = true)
+      var r = CborReader[AllowUnknownOnCbor].init(stream)
 
       check:
         r.readValue(NoFields) == NoFields()
 
     block:
       var stream = memoryInput(cbor1.unhex)
-      var r = CborReader[DefaultFlavor].init(stream, allowUnknownFields = false)
+      var r = CborReader[AllowUnknownOffCbor].init(stream)
 
       expect(CborReaderError):
         discard r.readValue(NoFields)

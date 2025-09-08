@@ -25,26 +25,13 @@ A reader can be created from any [faststreams](https://github.com/status-im/nim-
 
 ### Parser options
 
-Parser options allow you to control the strictness and limits of the parser. Set them by passing to `Cbor.decode` or when initializing the reader:
+Parser options allow you to control the limits of the parser. Set them by passing to `Cbor.decode` or when initializing the reader:
 
 ```nim
-let flags = defaultCborReaderFlags + {allowUnknownFields}
-
-var conf = defaultCborReaderConf
-conf.nestedDepthLimit = 0
-
-let native = Cbor.decode(
-  rawCbor, NimServer, flags = flags, conf = conf)
+  rawCbor, NimServer, conf = defaultCborReaderConf(nestedDepthLimit: 0))
 ```
 
 [Flavors](#flavors) can be used to override the defaults for some these options.
-
-#### Flags
-
-Flags control aspects of the parser that are not all part of the CBOR standard, but commonly found in the wild:
-
-  - **allowUnknownFields [=off]**: Skip unknown fields instead of raising an error.
-  - **requireAllFields [=off]**: Raise an error if any required field is missing.
 
 #### Limits
 
@@ -113,6 +100,8 @@ OptionalFields.useDefaultSerializationIn OptCbor
 ```
 
 - `automaticObjectSerialization`: By default, all object types are accepted by `cbor_serialization` - disable automatic object serialization to only serialize explicitly allowed types
+- `allowUnknownFields`: Skip unknown fields instead of raising an error.
+- `requireAllFields`: Raise an error if any required field is missing.
 - `omitOptionalFields`: Writer ignores fields with null values.
 - `skipNullFields`: Reader ignores fields with null values.
 

@@ -66,12 +66,6 @@ type
 
   CborSimpleValue* = distinct uint8
 
-  CborReaderFlag* {.pure.} = enum
-    allowUnknownFields
-    requireAllFields
-
-  CborReaderFlags* = set[CborReaderFlag]
-
   CborReaderConf* = object
     nestedDepthLimit*: int
     arrayElementsLimit*: int
@@ -130,17 +124,14 @@ const
   cborNull* = simpleNull.CborSimpleValue
   cborUndefined* = simpleUndefined.CborSimpleValue
 
-const
-  defaultCborReaderFlags*: set[CborReaderFlag] = {}
-
-  defaultCborReaderConf* = CborReaderConf(
-    nestedDepthLimit: 512,
-    arrayElementsLimit: 0,
-    objectMembersLimit: 0,
-    stringLengthLimit: 0,
-    byteStringLengthLimit: 0,
-    bigNumBytesLimit: 64,
-  )
+const defaultCborReaderConf* = CborReaderConf(
+  nestedDepthLimit: 512,
+  arrayElementsLimit: 0,
+  objectMembersLimit: 0,
+  stringLengthLimit: 0,
+  byteStringLengthLimit: 0,
+  bigNumBytesLimit: 64,
+)
 
 proc add*(a: var CborBytes, b: byte) {.borrow.}
 proc `==`*(a, b: CborBytes): bool {.borrow.}

@@ -15,8 +15,6 @@ import
   ../cbor_serialization,
   ../cbor_serialization/pkg/bigints
 
-const cborFlags = defaultCborReaderFlags
-
 suite "Test BigInt":
   test "Spec unsigned bignum tag encode":
     let val = "18446744073709551616".initBigInt
@@ -73,13 +71,9 @@ suite "Test BigInt":
     let cbor = Cbor.encode(val)
     check:
       Cbor.decode(cbor, BigInt) == val
-      Cbor.decode(
-        cbor, BigInt, flags = cborFlags, conf = CborReaderConf(bigNumBytesLimit: 16)
-      ) == val
+      Cbor.decode(cbor, BigInt, conf = CborReaderConf(bigNumBytesLimit: 16)) == val
     expect UnexpectedValueError:
-      discard Cbor.decode(
-        cbor, BigInt, flags = cborFlags, conf = CborReaderConf(bigNumBytesLimit: 15)
-      )
+      discard Cbor.decode(cbor, BigInt, conf = CborReaderConf(bigNumBytesLimit: 15))
 
 test "Tag negative Bignum bigNumBytesLimit":
   var val = (initBigInt(1) shl 128) - initBigInt(1)
@@ -87,13 +81,9 @@ test "Tag negative Bignum bigNumBytesLimit":
   let cbor = Cbor.encode(val)
   check:
     Cbor.decode(cbor, BigInt) == val
-    Cbor.decode(
-      cbor, BigInt, flags = cborFlags, conf = CborReaderConf(bigNumBytesLimit: 16)
-    ) == val
+    Cbor.decode(cbor, BigInt, conf = CborReaderConf(bigNumBytesLimit: 16)) == val
   expect UnexpectedValueError:
-    discard Cbor.decode(
-      cbor, BigInt, flags = cborFlags, conf = CborReaderConf(bigNumBytesLimit: 15)
-    )
+    discard Cbor.decode(cbor, BigInt, conf = CborReaderConf(bigNumBytesLimit: 15))
 
 test "Tag negative Bignum bigNumBytesLimit":
   # this triggers the limit check for negativeTag
@@ -102,6 +92,4 @@ test "Tag negative Bignum bigNumBytesLimit":
   let cbor = Cbor.encode(val)
   check Cbor.decode(cbor, BigInt) == val
   expect UnexpectedValueError:
-    discard Cbor.decode(
-      cbor, BigInt, flags = cborFlags, conf = CborReaderConf(bigNumBytesLimit: 16)
-    )
+    discard Cbor.decode(cbor, BigInt, conf = CborReaderConf(bigNumBytesLimit: 16))
