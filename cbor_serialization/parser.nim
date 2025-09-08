@@ -26,12 +26,6 @@ template read(p: CborParser): byte =
     p.raiseUnexpectedValue("unexpected eof")
   inputs.read(p.stream)
 
-proc read(p: CborParser, n: int): uint64 {.raises: [IOError, CborReaderError].} =
-  assert n in 1 .. 8
-  result = 0
-  for _ in 0 ..< n:
-    result = (result shl 8) or p.read()
-
 func minorLen(minor: uint8): int =
   assert minor in minorLens
   if minor < minorLen1:
@@ -39,16 +33,21 @@ func minorLen(minor: uint8): int =
   else:
     1 shl (minor - minorLen1)
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3
 proc readMinorValue(
     p: CborParser, minor: uint8
 ): uint64 {.raises: [IOError, CborReaderError].} =
   if minor in minorLen0:
     minor.uint64
   elif minor in minorLens:
-    p.read(minor.minorLen())
+    var res = 0'u64
+    for _ in 0 ..< minor.minorLen():
+      res = (res shl 8) or p.read()
+    res
   else:
     p.raiseUnexpectedValue("argument len", "value: " & $minor)
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3-2
 func major(x: byte): uint8 =
   x shr 5
 
@@ -72,6 +71,7 @@ template parseStringLike(p: var CborParser, majorExpected: uint8, body: untyped)
   if c.major != majorExpected:
     p.raiseUnexpectedValue(majorExpected.toMeaning, c.major.toMeaning)
   if c.minor == minorIndef:
+    # https://www.rfc-editor.org/rfc/rfc8949#section-3.2.3
     while p.peek() != breakStopCode:
       let c2 = p.read()
       if c2.major != majorExpected:
@@ -80,9 +80,11 @@ template parseStringLike(p: var CborParser, majorExpected: uint8, body: untyped)
         body
     discard p.read() # stop code
   else:
+    # https://www.rfc-editor.org/rfc/rfc8949#section-3-3.2
     for _ in 0 ..< readMinorValue(p, c.minor):
       body
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.6
 iterator parseByteStringIt(
     p: var CborParser, limit: int
 ): byte {.inline, raises: [IOError, CborReaderError].} =
@@ -109,6 +111,7 @@ proc parseByteString[T](
 ) {.raises: [IOError, CborReaderError].} =
   parseByteString[T](p, p.conf.byteStringLengthLimit, val)
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.8
 proc parseString[T](
     p: var CborParser, limit: int, val: var T
 ) {.raises: [IOError, CborReaderError].} =
@@ -143,14 +146,17 @@ template parseArrayLike(p: var CborParser, majorExpected: uint8, body: untyped) 
   if c.major != majorExpected:
     p.raiseUnexpectedValue(majorExpected.toMeaning, c.major.toMeaning)
   if c.minor == minorIndef:
+    # https://www.rfc-editor.org/rfc/rfc8949#section-3.2.2
     while p.peek() != breakStopCode:
       body
     discard p.read() # stop code
   else:
+    # https://www.rfc-editor.org/rfc/rfc8949#section-3-3.2
     for _ in 0 ..< readMinorValue(p, c.minor):
       body
   exitNestedStructure(p)
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.10
 template parseArray(p: var CborParser, idx, body: untyped) =
   var idx {.inject.} = 0
   parseArrayLike(p, majorArray):
@@ -159,6 +165,7 @@ template parseArray(p: var CborParser, idx, body: untyped) =
     body
     inc idx
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.12
 template parseObjectImpl(p: var CborParser, skipNullFields, keyAction, body: untyped) =
   var numElem = 0
   parseArrayLike(p, majorMap):
@@ -181,6 +188,7 @@ template parseObject(p: var CborParser, skipNullFields, key, body: untyped) =
   do:
     body
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.4
 template parseTag(p: var CborParser, tag: var uint64, body: untyped) =
   enterNestedStructure(p)
   let c = p.read()
@@ -190,14 +198,8 @@ template parseTag(p: var CborParser, tag: var uint64, body: untyped) =
   body
   exitNestedStructure(p)
 
-proc parseNumberImpl(
-    p: var CborParser, val: var CborVoid
-) {.raises: [IOError, CborReaderError].} =
-  let c = p.read()
-  if c.major notin {majorUnsigned, majorNegative}:
-    p.raiseUnexpectedValue("number", c.major.toMeaning)
-  discard p.readMinorValue(c.minor)
-
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.2
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.4
 proc parseNumberImpl(
     p: var CborParser, val: var CborNumber
 ) {.raises: [IOError, CborReaderError].} =
@@ -212,6 +214,14 @@ proc parseNumberImpl(
       p.raiseUnexpectedValue("number", c.major.toMeaning)
   val.integer = p.readMinorValue(c.minor)
 
+proc parseNumberImpl(
+    p: var CborParser, val: var CborVoid
+) {.raises: [IOError, CborReaderError].} =
+  let c = p.read()
+  if c.major notin {majorUnsigned, majorNegative}:
+    p.raiseUnexpectedValue("number", c.major.toMeaning)
+  discard p.readMinorValue(c.minor)
+
 proc parseNumber[T](
     p: var CborParser, val: var T
 ) {.raises: [IOError, CborReaderError].} =
@@ -219,6 +229,7 @@ proc parseNumber[T](
     {.fatal: "`parseNumber` only accepts `CborNumber` and `CborVoid`".}
   parseNumberImpl(p, val)
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.3
 proc parseFloat(
     p: var CborParser, T: type SomeFloat
 ): T {.raises: [IOError, CborReaderError].} =
@@ -238,6 +249,7 @@ proc parseFloat(
   else:
     p.raiseUnexpectedValue("float value argument", $c.minor)
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.3
 proc parseSimpleValue(
     p: var CborParser, val: var CborSimpleValue
 ) {.raises: [IOError, CborReaderError].} =
@@ -328,6 +340,7 @@ proc parseRawStringLike(
       p.raiseUnexpectedValue(c.major.toMeaning & " length reached")
     val.add p.read()
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.1
 proc cborKind*(p: CborParser): CborValueKind {.raises: [IOError, CborReaderError].} =
   let c = p.peek()
   case c.major

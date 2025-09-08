@@ -64,11 +64,13 @@ template shouldWriteObjectField*[FieldType](field: FieldType): bool =
   ## template returns `false`.
   true
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3-2
 func initialByte(major, minor: uint8): byte =
   assert major <= 7
   assert minor <= 31
   (major shl 5) or minor
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3-3.2
 func toMinorLen(val: uint64): uint8 =
   if val < minorLen1:
     val.uint8
@@ -84,6 +86,7 @@ func toMinorLen(val: uint64): uint8 =
 proc writeHead(
     w: var CborWriter, majorType: uint8, argument: uint64
 ) {.raises: [IOError].} =
+  # https://www.rfc-editor.org/rfc/rfc8949#section-4.1
   let minor = argument.toMinorLen()
   w.stream.write initialByte(majorType, minor)
   case minor
@@ -114,6 +117,8 @@ proc endElement(w: var CborWriter) =
   ## Matching `end` call for `beginElement`
   w.wantName = w.inObject
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.12
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.2.2
 proc beginObject*(w: var CborWriter, length = -1) {.raises: [IOError].} =
   ## Start writing an object, to be followed by member fields.
   ##
@@ -142,6 +147,8 @@ proc endObject*(w: var CborWriter, stopCode = true) {.raises: [IOError].} =
 
   w.endElement()
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.10
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.2.2
 proc beginArray*(w: var CborWriter, length = -1) {.raises: [IOError].} =
   ## Start writing a Cbor array.
   ## Must be closed with a matching `endArray`.
@@ -175,21 +182,25 @@ template streamElement*(w: var CborWriter, streamVar: untyped, body: untyped) =
   body
   w.endElement()
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.8
 proc write*(w: var CborWriter, val: openArray[char]) {.raises: [IOError].} =
   w.streamElement(s):
     w.writeHead(majorText, val.len.uint64)
     s.write(val)
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.6
 proc write*(w: var CborWriter, val: seq[byte]) {.raises: [IOError].} =
   w.streamElement(s):
     w.writeHead(majorBytes, val.len.uint64)
     s.write(val)
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.3
 proc write*(w: var CborWriter, val: CborSimpleValue) {.raises: [IOError].} =
   w.streamElement(_):
     w.writeHead(majorSimple, val.uint64)
 
-# https://www.rfc-editor.org/rfc/rfc8949.html#name-pseudocode-for-encoding-a-s
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.2
+# https://www.rfc-editor.org/rfc/rfc8949#name-pseudocode-for-encoding-a-s
 proc write*[T: SomeSignedInt](w: var CborWriter, val: T) {.raises: [IOError].} =
   w.streamElement(_):
     var ui = uint64(val shr (sizeof(T) * 8 - 1))
@@ -198,10 +209,12 @@ proc write*[T: SomeSignedInt](w: var CborWriter, val: T) {.raises: [IOError].} =
     assert mt in {majorUnsigned, majorNegative}
     w.writeHead(mt, ui)
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.2
 proc write*[T: SomeUnsignedInt](w: var CborWriter, val: T) {.raises: [IOError].} =
   w.streamElement(_):
     w.writeHead(majorUnsigned, val.uint64)
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.3
 proc write*(w: var CborWriter, val: SomeFloat) {.raises: [IOError].} =
   w.streamElement(s):
     case val.classify
@@ -221,6 +234,7 @@ proc write*(w: var CborWriter, val: SomeFloat) {.raises: [IOError].} =
         s.write initialByte(majorFloat, minorLen8)
         s.write cast[uint64](val.float64).toBytesBE()
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.4
 proc write*(w: var CborWriter, val: CborTag) {.raises: [IOError].} =
   w.streamElement(_):
     w.writeHead(majorTag, val.tag)

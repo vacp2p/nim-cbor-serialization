@@ -13,6 +13,7 @@ import std/tables, results, serialization/errors
 
 export tables, results, errors
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.1
 const
   majorUnsigned* = 0
   majorNegative* = 1
@@ -25,6 +26,7 @@ const
   majorSimple* = 7
   majorBreak* = 7
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3
 const
   minorLen0* = {0'u8 .. 23'u8}
   minorLen1* = 24'u8
@@ -36,6 +38,7 @@ const
 
 const minorBreak* = 31
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3
 const
   simpleFalse* = 20
   simpleTrue* = 21
@@ -44,6 +47,7 @@ const
   simpleReserved* = {24'u8 .. 31'u8}
   simpleUnassigned* = {0'u8 .. 19'u8, 32'u8 .. 255'u8}
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.2.1
 const breakStopCode* = (majorBreak shl 5) or minorBreak
 
 type

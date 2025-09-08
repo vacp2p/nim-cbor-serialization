@@ -14,6 +14,8 @@ import pkg/bigints, ../../cbor_serialization/[reader, writer]
 
 export bigints
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.4.3
+
 func toBytesImpl(bint: BigInt, bytes: var seq[byte]) {.raises: [Exception].} =
   var bint = bint
   let stop = initBigInt(0)
@@ -38,6 +40,7 @@ const unsignedTag = 2
 const negativeTag = 3
 
 proc writeValue*(writer: var CborWriter, value: BigInt) {.raises: [IOError].} =
+  # https://www.rfc-editor.org/rfc/rfc8949#section-4.1
   if value >= 0.initBigInt:
     let sint = toInt[uint64](value)
     if sint.isSome:
