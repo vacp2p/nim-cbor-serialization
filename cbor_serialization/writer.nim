@@ -271,16 +271,6 @@ proc writeMember*[V: not void](
     w.writeName(name)
     w.writeValue(value)
 
-iterator stepwiseArrayCreation*[C](
-    w: var CborWriter, collection: C
-): auto {.raises: [IOError].} =
-  ## Iterate over the members of a collection, expecting each member to be
-  ## written directly to the stream.
-  w.beginArray()
-  for e in collection:
-    yield e
-  w.endArray()
-
 proc writeIterable*(w: var CborWriter, collection: auto) {.raises: [IOError].} =
   ## Write each element of a collection as a Cbor array.
   mixin writeValue
