@@ -27,17 +27,71 @@ func toReaderNullFields(input: seq[byte]): CborReader[NullFields] =
   CborReader[NullFields].init(stream)
 
 suite "Custom iterators":
-  test "customStringValueIt":
+  test "parseStringIt":
     var text: string
     var r = toReader "0x6D68656C6C6F200920776F726C64".unhex # "hello \t world"
-    r.customStringValueIt:
-      text.add it
-
+    for c in r.parseStringIt:
+      text.add c
     expect CborReaderError:
-      r.customStringValueIt(10):
-        text.add it
-
+      for c in r.parseStringIt:
+        text.add c
     check text == "hello \t world"
+
+  test "parseStringIt safe break":
+    var text: string
+    var r = toReader "0x6548454C4C4F65574F524C44".unhex # "HELLO""WORLD"
+    for c in r.parseStringIt:
+      text.add c
+      break
+    for c in r.parseStringIt:
+      text.add c
+      break
+    check text == "HW"
+
+  test "parseStringIt unsafe break":
+    var text: string
+    var r = toReader "0x6548454C4C4F65574F524C44".unhex # "HELLO""WORLD"
+    for c in r.parseStringIt(safeBreak = false):
+      text.add c
+      break
+    expect CborReaderError:
+      for c in r.parseStringIt:
+        text.add c
+        break
+    check text == "H"
+
+  test "parseByteStringIt":
+    var bytes: seq[byte]
+    var r = toReader "0x43010203".unhex # [1,2,3]
+    for c in r.parseByteStringIt:
+      bytes.add c
+    expect CborReaderError:
+      for c in r.parseByteStringIt:
+        bytes.add c
+    check bytes == @[1.byte, 2, 3]
+
+  test "parseByteStringIt safe break":
+    var bytes: seq[byte]
+    var r = toReader "0x4301020343010203".unhex # [1,2,3] [1,2,3]
+    for c in r.parseByteStringIt:
+      bytes.add c
+      break
+    for c in r.parseByteStringIt:
+      bytes.add c
+      break
+    check bytes == @[1.byte, 1]
+
+  test "parseByteStringIt unsafe break":
+    var bytes: seq[byte]
+    var r = toReader "0x4301020343010203".unhex # [1,2,3] [1,2,3]
+    for c in r.parseByteStringIt(safeBreak = false):
+      bytes.add c
+      break
+    expect CborReaderError:
+      for c in r.parseByteStringIt:
+        bytes.add c
+        break
+    check bytes == @[1.byte]
 
 suite "Public parser":
   test "parseArray":

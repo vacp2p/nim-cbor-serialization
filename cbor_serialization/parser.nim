@@ -13,9 +13,6 @@ import ./[reader_desc, utils]
 
 export reader_desc
 
-type CustomStringHandler* = proc(b: char) {.gcsafe, raises: [].}
-  ## Custom text or binary parser, result values need to be captured.
-
 template peek(p: CborParser): byte =
   if not p.stream.readable:
     p.raiseUnexpectedValue("unexpected eof")
@@ -66,7 +63,9 @@ func `$`(major: CborMajor): string =
   of CborMajor.Tag: "tag"
   of CborMajor.SimpleOrFloat: "simple/float/break"
 
-template parseStringLike(p: var CborParser, majorExpected: CborMajor, body: untyped) =
+template parseStringLikeImpl(
+    p: var CborParser, majorExpected: CborMajor, body: untyped
+) =
   let c = p.read()
   if c.major != majorExpected:
     p.raiseUnexpectedValue($majorExpected, $c.major)
@@ -84,27 +83,34 @@ template parseStringLike(p: var CborParser, majorExpected: CborMajor, body: unty
     for _ in 0 ..< readMinorValue(p, c.minor):
       body
 
-# https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.6
-iterator parseByteStringIt(
-    p: var CborParser, limit: int
+iterator parseStringLikeIt(
+    p: var CborParser, majorExpected: CborMajor, limit: int
 ): byte {.inline, raises: [IOError, CborReaderError].} =
   var strLen = 0
-  parseStringLike(p, CborMajor.Bytes):
+  parseStringLikeImpl(p, majorExpected):
     inc strLen
     if limit > 0 and strLen > limit:
-      p.raiseUnexpectedValue($CborMajor.Bytes & " length limit reached")
+      p.raiseUnexpectedValue($majorExpected & " length limit reached")
     yield p.read()
 
+proc parseStringLike[T](
+    p: var CborParser, majorExpected: CborMajor, limit: int, val: var T
+) {.raises: [IOError, CborReaderError].} =
+  when T isnot (string or seq[byte] or CborVoid):
+    {.fatal: "`parseStringLike` only accepts string or `seq[byte]` or `CborVoid`".}
+  for v in parseStringLikeIt(p, majorExpected, limit):
+    when T is CborVoid:
+      discard v
+    elif T is string:
+      val.add v.char
+    else:
+      val.add v
+
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.6
 proc parseByteString[T](
     p: var CborParser, limit: int, val: var T
 ) {.raises: [IOError, CborReaderError].} =
-  when T isnot (string or seq[byte] or CborVoid):
-    {.fatal: "`parseByteString` only accepts string or `seq[byte]` or `CborVoid`".}
-  for v in parseByteStringIt(p, limit):
-    when T is CborVoid:
-      discard v
-    else:
-      val.add v
+  parseStringLike[T](p, CborMajor.Bytes, limit, val)
 
 proc parseByteString[T](
     p: var CborParser, val: var T
@@ -115,17 +121,7 @@ proc parseByteString[T](
 proc parseString[T](
     p: var CborParser, limit: int, val: var T
 ) {.raises: [IOError, CborReaderError].} =
-  when T isnot (string or CborVoid):
-    {.fatal: "`parseString` only accepts `string` or `CborVoid`".}
-  var strLen = 0
-  parseStringLike(p, CborMajor.Text):
-    inc strLen
-    if limit > 0 and strLen > limit:
-      p.raiseUnexpectedValue($CborMajor.Text & " length limit reached")
-    when T is CborVoid:
-      discard p.read()
-    else:
-      val.add p.read().char
+  parseStringLike[T](p, CborMajor.Text, limit, val)
 
 proc parseString[T](
     p: var CborParser, val: var T
@@ -379,6 +375,25 @@ proc parseInt*(
   toInt(val, T).valueOr:
     r.parser.raiseIntOverflow(val.integer, val.sign == CborSign.Neg)
 
+iterator parseStringLikeIt(
+    r: var CborReader, limit: int, safeBreak: static[bool], T: type
+): byte {.inline, raises: [IOError, CborReaderError].} =
+  let majorType =
+    when T is string:
+      CborMajor.Text
+    elif T is seq[byte]:
+      CborMajor.Bytes
+    else:
+      {.fatal: "`parseStringLikeIt` seq[byte] or string expected".}
+  when safeBreak:
+    var s: T
+    r.parser.parseStringLike(majorType, limit, s)
+    for x in s:
+      yield x.byte
+  else:
+    for x in r.parser.parseStringLikeIt(majorType, limit):
+      yield x
+
 proc parseByteString*(
     r: var CborReader, limit: int
 ): seq[byte] {.raises: [IOError, CborReaderError].} =
@@ -389,6 +404,18 @@ proc parseByteString*(
 ): seq[byte] {.raises: [IOError, CborReaderError].} =
   r.parser.parseByteString(r.parser.conf.byteStringLengthLimit, result)
 
+iterator parseByteStringIt*(
+    r: var CborReader, limit: int, safeBreak: static[bool] = true
+): byte {.inline, raises: [IOError, CborReaderError].} =
+  for x in r.parseStringLikeIt(limit, safeBreak, seq[byte]):
+    yield x
+
+iterator parseByteStringIt*(
+    r: var CborReader, safeBreak: static[bool] = true
+): byte {.inline, raises: [IOError, CborReaderError].} =
+  for x in r.parseByteStringIt(r.parser.conf.byteStringLengthLimit, safeBreak):
+    yield x
+
 proc parseString*(
     r: var CborReader, limit: int
 ): string {.raises: [IOError, CborReaderError].} =
@@ -396,6 +423,18 @@ proc parseString*(
 
 proc parseString*(r: var CborReader): string {.raises: [IOError, CborReaderError].} =
   r.parser.parseString(r.parser.conf.stringLengthLimit, result)
+
+iterator parseStringIt*(
+    r: var CborReader, limit: int, safeBreak: static[bool] = true
+): char {.inline, raises: [IOError, CborReaderError].} =
+  for x in r.parseStringLikeIt(limit, safeBreak, string):
+    yield x.char
+
+iterator parseStringIt*(
+    r: var CborReader, safeBreak: static[bool] = true
+): char {.inline, raises: [IOError, CborReaderError].} =
+  for x in r.parseStringIt(r.parser.conf.stringLengthLimit, safeBreak):
+    yield x
 
 template parseArray*(r: var CborReader, body: untyped) =
   parseArray(r.parser, idx, body)
@@ -559,38 +598,5 @@ template parseObjectCustomKey*(r: var CborReader, keyAction, body: untyped) =
 proc skipSingleValue*(r: var CborReader) {.raises: [IOError, CborReaderError].} =
   var val: CborVoid
   r.parser.parseValue(val)
-
-proc customStringHandler*(
-    r: var CborReader, limit: int, handler: CustomStringHandler
-) {.raises: [IOError, CborReaderError].} =
-  ## Apply the `handler` argument function for parsing a String type
-  ## value.
-  let val = r.parseString(limit)
-  for c in val:
-    handler(c)
-
-# !!!: don't change limit from untyped to int, it will trigger Nim bug
-# the second overloaded customStringValueIt will fail to compile
-template customStringValueIt*(r: var CborReader, limit: untyped, body: untyped) =
-  ## Convenience wrapper around `customStringHandler()` for parsing a text
-  ## terminating with a double quote character '"'.
-  ##
-  ## The `body` argument represents a virtual function body. So the current
-  ## character processing can be exited with `return`.
-  let handler: CustomStringHandler = proc(c: char) {.gcsafe.} =
-    let it {.inject.} = c
-    body
-  r.customStringHandler(limit, handler)
-
-template customStringValueIt*(r: var CborReader, body: untyped) =
-  ## Convenience wrapper around `customStringHandler()` for parsing a text
-  ## terminating with a double quote character '"'.
-  ##
-  ## The `body` argument represents a virtual function body. So the current
-  ## character processing can be exited with `return`.
-  let handler: CustomStringHandler = proc(c: char) {.gcsafe.} =
-    let it {.inject.} = c
-    body
-  r.customStringHandler(r.parser.conf.stringLengthLimit, handler)
 
 {.pop.}

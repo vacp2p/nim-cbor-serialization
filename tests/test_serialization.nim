@@ -281,10 +281,7 @@ proc readValue(reader: var CborReader, value: var FancyUInt) =
           val *= -1
         accu = val.uint
       of CborValueKind.String:
-        var s = ""
-        reader.customStringValueIt:
-          s &= it
-        accu = s.parseUInt
+        accu = reader.parseString.parseUInt
       else:
         discard
       value = accu.FancyUInt
@@ -295,10 +292,7 @@ proc readValue(reader: var CborReader, value: var FancyUInt) =
 proc readValue(reader: var CborReader, value: var FancyText) =
   try:
     reader.registerVisit:
-      var s = ""
-      reader.customStringValueIt:
-        s.add it
-      value = s.FancyText
+      value = reader.parseString().FancyText
   except ValueError:
     raiseUnexpectedValue(reader.parser, "string encoded integer expected")
 
