@@ -407,6 +407,10 @@ proc parseByteString*(
 iterator parseByteStringIt*(
     r: var CborReader, limit: int, safeBreak: static[bool] = true
 ): byte {.inline, raises: [IOError, CborReaderError].} =
+  ## Byte string parser iterator. If `safeBreak` is `false`
+  ## the iterator won't consume more than needed, but further
+  ## parsing after breaking early will fail.
+  ## If `safeBreak` is `true` the entire string is always consumed.
   for x in r.parseStringLikeIt(limit, safeBreak, seq[byte]):
     yield x
 
@@ -427,6 +431,10 @@ proc parseString*(r: var CborReader): string {.raises: [IOError, CborReaderError
 iterator parseStringIt*(
     r: var CborReader, limit: int, safeBreak: static[bool] = true
 ): char {.inline, raises: [IOError, CborReaderError].} =
+  ## String parser iterator. If `safeBreak` is `false`
+  ## the iterator won't consume more than needed, but further
+  ## parsing after breaking early will fail.
+  ## If `safeBreak` is `true` the entire string is always consumed.
   for x in r.parseStringLikeIt(limit, safeBreak, string):
     yield x.char
 
