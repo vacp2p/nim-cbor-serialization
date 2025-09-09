@@ -8,7 +8,6 @@
 # those terms.
 
 import
-  std/[strutils],
   unittest2,
   bigints,
   ./utils,

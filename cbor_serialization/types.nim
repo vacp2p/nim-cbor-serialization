@@ -13,44 +13,18 @@ import std/tables, results, serialization/errors
 
 export tables, results, errors
 
-# https://www.rfc-editor.org/rfc/rfc8949#section-3.1
-const
-  majorUnsigned* = 0
-  majorNegative* = 1
-  majorBytes* = 2
-  majorText* = 3
-  majorArray* = 4
-  majorMap* = 5
-  majorTag* = 6
-  majorFloat* = 7
-  majorSimple* = 7
-  majorBreak* = 7
-
-# https://www.rfc-editor.org/rfc/rfc8949#section-3
-const
-  minorLen0* = {0'u8 .. 23'u8}
-  minorLen1* = 24'u8
-  minorLen2* = 25'u8
-  minorLen4* = 26'u8
-  minorLen8* = 27'u8
-  minorIndef* = 31'u8
-  minorLens* = minorLen0 + {minorLen1 .. minorLen8}
-
-const minorBreak* = 31
-
-# https://www.rfc-editor.org/rfc/rfc8949#section-3
-const
-  simpleFalse* = 20
-  simpleTrue* = 21
-  simpleNull* = 22
-  simpleUndefined* = 23
-  simpleReserved* = {24'u8 .. 31'u8}
-  simpleUnassigned* = {0'u8 .. 19'u8, 32'u8 .. 255'u8}
-
-# https://www.rfc-editor.org/rfc/rfc8949#section-3.2.1
-const breakStopCode* = (majorBreak shl 5) or minorBreak
-
 type
+  # https://www.rfc-editor.org/rfc/rfc8949#section-3.1
+  CborMajor* {.pure.} = enum
+    Unsigned = 0
+    Negative = 1
+    Bytes = 2
+    Text = 3
+    Array = 4
+    Map = 5
+    Tag = 6
+    SimpleOrFloat = 7
+
   CborError* = object of SerializationError
 
   CborVoid* = object ## Marker used for skipping a CBOR value during parsing
@@ -122,11 +96,25 @@ type
     of CborValueKind.Null, CborValueKind.Undefined:
       discard
 
+# https://www.rfc-editor.org/rfc/rfc8949#section-3
 const
-  cborFalse* = simpleFalse.CborSimpleValue
-  cborTrue* = simpleTrue.CborSimpleValue
-  cborNull* = simpleNull.CborSimpleValue
-  cborUndefined* = simpleUndefined.CborSimpleValue
+  cborFalse* = 20.CborSimpleValue
+  cborTrue* = 21.CborSimpleValue
+  cborNull* = 22.CborSimpleValue
+  cborUndefined* = 23.CborSimpleValue
+
+# https://www.rfc-editor.org/rfc/rfc8949#section-3
+const
+  cborMinorLen0* = {0'u8 .. 23'u8}
+  cborMinorLen1* = 24'u8
+  cborMinorLen2* = 25'u8
+  cborMinorLen4* = 26'u8
+  cborMinorLen8* = 27'u8
+  cborMinorIndef* = 31'u8
+  cborMinorLens* = cborMinorLen0 + {cborMinorLen1 .. cborMinorLen8}
+
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.2.1
+const cborBreakStopCode* = (7 shl 5) or 31
 
 const defaultCborReaderConf* = CborReaderConf(
   nestedDepthLimit: 512,

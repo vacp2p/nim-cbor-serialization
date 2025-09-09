@@ -65,38 +65,37 @@ template shouldWriteObjectField*[FieldType](field: FieldType): bool =
   true
 
 # https://www.rfc-editor.org/rfc/rfc8949#section-3-2
-func initialByte(major, minor: uint8): byte =
-  assert major <= 7
+func initialByte(major: CborMajor, minor: uint8): byte =
   assert minor <= 31
-  (major shl 5) or minor
+  (major.uint8 shl 5) or minor
 
 # https://www.rfc-editor.org/rfc/rfc8949#section-3-3.2
-func toMinorLen(val: uint64): uint8 =
-  if val < minorLen1:
-    val.uint8
-  elif val <= uint8.high:
-    minorLen1
-  elif val <= uint16.high:
-    minorLen2
-  elif val <= uint32.high:
-    minorLen4
+func minorVal(argument: uint64): uint8 =
+  if argument < cborMinorLen1:
+    argument.uint8
+  elif argument <= uint8.high:
+    cborMinorLen1
+  elif argument <= uint16.high:
+    cborMinorLen2
+  elif argument <= uint32.high:
+    cborMinorLen4
   else:
-    minorLen8
+    cborMinorLen8
 
 proc writeHead(
-    w: var CborWriter, majorType: uint8, argument: uint64
+    w: var CborWriter, majorType: CborMajor, argument: uint64
 ) {.raises: [IOError].} =
   # https://www.rfc-editor.org/rfc/rfc8949#section-4.1
-  let minor = argument.toMinorLen()
+  let minor = argument.minorVal()
   w.stream.write initialByte(majorType, minor)
   case minor
-  of minorLen1:
+  of cborMinorLen1:
     w.stream.write argument.uint8
-  of minorLen2:
+  of cborMinorLen2:
     w.stream.write argument.uint16.toBytesBE()
-  of minorLen4:
+  of cborMinorLen4:
     w.stream.write argument.uint32.toBytesBE()
-  of minorLen8:
+  of cborMinorLen8:
     w.stream.write argument.toBytesBE()
   else:
     discard
@@ -130,9 +129,9 @@ proc beginObject*(w: var CborWriter, length = -1) {.raises: [IOError].} =
   w.beginElement()
 
   if length >= 0:
-    w.writeHead(majorMap, length.uint64)
+    w.writeHead(CborMajor.Map, length.uint64)
   else:
-    w.stream.write initialByte(majorMap, minorIndef)
+    w.stream.write initialByte(CborMajor.Map, cborMinorIndef)
 
   w.wantName = true
 
@@ -143,7 +142,7 @@ proc endObject*(w: var CborWriter, stopCode = true) {.raises: [IOError].} =
   doAssert w.stack.pop() == Object
 
   if stopCode:
-    w.stream.write breakStopCode
+    w.stream.write cborBreakStopCode
 
   w.endElement()
 
@@ -155,9 +154,9 @@ proc beginArray*(w: var CborWriter, length = -1) {.raises: [IOError].} =
   w.beginElement()
 
   if length >= 0:
-    w.writeHead(majorArray, length.uint64)
+    w.writeHead(CborMajor.Array, length.uint64)
   else:
-    w.stream.write initialByte(majorArray, minorIndef)
+    w.stream.write initialByte(CborMajor.Array, cborMinorIndef)
 
   w.stack.add(Array)
 
@@ -166,7 +165,7 @@ proc endArray*(w: var CborWriter, stopCode = true) {.raises: [IOError].} =
   doAssert w.stack.pop() == Array
 
   if stopCode:
-    w.stream.write breakStopCode
+    w.stream.write cborBreakStopCode
 
   w.endElement()
 
@@ -185,59 +184,59 @@ template streamElement*(w: var CborWriter, streamVar: untyped, body: untyped) =
 # https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.8
 proc write*(w: var CborWriter, val: openArray[char]) {.raises: [IOError].} =
   w.streamElement(s):
-    w.writeHead(majorText, val.len.uint64)
+    w.writeHead(CborMajor.Text, val.len.uint64)
     s.write(val)
 
 # https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.6
 proc write*(w: var CborWriter, val: seq[byte]) {.raises: [IOError].} =
   w.streamElement(s):
-    w.writeHead(majorBytes, val.len.uint64)
+    w.writeHead(CborMajor.Bytes, val.len.uint64)
     s.write(val)
 
 # https://www.rfc-editor.org/rfc/rfc8949#section-3.3
 proc write*(w: var CborWriter, val: CborSimpleValue) {.raises: [IOError].} =
   w.streamElement(_):
-    w.writeHead(majorSimple, val.uint64)
+    w.writeHead(CborMajor.SimpleOrFloat, val.uint64)
 
 # https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.2
 # https://www.rfc-editor.org/rfc/rfc8949#name-pseudocode-for-encoding-a-s
 proc write*[T: SomeSignedInt](w: var CborWriter, val: T) {.raises: [IOError].} =
   w.streamElement(_):
     var ui = uint64(val shr (sizeof(T) * 8 - 1))
-    let mt = uint8(ui and 1)
+    let mt = CborMajor(ui and 1)
     ui = ui xor uint64(val)
-    assert mt in {majorUnsigned, majorNegative}
+    assert mt in {CborMajor.Unsigned, CborMajor.Negative}
     w.writeHead(mt, ui)
 
 # https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.2
 proc write*[T: SomeUnsignedInt](w: var CborWriter, val: T) {.raises: [IOError].} =
   w.streamElement(_):
-    w.writeHead(majorUnsigned, val.uint64)
+    w.writeHead(CborMajor.Unsigned, val.uint64)
 
 # https://www.rfc-editor.org/rfc/rfc8949#section-3.3
 proc write*(w: var CborWriter, val: SomeFloat) {.raises: [IOError].} =
   w.streamElement(s):
     case val.classify
     of fcNan:
-      s.write [initialByte(majorFloat, minorLen2), 0x7E'u8, 0x00'u8]
+      s.write [initialByte(CborMajor.SimpleOrFloat, cborMinorLen2), 0x7E'u8, 0x00'u8]
     of fcInf:
-      s.write [initialByte(majorFloat, minorLen2), 0x7C'u8, 0x00'u8]
+      s.write [initialByte(CborMajor.SimpleOrFloat, cborMinorLen2), 0x7C'u8, 0x00'u8]
     of fcNegInf:
-      s.write [initialByte(majorFloat, minorLen2), 0xFC'u8, 0x00'u8]
+      s.write [initialByte(CborMajor.SimpleOrFloat, cborMinorLen2), 0xFC'u8, 0x00'u8]
     else:
       # VM requires this cast dance because float32 has 64-bit precision
       #if val == float32(val):
       if val == cast[float32](cast[uint32](val.float32)):
-        s.write initialByte(majorFloat, minorLen4)
+        s.write initialByte(CborMajor.SimpleOrFloat, cborMinorLen4)
         s.write cast[uint32](val.float32).toBytesBE()
       else:
-        s.write initialByte(majorFloat, minorLen8)
+        s.write initialByte(CborMajor.SimpleOrFloat, cborMinorLen8)
         s.write cast[uint64](val.float64).toBytesBE()
 
 # https://www.rfc-editor.org/rfc/rfc8949#section-3.4
 proc write*(w: var CborWriter, val: CborTag) {.raises: [IOError].} =
   w.streamElement(_):
-    w.writeHead(majorTag, val.tag)
+    w.writeHead(CborMajor.Tag, val.tag)
     w.writeValue(val.val)
 
 proc write*(w: var CborWriter, val: CborBytes) {.raises: [IOError].} =
@@ -251,7 +250,7 @@ proc writeName*(w: var CborWriter, name: string) {.raises: [IOError].} =
 
   w.wantName = false
 
-  w.writeHead(majorText, name.len.uint64)
+  w.writeHead(CborMajor.Text, name.len.uint64)
   w.stream.write(name)
 
 template writeMember*[T: void](w: var CborWriter, name: string, body: T) =
@@ -354,9 +353,9 @@ proc writeRecordValue*(w: var CborWriter, value: object | tuple) {.raises: [IOEr
 proc writeValue*(w: var CborWriter, value: CborNumber) {.raises: [IOError].} =
   w.streamElement(_):
     if value.sign == CborSign.Neg:
-      w.writeHead(majorNegative, value.integer)
+      w.writeHead(CborMajor.Negative, value.integer)
     else:
-      w.writeHead(majorUnsigned, value.integer)
+      w.writeHead(CborMajor.Unsigned, value.integer)
 
 proc writeValue*(w: var CborWriter, value: CborObjectType) {.raises: [IOError].} =
   var fieldCount = 0
@@ -388,9 +387,9 @@ proc writeValue*(w: var CborWriter, value: CborValue) {.raises: [IOError].} =
   of CborValueKind.Bool:
     w.writeValue(value.boolVal)
   of CborValueKind.Null:
-    w.writeValue(simpleNull.CborSimpleValue)
+    w.writeValue(cborNull)
   of CborValueKind.Undefined:
-    w.writeValue(simpleUndefined.CborSimpleValue)
+    w.writeValue(cborUndefined)
 
 template writeEnumImpl(w: var CborWriter, value, enumRep) =
   mixin writeValue
@@ -481,7 +480,7 @@ template writeValueStringLike(w, value) =
   w.streamElement(_):
     when value is cstring:
       if value == nil:
-        w.write(simpleNull.CborSimpleValue)
+        w.write(cborNull)
       else:
         w.write toOpenArray(value, 0, value.len - 1)
     else:
@@ -509,7 +508,7 @@ proc writeValue*[V: not void](w: var CborWriter, value: V) {.raises: [IOError].}
   elif value is ref:
     autoSerializeCheck(Flavor, ref, typeof(value)):
       if value.isNil:
-        w.write(simpleNull.CborSimpleValue)
+        w.write(cborNull)
       else:
         writeValue(w, value[])
   elif isStringLike(value):
@@ -520,7 +519,7 @@ proc writeValue*[V: not void](w: var CborWriter, value: V) {.raises: [IOError].}
       writeValueStringLike(w, value)
   elif value is bool:
     autoSerializeCheck(Flavor, bool):
-      w.write if value: simpleTrue.CborSimpleValue else: simpleFalse.CborSimpleValue
+      w.write if value: cborTrue else: cborFalse
   elif value is range:
     autoSerializeCheck(Flavor, range, typeof(value)):
       when low(typeof(value)) < 0:
