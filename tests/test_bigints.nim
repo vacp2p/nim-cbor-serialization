@@ -8,11 +8,7 @@
 # those terms.
 
 import
-  unittest2,
-  bigints,
-  ./utils,
-  ../cbor_serialization,
-  ../cbor_serialization/pkg/bigints
+  unittest2, bigints, ./utils, ../cbor_serialization, ../cbor_serialization/pkg/bigints
 
 suite "Test BigInt":
   test "Spec unsigned bignum tag encode":
