@@ -74,6 +74,9 @@ func raiseUnexpectedValue*(
 ) {.noreturn, raises: [CborReaderError].} =
   p.raiseUnexpectedValue("Expected: " & expected & " but found: " & found)
 
+template raiseUnexpectedValue*(r: CborReader, msg: string) =
+  raiseUnexpectedValue(r.parser, msg)
+
 func raiseIntOverflow*(
     p: CborParser, absIntVal: BiggestUInt, isNegative: bool
 ) {.noreturn, raises: [CborReaderError].} =
