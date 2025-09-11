@@ -545,7 +545,7 @@ proc parseValue(
   of CborValueKind.Bool:
     var sv: CborSimpleValue
     parseSimpleValue(p, sv)
-    val.boolVal = sv.isTrue
+    val.boolVal = sv == cborTrue
   of CborValueKind.Null, CborValueKind.Undefined:
     var sv: CborSimpleValue
     parseSimpleValue(p, sv)

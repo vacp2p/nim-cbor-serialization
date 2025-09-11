@@ -155,16 +155,16 @@ func isNullish*(v: CborSimpleValue): bool =
   v in {cborNull, cborUndefined}
 
 func `$`*(v: CborSimpleValue): string =
-  if v.isTrue:
-    "true"
-  elif v.isFalse:
+  if v == cborFalse:
     "false"
-  elif v.isNull:
+  elif v == cborTrue:
+    "true"
+  elif v == cborNull:
     "null"
-  elif v.isUndefined:
+  elif v == cborUndefined:
     "undefined"
   else:
-    "simple value " & $v
+    "simple(" & $v.int & ")"
 
 func toInt*(sign: CborSign): int =
   case sign
