@@ -16,9 +16,7 @@ export results
 template shouldWriteObjectField*[T](field: Result[T, void]): bool =
   field.isOk
 
-proc writeValue*[T](
-    writer: var CborWriter, value: Result[T, void]
-) {.raises: [IOError].} =
+proc write*[T](writer: var CborWriter, value: Result[T, void]) {.raises: [IOError].} =
   mixin writeValue
 
   if value.isOk:
@@ -26,7 +24,7 @@ proc writeValue*[T](
   else:
     writer.writeValue cborNull
 
-proc readValue*[T](
+proc read*[T](
     reader: var CborReader, value: var Result[T, void]
 ) {.raises: [IOError, SerializationError].} =
   mixin readValue

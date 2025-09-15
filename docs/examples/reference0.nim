@@ -33,11 +33,11 @@ let value = Cbor.decode(rawCbor, CborValueRef)
 # ANCHOR_END: Decode
 
 # ANCHOR: Reader
-var reader = CborReader[DefaultFlavor].init(memoryInput(rawCbor))
+var reader = Cbor.Reader.init(memoryInput(rawCbor))
 let native2 = reader.readValue(NimServer)
 
 # Overwrite an existing instance
-var reader2 = CborReader[DefaultFlavor].init(memoryInput(rawCbor))
+var reader2 = Cbor.Reader.init(memoryInput(rawCbor))
 var native3: NimServer
 reader2.readValue(native3)
 # ANCHOR_END: Reader
@@ -49,7 +49,7 @@ let blob = Cbor.encode(native)
 
 # ANCHOR: Writer
 var output = memoryOutput()
-var writer = CborWriter[DefaultFlavor].init(output)
+var writer = Cbor.Writer.init(output)
 writer.writeValue(native)
 echo Cbor.decode(output.getOutput(seq[byte]), NimServer)
 # ANCHOR_END: Writer

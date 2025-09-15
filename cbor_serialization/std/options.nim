@@ -15,7 +15,7 @@ export options
 template shouldWriteObjectField*(field: Option): bool =
   field.isSome
 
-proc writeValue*(writer: var CborWriter, value: Option) {.raises: [IOError].} =
+proc write*(writer: var CborWriter, value: Option) {.raises: [IOError].} =
   mixin writeValue
 
   if value.isSome:
@@ -23,7 +23,7 @@ proc writeValue*(writer: var CborWriter, value: Option) {.raises: [IOError].} =
   else:
     writer.writeValue cborNull
 
-proc readValue*[T](
+proc read*[T](
     reader: var CborReader, value: var Option[T]
 ) {.raises: [IOError, SerializationError].} =
   mixin readValue

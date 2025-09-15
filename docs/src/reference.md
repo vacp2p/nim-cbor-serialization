@@ -51,7 +51,7 @@ You can adjust these defaults to suit your needs:
   - **CborBytes**: Holds a CBOR value as a distinct `seq[byte]`.
   - **CborVoid**: Skips a valid CBOR value.
   - **CborNumber**: Holds a CBOR number.
-    - Use `toInt(n: CborNumber, T: SomeInteger): Opt[T]` to convert it to an integer.
+    - Use `toInt(n: CborNumber, T: type SomeInteger): Opt[T]` to convert it to an integer.
     - The `integer` field for negative numbers is set to `abs(value)-1` as per the CBOR spec. This allows to hold a negative `uint64.high` value.
   - **CborValueRef**: Holds any valid CBOR value, it uses `CborNumber` instead of `int`.
 
@@ -75,7 +75,7 @@ Similar to parsing, the [common serialization API](https://github.com/status-im/
 
 Flags and limits are runtime configurations, while a flavor is a compile-time mechanism to prevent conflicts between custom serializers for the same type. For example, a CBOR-RPC-based API might require that numbers are formatted as hex strings while the same type exposed through REST should use a number.
 
-Flavors ensure the compiler selects the correct serializer for each subsystem. Use `useDefaultSerializationIn` to assign serializers of a flavor to a specific type.
+Flavors ensure the compiler selects the correct serializer for each subsystem. Use `defaultSerialization` to assign serializers of a flavor to a specific type.
 
 ```nim
 # Parameters for `createCborFlavor`:
@@ -83,6 +83,7 @@ Flavors ensure the compiler selects the correct serializer for each subsystem. U
   FlavorName: untyped
   mimeTypeValue = "application/cbor"
   automaticObjectSerialization = false
+  automaticPrimitivesSerialization = true
   requireAllFields = true
   omitOptionalFields = true
   allowUnknownFields = true
@@ -96,10 +97,11 @@ type
     two: Option[int]
 
 createCborFlavor OptCbor
-OptionalFields.useDefaultSerializationIn OptCbor
+OptCbor.defaultSerialization OptionalFields
 ```
 
-- `automaticObjectSerialization`: By default, all object types are accepted by `cbor_serialization` - disable automatic object serialization to only serialize explicitly allowed types
+- `automaticObjectSerialization`: enable automatic serialization for all object types.
+- `automaticPrimitivesSerialization`: enable automatic serialization for all primitive types.
 - `allowUnknownFields`: Skip unknown fields instead of raising an error.
 - `requireAllFields`: Raise an error if any required field is missing.
 - `omitOptionalFields`: Writer ignores fields with null values.
@@ -107,16 +109,16 @@ OptionalFields.useDefaultSerializationIn OptCbor
 
 ## Custom parsers and writers
 
-Parsing and writing can be customized by providing overloads for the `readValue` and `writeValue` functions. Overrides are commonly used with a [flavor](#flavors) that prevents automatic object serialization, to avoid that some objects use the default serialization, should an import be forgotten.
+Parsing and writing can be customized by providing overloads for the `readValue` and `writeValue` functions. Overrides are commonly used with a [flavor](#flavors) that prevents automatic serialization, to avoid that some types use the default serialization, should an import be forgotten.
 
 ```nim
 # Custom serializers for MyType should match the following signatures
-proc readValue*(r: var CborReader, v: var MyType) {.raises: [IOError, SerializationError].}
-proc writeValue*(w: var CborWriter, v: MyType) {.raises: [IOError].}
+proc readValue*(r: var Cbor.Reader, v: var MyType) {.raises: [IOError, SerializationError].}
+proc writeValue*(w: var Cbor.Writer, v: MyType) {.raises: [IOError].}
 
-# When flavors are used, add the flavor as well
-proc readValue*(r: var CborReader[MyFlavor], v: var MyType) {.raises: [IOError, SerializationError].}
-proc writeValue*(w: var CborWriter[MyFlavor], v: MyType) {.raises: [IOError].}
+# When flavors are used, use the flavor reader/writer instead
+proc readValue*(r: var MyFlavor.Reader, v: var MyType) {.raises: [IOError, SerializationError].}
+proc writeValue*(w: var MyFlavor.Writer, v: MyType) {.raises: [IOError].}
 ```
 
 ### Objects
@@ -124,7 +126,7 @@ proc writeValue*(w: var CborWriter[MyFlavor], v: MyType) {.raises: [IOError].}
 Decode objects using the `parseObject` template. To parse values, use helper functions or `readValue`. The `readObject` and `readObjectFields` iterators are also useful for custom object parsers.
 
 ```nim
-proc readValue*(r: var CborReader, table: var Table[string, int]) =
+proc readValue*(r: var Cbor.Reader, table: var Table[string, int]) =
   parseObject(r, key):
     table[key] = r.parseInt(int)
 ```
@@ -151,19 +153,19 @@ type
   Welder = object
     flags: set[WelderFlag]
 
-proc readValue*(r: var CborReader, value: var HoldArray) =
+proc readValue*(r: var Cbor.Reader, value: var HoldArray) =
   # parseArray with index, `i` can be any valid identifier
   r.parseArray(i):
     value.data[i] = r.parseInt(int)
 
-proc readValue*(r: var CborReader, value: var HoldSeq) =
+proc readValue*(r: var Cbor.Reader, value: var HoldSeq) =
   # parseArray without index
   r.parseArray:
     let lastPos = value.data.len
     value.data.setLen(lastPos + 1)
     readValue(r, value.data[lastPos])
 
-proc readValue*(r: var CborReader, value: var Welder) =
+proc readValue*(r: var Cbor.Reader, value: var Welder) =
   # populating set also okay
   r.parseArray:
     value.flags.incl r.parseInt(int).WelderFlag

@@ -15,7 +15,7 @@ export tables
 
 type TableType = OrderedTable | Table
 
-proc writeValue*(writer: var CborWriter, value: TableType) {.raises: [IOError].} =
+proc writeImpl(writer: var CborWriter, value: TableType) {.raises: [IOError].} =
   writer.beginObject()
   for key, val in value:
     writer.writeField $key, val
@@ -33,7 +33,7 @@ template to*(a: string, b: type float): float =
 template to*(a: string, b: type string): string =
   a
 
-proc readValue*(
+proc readImpl(
     reader: var CborReader, value: var TableType
 ) {.raises: [IOError, SerializationError].} =
   try:
@@ -44,3 +44,17 @@ proc readValue*(
       value[to(key, KeyType)] = val
   except ValueError as ex:
     reader.raiseUnexpectedValue("TableType: " & ex.msg)
+
+# TODO: https://github.com/nim-lang/Nim/issues/25174
+
+template write*(writer: var CborWriter, value: OrderedTable) =
+  writeImpl(writer, value)
+
+template write*(writer: var CborWriter, value: Table) =
+  writeImpl(writer, value)
+
+template read*(reader: var CborReader, value: var OrderedTable) =
+  readImpl(reader, value)
+
+template read*(reader: var CborReader, value: var Table) =
+  readImpl(reader, value)
