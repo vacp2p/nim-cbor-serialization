@@ -11,8 +11,11 @@ jobs:
     uses: status-im/nimbus-common-workflow/.github/workflows/common.yml@main
     with:
       nim-versions: '["version-2-0", "version-2-2", "devel"]'
-      nimble-version: HEAD
+      # TODO: switch to "nimble install nimble" after nimble v1 release
+      nimble-version: 1b4deb9be9fca7b8a21576a6c0de85f1ae7c30de
       test-command: |
+        nimble dump --solve
+        nimble list --installed --version
         env nimble features
         env NIMLANG=c nimble test
         env NIMLANG=cpp nimble test
