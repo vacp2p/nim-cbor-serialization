@@ -11,6 +11,7 @@ jobs:
     uses: status-im/nimbus-common-workflow/.github/workflows/common.yml@main
     with:
       nim-versions: '["version-2-0", "version-2-2", "devel"]'
+      nimble-version: HEAD
       test-command: |
         env nimble features
         env NIMLANG=c nimble test
