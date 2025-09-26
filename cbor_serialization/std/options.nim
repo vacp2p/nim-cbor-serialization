@@ -23,8 +23,10 @@ proc writeValue*(writer: var CborWriter, value: Option) {.raises: [IOError].} =
   else:
     writer.writeValue cborNull
 
-proc readValue*[T](
-    reader: var CborReader, value: var Option[T]
+type OptionType[T] = Option[T]
+
+proc readValue*(
+    reader: var CborReader, value: var OptionType
 ) {.raises: [IOError, SerializationError].} =
   mixin readValue
 
@@ -32,4 +34,4 @@ proc readValue*[T](
     reset value
     discard reader.parseSimpleValue()
   else:
-    value = some reader.readValue(T)
+    value = some reader.readValue(typeof(value).T)

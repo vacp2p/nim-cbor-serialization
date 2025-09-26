@@ -10,9 +10,8 @@
 import
   std/[strutils, os],
   faststreams,
-  stew/[byteutils],
   unittest2,
-  ../cbor_serialization/parser,
+  ../cbor_serialization,
   ../cbor_serialization/value_ops,
   ./utils
 

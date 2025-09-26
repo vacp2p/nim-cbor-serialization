@@ -7,7 +7,7 @@
 # This file may not be copied, modified, or distributed except according to
 # those terms.
 
-import faststreams, unittest2, serialization, ./utils, ../cbor_serialization/reader
+import faststreams, unittest2, serialization, ./utils, ../cbor_serialization
 
 createCborFlavor NullFields, skipNullFields = true
 

@@ -11,7 +11,7 @@
 
 import
   test_spec, test_serialization, test_simple_value, test_cbor_flavor, test_parser,
-  test_reader, test_writer, test_valueref, test_cbor_raw, test_std
+  test_reader, test_writer, test_valueref, test_cbor_raw, test_std, test_overloads
 
 template importBigints() =
   import bigints

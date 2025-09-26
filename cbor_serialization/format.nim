@@ -13,41 +13,135 @@ import serialization/[formats, object_serialization], ./types
 
 export formats
 
-template generateCborAutoSerializationAddon*(FLAVOR: typed) {.dirty.} =
-  generateAutoSerializationAddon(FLAVOR)
+template isRef[T](x: typedesc[ref T]): bool =
+  true
 
-  template automaticPrimitivesSerialization*(F: type FLAVOR, enable: static[bool]) =
-    ## Set all supported primitives automatic serialization flag.
-    static:
-      F.setAutoSerialize(string, enable)
-      F.setAutoSerialize(seq[char], enable)
-      F.setAutoSerialize(seq[byte], enable)
-      F.setAutoSerialize(bool, enable)
-      F.setAutoSerialize(ref, enable)
-      F.setAutoSerialize(ptr, enable)
-      F.setAutoSerialize(enum, enable)
-      F.setAutoSerialize(SomeInteger, enable)
-      F.setAutoSerialize(SomeFloat, enable)
-      F.setAutoSerialize(seq, enable)
-      F.setAutoSerialize(array, enable)
-      F.setAutoSerialize(cstring, enable)
-      F.setAutoSerialize(openArray[char], enable)
-      F.setAutoSerialize(openArray, enable)
-      F.setAutoSerialize(range, enable)
-      F.setAutoSerialize(distinct, enable)
+template isRef(x: typedesc): bool =
+  false
 
-  template automaticBuiltinSerialization*(F: type FLAVOR, enable: static[bool]) =
-    ## Enable or disable all builtin serialization.
-    automaticPrimitivesSerialization(F, enable)
-    static:
-      F.setAutoSerialize(CborNumber, enable)
-      F.setAutoSerialize(CborTag, enable)
-      F.setAutoSerialize(CborVoid, enable)
-      F.setAutoSerialize(CborValueRef, enable)
-      F.setAutoSerialize(CborSimpleValue, enable)
-      F.setAutoSerialize(CborBytes, enable)
-      F.setAutoSerialize(object, enable)
-      F.setAutoSerialize(tuple, enable)
+template isPtr[T](x: typedesc[ptr T]): bool =
+  true
+
+template isPtr(x: typedesc): bool =
+  false
+
+template derefType[T](x: typedesc[ref T]): untyped =
+  T
+
+template derefType[T](x: typedesc[ptr T]): untyped =
+  T
+
+# XXX move to nim-serialization
+template defaultReaderImpl(Flavor: type, T: untyped) =
+  mixin Reader
+
+  template readValue*[U: Reader(Flavor), W: T](r: var U, value: var W) =
+    mixin readValue
+    readValue[U](r, value)
+
+template defaultReader*(Flavor: type, T: untyped) =
+  defaultReaderImpl(Flavor, T)
+  when isRef(T) or isPtr(T):
+    type TT = derefType(T)
+    defaultReaderImpl(Flavor, TT)
+
+# XXX move to nim-serialization
+template defaultWriterImpl(Flavor: type, T: untyped) =
+  mixin Writer
+
+  template writeValue*[U: Writer(Flavor), W: T](w: var U, value: W) =
+    mixin writeValue
+    writeValue[U](w, value)
+
+template defaultWriter*(Flavor: type, T: untyped) =
+  defaultWriterImpl(Flavor, T)
+  when isRef(T) or isPtr(T):
+    type TT = derefType(T)
+    defaultWriterImpl(Flavor, TT)
+
+template defaultSerialization*(Flavor: type, T: untyped) =
+  defaultReader(Flavor, T)
+  defaultWriter(Flavor, T)
+
+template defaultBuiltinReader*(Flavor: type) =
+  Flavor.defaultReader(CborNumber)
+  Flavor.defaultReader(CborTag)
+  Flavor.defaultReader(CborVoid)
+  Flavor.defaultReader(CborValueRef)
+  Flavor.defaultReader(CborSimpleValue)
+  Flavor.defaultReader(CborBytes)
+
+template defaultBuiltinWriter*(Flavor: type) =
+  Flavor.defaultWriter(CborNumber)
+  Flavor.defaultWriter(CborTag)
+  Flavor.defaultWriter(CborVoid)
+  Flavor.defaultWriter(CborValueRef)
+  Flavor.defaultWriter(CborSimpleValue)
+  Flavor.defaultWriter(CborBytes)
+
+template defaultBuiltinSerialization*(Flavor: type) =
+  defaultBuiltinReader(Flavor)
+  defaultBuiltinWriter(Flavor)
+
+template defaultPrimitiveWriter*(Flavor: type) =
+  Flavor.defaultWriter(string)
+  Flavor.defaultWriter(bool)
+  Flavor.defaultWriter(ref)
+  Flavor.defaultWriter(ptr)
+  Flavor.defaultWriter(enum)
+  Flavor.defaultWriter(SomeInteger)
+  Flavor.defaultWriter(SomeFloat)
+  Flavor.defaultWriter(seq)
+  Flavor.defaultWriter(array)
+  Flavor.defaultWriter(cstring)
+  Flavor.defaultWriter(openArray)
+  Flavor.defaultWriter(range)
+  Flavor.defaultWriter(distinct)
+
+template defaultPrimitiveReader*(Flavor: type) =
+  Flavor.defaultReader(string)
+  Flavor.defaultReader(bool)
+  Flavor.defaultReader(ref)
+  Flavor.defaultReader(ptr)
+  Flavor.defaultReader(enum)
+  Flavor.defaultReader(SomeInteger)
+  Flavor.defaultReader(SomeFloat)
+  Flavor.defaultReader(seq)
+  Flavor.defaultReader(array)
+  #Flavor.defaultReader(cstring)
+  Flavor.defaultReader(openArray)
+  Flavor.defaultReader(range)
+  #Flavor.defaultReader(distinct)
+
+template defaultPrimitiveSerialization*(Flavor: type) =
+  defaultPrimitiveReader(Flavor)
+  defaultPrimitiveWriter(Flavor)
+
+template defaultObjectWriter*(Flavor: type) =
+  Flavor.defaultWriter(object)
+  Flavor.defaultWriter(tuple)
+
+template defaultObjectReader*(Flavor: type) =
+  Flavor.defaultReader(object)
+  Flavor.defaultReader(tuple)
+
+template defaultObjectSerialization*(Flavor: type) =
+  defaultObjectReader(Flavor)
+  defaultObjectWriter(Flavor)
+
+template defaultReaders*(Flavor: type) =
+  defaultPrimitiveReader(Flavor)
+  defaultBuiltinReader(Flavor)
+  defaultObjectReader(Flavor)
+
+template defaultWriters*(Flavor: type) =
+  defaultPrimitiveWriter(Flavor)
+  defaultBuiltinWriter(Flavor)
+  defaultObjectWriter(Flavor)
+
+template defaultSerialization*(Flavor: type) =
+  defaultReaders(Flavor)
+  defaultWriters(Flavor)
 
 serializationFormat Cbor, mimeType = "application/cbor"
 
@@ -88,41 +182,15 @@ template flavorEnumRep*(T: type Cbor, rep: static[EnumRepresentation]) =
   static:
     DefaultFlavorEnumRep = rep
 
-when declared(macrocache.hasKey): # Nim 1.6 have no macrocache.hasKey
-  # Keep backward compatibility behavior, DefaultFlavor always enable all built in serialization.
-  generateCborAutoSerializationAddon(DefaultFlavor)
-  DefaultFlavor.automaticBuiltinSerialization(true)
-
-# We create overloads of these traits to force the mixin treatment of the symbols
-type DummyFlavor* = object
-template flavorUsesAutomaticObjectSerialization*(T: type DummyFlavor): bool =
-  true
-
-template flavorOmitsOptionalFields*(T: type DummyFlavor): bool =
-  false
-
-template flavorRequiresAllFields*(T: type DummyFlavor): bool =
-  false
-
-template flavorAllowsUnknownFields*(T: type DummyFlavor): bool =
-  false
-
-template flavorSkipNullFields*(T: type DummyFlavor): bool =
-  false
-
-when declared(macrocache.hasKey): # Nim 1.6 have no macrocache.hasKey
-  generateCborAutoSerializationAddon(DummyFlavor)
-  DummyFlavor.automaticBuiltinSerialization(false)
-
 template createCborFlavor*(
     FlavorName: untyped,
     mimeTypeValue = "application/cbor",
     automaticObjectSerialization = false,
+    automaticPrimitivesSerialization = true,
     requireAllFields = true,
     omitOptionalFields = true,
     allowUnknownFields = true,
     skipNullFields = false,
-    automaticPrimitivesSerialization = true,
 ) {.dirty.} =
   when declared(SerializationFormat): # Earlier versions lack mimeTypeValue
     createFlavor(Cbor, FlavorName, mimeTypeValue)
@@ -140,6 +208,14 @@ template createCborFlavor*(
 
     template mimeType*(T: type FlavorName): string =
       mimeTypeValue
+
+  # XXX move to nim-ser createFlavor
+  template readValue*[U: Reader(FlavorName), T](r: var U, value: var T) =
+    {.error: "not overloaded".}
+
+  template writeValue*[U: Writer(FlavorName), T](r: var U, value: T) =
+    # XXX better error; fmt"not defined writeValue(var $(FlavorName), $(T))"
+    {.error: "not overloaded writeValue " & $(FlavorName) & " " & $(T).}
 
   template flavorUsesAutomaticObjectSerialization*(T: type FlavorName): bool =
     automaticObjectSerialization
@@ -164,12 +240,10 @@ template createCborFlavor*(
     static:
       `FlavorName EnumRep` = rep
 
-  when declared(macrocache.hasKey): # Nim 1.6 have no macrocache.hasKey
-    generateCborAutoSerializationAddon(FlavorName)
-
-    # Set default to true for backward compatibility
-    # but user can call it again later with different value.
-    # Or fine tuning use `Flavor.automaticSerialization(type, true/false)`
-    FlavorName.automaticBuiltinSerialization(automaticPrimitivesSerialization)
+  when automaticPrimitivesSerialization:
+    defaultPrimitiveSerialization(FlavorName)
+  defaultBuiltinSerialization(FlavorName)
+  when automaticObjectSerialization:
+    defaultObjectSerialization(FlavorName)
 
 {.pop.}

@@ -362,12 +362,17 @@ EnumTestO.configureCborDeserialization(
 )
 
 createCborFlavor MyCbor
+MyCbor.defaultSerialization(Option)
+MyCbor.defaultSerialization(Result)
+
 createCborFlavor AutoCbor,
   automaticObjectSerialization = true,
   requireAllFields = true,
   allowUnknownFields = true
+
 createCborFlavor RequireAllFieldsOffCbor,
   automaticObjectSerialization = true, requireAllFields = false
+
 createCborFlavor AllowUnknownFieldsOffCbor,
   automaticObjectSerialization = true, allowUnknownFields = false
 
@@ -380,7 +385,7 @@ type
     x*: int
     y*: string
 
-HasMyCborDefaultBehavior.useDefaultSerializationIn MyCbor
+MyCbor.defaultSerialization HasMyCborDefaultBehavior
 
 proc readValue*(r: var CborReader[MyCbor], value: var HasMyCborOverride) =
   r.readRecordValue(value)

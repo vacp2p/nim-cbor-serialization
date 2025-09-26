@@ -47,11 +47,11 @@ func init*(W: type CborWriter, stream: OutputStream): W =
   ## managed by the stream itself.
   W(stream: stream)
 
-proc writeValue*[V: not void](w: var CborWriter, value: V) {.raises: [IOError].}
-  ## Write value as Cbor - this is the main entry point for converting "anything"
-  ## to Cbor.
-  ##
-  ## See also `writeMember`.
+#proc writeValue*[V: not void](w: var CborWriter, value: V) {.raises: [IOError].}
+#  ## Write value as Cbor - this is the main entry point for converting "anything"
+#  ## to Cbor.
+#  ##
+#  ## See also `writeMember`.
 
 proc writeMember*[V: not void](
   w: var CborWriter, name: string, value: V
@@ -235,6 +235,7 @@ proc write*(w: var CborWriter, val: SomeFloat) {.raises: [IOError].} =
 
 # https://www.rfc-editor.org/rfc/rfc8949#section-3.4
 proc write*(w: var CborWriter, val: CborTag) {.raises: [IOError].} =
+  mixin writeValue
   w.streamElement(_):
     w.writeHead(CborMajor.Tag, val.tag)
     w.writeValue(val.val)
@@ -419,58 +420,8 @@ template isStringLikeArray[N](v: array[N, char]): bool =
 template isStringLikeArray(v: auto): bool =
   false
 
-template autoSerializeCheck(F: distinct type, T: distinct type, body) =
-  when declared(macrocache.hasKey): # Nim 1.6 have no macrocache.hasKey
-    mixin typeAutoSerialize
-    when not F.typeAutoSerialize(T):
-      const
-        typeName = typetraits.name(T)
-        flavorName = typetraits.name(F)
-      {.
-        error:
-          flavorName &
-          ": automatic serialization is not enabled or writeValue not implemented for `" &
-          typeName & "`"
-      .}
-    else:
-      body
-  else:
-    body
-
-template autoSerializeCheck(
-    F: distinct type, TC: distinct type, M: distinct type, body
-) =
-  when declared(macrocache.hasKey): # Nim 1.6 have no macrocache.hasKey
-    mixin typeClassOrMemberAutoSerialize
-    when not F.typeClassOrMemberAutoSerialize(TC, M):
-      const
-        typeName = typetraits.name(M)
-        typeClassName = typetraits.name(TC)
-        flavorName = typetraits.name(F)
-      {.
-        error:
-          flavorName &
-          ": automatic serialization is not enabled or writeValue not implemented for `" &
-          typeName & "` of typeclass `" & typeClassName & "`"
-      .}
-    else:
-      body
-  else:
-    body
-
 template writeValueObjectOrTuple(Flavor, w, value) =
   mixin flavorUsesAutomaticObjectSerialization
-
-  const isAutomatic = flavorUsesAutomaticObjectSerialization(Flavor)
-
-  when not isAutomatic:
-    const typeName = typetraits.name(type value)
-    {.
-      error:
-        "Please override writeValue for the " & typeName &
-        " type (or import the module where the override is provided)"
-    .}
-
   when value is distinct:
     writeRecordValue(w, distinctBase(value, recursive = false))
   else:
@@ -486,7 +437,7 @@ template writeValueStringLike(w, value) =
     else:
       w.write(value)
 
-proc writeValue*[V: not void](w: var CborWriter, value: V) {.raises: [IOError].} =
+proc writeValue*(w: var CborWriter, value: auto) {.raises: [IOError].} =
   ## Write a generic value as Cbor, using type-based dispatch. Overload this
   ## function to provide custom conversions of your own types.
   mixin writeValue
@@ -494,82 +445,56 @@ proc writeValue*[V: not void](w: var CborWriter, value: V) {.raises: [IOError].}
   type Flavor = CborWriter.Flavor
 
   when value is CborVoid:
-    autoSerializeCheck(Flavor, CborVoid):
-      discard
+    discard
   elif value is CborSimpleValue:
-    autoSerializeCheck(Flavor, CborSimpleValue):
-      w.write value
+    w.write value
   elif value is CborTag:
-    autoSerializeCheck(Flavor, CborTag):
-      w.write value
+    w.write value
   elif value is CborBytes:
-    autoSerializeCheck(Flavor, CborBytes):
-      w.write value
+    w.write value
   elif value is ref:
-    autoSerializeCheck(Flavor, ref, typeof(value)):
-      if value.isNil:
-        w.write(cborNull)
-      else:
-        writeValue(w, value[])
+    if value.isNil:
+      w.write(cborNull)
+    else:
+      writeValue(w, value[])
   elif isStringLike(value):
-    autoSerializeCheck(Flavor, StringLikeTypes, typeof(value)):
-      writeValueStringLike(w, value)
+    writeValueStringLike(w, value)
   elif isStringLikeArray(value):
-    autoSerializeCheck(Flavor, array, typeof(value)):
-      writeValueStringLike(w, value)
+    writeValueStringLike(w, value)
   elif value is bool:
-    autoSerializeCheck(Flavor, bool):
-      w.write if value: cborTrue else: cborFalse
+    w.write if value: cborTrue else: cborFalse
   elif value is range:
-    autoSerializeCheck(Flavor, range, typeof(value)):
-      when low(typeof(value)) < 0:
-        w.writeValue int64(value)
-      else:
-        w.writeValue uint64(value)
+    when low(typeof(value)) < 0:
+      w.writeValue int64(value)
+    else:
+      w.writeValue uint64(value)
   elif value is SomeInteger:
-    autoSerializeCheck(Flavor, SomeInteger, typeof(value)):
-      w.write value
+    w.write value
   elif value is SomeFloat:
-    autoSerializeCheck(Flavor, SomeFloat, typeof(value)):
-      w.write value
+    w.write value
   elif value is seq[byte]:
-    autoSerializeCheck(Flavor, seq[byte]):
-      w.write(value)
+    w.write(value)
   elif value is seq or (value is distinct and distinctBase(value) is seq):
-    autoSerializeCheck(Flavor, seq, typeof(value)):
-      when value is distinct:
-        w.writeArray(distinctBase value)
-      else:
-        w.writeArray(value)
+    when value is distinct:
+      w.writeArray(distinctBase value)
+    else:
+      w.writeArray(value)
   elif value is array or (value is distinct and distinctBase(value) is array):
-    autoSerializeCheck(Flavor, array, typeof(value)):
-      when value is distinct:
-        w.writeArray(distinctBase value)
-      else:
-        w.writeArray(value)
+    when value is distinct:
+      w.writeArray(distinctBase value)
+    else:
+      w.writeArray(value)
   elif value is openArray or (value is distinct and distinctBase(value) is openArray):
-    autoSerializeCheck(Flavor, openArray, typeof(value)):
-      when value is distinct:
-        w.writeArray(distinctBase value)
-      else:
-        w.writeArray(value)
+    when value is distinct:
+      w.writeArray(distinctBase value)
+    else:
+      w.writeArray(value)
   elif value is object:
-    when declared(macrocache.hasKey):
-      # Nim 1.6 have no macrocache.hasKey and cannot accept `object` param
-      autoSerializeCheck(Flavor, object, typeof(value)):
-        writeValueObjectOrTuple(Flavor, w, value)
-    else:
-      writeValueObjectOrTuple(Flavor, w, value)
+    writeValueObjectOrTuple(Flavor, w, value)
   elif value is tuple:
-    when declared(macrocache.hasKey):
-      # Nim 1.6 have no macrocache.hasKey and cannot accept `tuple` param
-      autoSerializeCheck(Flavor, tuple, typeof(value)):
-        writeValueObjectOrTuple(Flavor, w, value)
-    else:
-      writeValueObjectOrTuple(Flavor, w, value)
+    writeValueObjectOrTuple(Flavor, w, value)
   elif value is distinct:
-    autoSerializeCheck(Flavor, distinct, typeof(value)):
-      writeValueObjectOrTuple(Flavor, w, value)
+    writeValueObjectOrTuple(Flavor, w, value)
   else:
     const
       typeName = typetraits.name(value.type)
@@ -584,7 +509,7 @@ proc toCbor*(v: auto, Flavor = DefaultFlavor): seq[byte] =
 
   var
     s = memoryOutput()
-    w = CborWriter[DefaultFlavor].init(s) # XXX Flavor
+    w = CborWriter[Flavor].init(s)
   try:
     w.writeValue v
   except IOError:

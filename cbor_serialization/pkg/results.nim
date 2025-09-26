@@ -13,12 +13,12 @@ import pkg/results, ../../cbor_serialization/[reader, writer]
 
 export results
 
+type ResultType[T] = Result[T, void]
+
 template shouldWriteObjectField*[T](field: Result[T, void]): bool =
   field.isOk
 
-proc writeValue*[T](
-    writer: var CborWriter, value: Result[T, void]
-) {.raises: [IOError].} =
+proc writeValue*(writer: var CborWriter, value: ResultType) {.raises: [IOError].} =
   mixin writeValue
 
   if value.isOk:
@@ -26,8 +26,8 @@ proc writeValue*[T](
   else:
     writer.writeValue cborNull
 
-proc readValue*[T](
-    reader: var CborReader, value: var Result[T, void]
+proc readValue*(
+    reader: var CborReader, value: var ResultType
 ) {.raises: [IOError, SerializationError].} =
   mixin readValue
 
@@ -35,7 +35,7 @@ proc readValue*[T](
     reset value
     discard reader.parseSimpleValue()
   else:
-    value.ok reader.readValue(T)
+    value.ok reader.readValue(typeof(value).T)
 
 func isFieldExpected*[T, E](_: type[Result[T, E]]): bool {.compileTime.} =
   false
