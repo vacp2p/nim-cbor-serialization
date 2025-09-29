@@ -31,7 +31,7 @@ type
     Amt: int
 
 suite "Test spec":
-  test "encode":
+  dualTest "encode":
     check enc(0) == "0x00"
     check enc(1) == "0x01"
     check enc(10) == "0x0a"
@@ -118,7 +118,7 @@ suite "Test spec":
     check enc(Obj2(a: "A", b: "B", c: "C", d: "D", e: "E")) ==
       "0xa56161614161626142616361436164614461656145"
 
-  test "decode":
+  dualTest "decode":
     check decode("0x00", int) == 0
     check decode("0x01", int) == 1
     check decode("0x0a", int) == 10
