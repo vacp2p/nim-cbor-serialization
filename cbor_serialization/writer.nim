@@ -28,12 +28,11 @@ import
 
 export outputs, format, types, DefaultFlavor
 
-type
-  CborWriter*[Flavor = DefaultFlavor] = object
-    stream: OutputStream
-    stack: seq[CborMajor] # Stack that keeps track of nested collections
-    wantName: bool # The next output should be a name (for an object member)
-    wantBytes, wantByte: bool # The next output should be text/bytes
+type CborWriter*[Flavor = DefaultFlavor] = object
+  stream: OutputStream
+  stack: seq[CborMajor] # Stack that keeps track of nested collections
+  wantName: bool # The next output should be a name (for an object member)
+  wantBytes, wantByte: bool # The next output should be text/bytes
 
 Cbor.setWriter CborWriter, PreferredOutput = seq[byte]
 
@@ -297,7 +296,8 @@ proc write*[T: SomeInteger](w: var CborWriter, val: T) {.raises: [IOError].} =
   when T is SomeSignedInt:
     writeInt(w, val)
   else:
-    static: doAssert T is SomeUnsignedInt
+    static:
+      doAssert T is SomeUnsignedInt
     writeUint(w, val)
 
 # https://www.rfc-editor.org/rfc/rfc8949#section-3.3

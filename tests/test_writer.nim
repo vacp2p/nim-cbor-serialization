@@ -259,6 +259,12 @@ type
   IndefText = distinct seq[string]
   DefinBytes = distinct seq[byte]
   IndefBytes = distinct seq[seq[byte]]
+  StringLikeObj = object
+    definText: DefinText
+    indefText: IndefText
+    definBytes: DefinBytes
+    indefBytes: IndefBytes
+    marker: int
 
 createCborFlavor StringLikeCbor,
   automaticObjectSerialization = false, automaticPrimitivesSerialization = false
@@ -287,6 +293,13 @@ proc writeValue*(
       w.write(chunk)
 
 proc writeValue*(
+    w: var StringLikeCbor.Writer, val: seq[seq[string]]
+) {.gcsafe, raises: [IOError].} =
+  writeArray(w):
+    for s in val:
+      writeValue(w, s)
+
+proc writeValue*(
     w: var StringLikeCbor.Writer, val: DefinBytes
 ) {.gcsafe, raises: [IOError].} =
   writeBytes(w, seq[byte](val).len):
@@ -308,6 +321,19 @@ proc writeValue*(
   writeBytes(w):
     for chunk in val:
       w.write(chunk)
+
+proc writeValue*(
+    w: var StringLikeCbor.Writer, val: seq[seq[seq[byte]]]
+) {.gcsafe, raises: [IOError].} =
+  writeArray(w):
+    for s in val:
+      writeValue(w, s)
+
+proc writevalue*(w: var StringLikeCbor.Writer, val: int) =
+  write(w, val)
+
+proc writevalue*(w: var StringLikeCbor.Writer, val: StringLikeObj) =
+  writeRecordValue(w, val)
 
 func toWriter(output: var OutputStream): CborWriter[DefaultFlavor] =
   output = memoryOutput()
@@ -333,6 +359,11 @@ suite "Test write text":
     let cbor = StringLikeCbor.encode(@["a", "bc", "def"])
     check cbor.hex == "0x7f616162626363646566ff"
     checkCbor cbor, "abcdef"
+
+  test "array of indefinite text":
+    let cbor = StringLikeCbor.encode(@[@["a", "b"], @["c"]])
+    check cbor.hex == "0x9f7f61616162ff7f6163ffff"
+    checkCbor cbor, @["ab", "c"]
 
   test "indefinite nesting not allowed":
     var output: OutputStream
@@ -388,7 +419,7 @@ suite "Test write text":
       expect AssertionDefect:
         w.write(123)
 
-suite "Test write byte string":
+suite "Test write byte-string":
   test "definite":
     let cbor = StringLikeCbor.encode("abc".toBytes.DefinBytes)
     check cbor.hex == "0x43616263"
@@ -410,6 +441,11 @@ suite "Test write byte string":
     let cbor = StringLikeCbor.encode(val)
     check cbor.hex == "0x5f416142626343646566ff"
     checkCbor cbor, "abcdef".toBytes
+
+  test "array of indefinite byte-strings":
+    let cbor = StringLikeCbor.encode(@[@["a".toBytes, "b".toBytes], @["c".toBytes]])
+    check cbor.hex == "0x9f5f41614162ff5f4163ffff"
+    checkCbor cbor, @["ab".toBytes, "c".toBytes]
 
   test "indefinite nesting not allowed":
     var output: OutputStream
@@ -464,3 +500,28 @@ suite "Test write byte string":
     writeBytes(w, 1):
       expect AssertionDefect:
         w.write(123)
+
+suite "Test write text/bytes object":
+  test "write StringLikeObj":
+    type ExpectedObj = object
+      definText, indefText: string
+      definBytes, indefBytes: seq[byte]
+      marker: int
+
+    let val = StringLikeObj(
+      definText: "foo".DefinText,
+      indefText: @["bar", "baz"].IndefText,
+      definBytes: "quz".toBytes.DefinBytes,
+      indefBytes: @["qux".toBytes, "quxx".toBytes].IndefBytes,
+      marker: 123,
+    )
+    let cbor = StringLikeCbor.encode(val)
+    #echo cbor.hex
+    checkCbor cbor,
+      ExpectedObj(
+        definText: "foo",
+        indefText: "barbaz",
+        definBytes: "quz".toBytes,
+        indefBytes: "quxquxx".toBytes,
+        marker: 123,
+      )
