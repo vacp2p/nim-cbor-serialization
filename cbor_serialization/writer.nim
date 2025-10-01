@@ -32,7 +32,7 @@ type CborWriter*[Flavor = DefaultFlavor] = object
   stream: OutputStream
   stack: seq[CborMajor] # Stack that keeps track of nested collections
   wantName: bool # The next output should be a name (for an object member)
-  wantBytes, wantByte: bool # The next output should be text/bytes
+  wantBytesElm, wantBytes: bool # The next output should be text/bytes
 
 Cbor.setWriter CborWriter, PreferredOutput = seq[byte]
 
@@ -113,14 +113,14 @@ proc beginElement(w: var CborWriter) =
   ## The framework takes care to call `beginElement`/`endElement` as necessary
   ## as part of `writeValue` and `streamElement`.
   doAssert not w.wantName
+  doAssert not w.wantBytesElm
   doAssert not w.wantBytes
-  doAssert not w.wantByte
 
 proc endElement(w: var CborWriter) =
   ## Matching `end` call for `beginElement`
   w.wantName = w.inObject
-  w.wantBytes = w.inText or w.inBytes
-  w.wantByte = false
+  w.wantBytesElm = w.inText or w.inBytes
+  w.wantBytes = false
 
 # https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.12
 # https://www.rfc-editor.org/rfc/rfc8949#section-3.2.2
@@ -178,21 +178,21 @@ proc beginStringLike(
     w: var CborWriter, length: int, kind: CborMajor
 ) {.raises: [IOError].} =
   doAssert kind in {CborMajor.Text, CborMajor.Bytes}
-  doAssert not w.wantBytes or length >= 0, "cannot nest indefinite text/bytes"
-  doAssert not w.wantByte, "cannot nest definite text/bytes"
+  doAssert not w.wantBytesElm or length >= 0, "cannot nest indefinite text/bytes"
+  doAssert not w.wantBytes, "cannot nest definite text/bytes"
   doAssert not w.inText or kind == CborMajor.Text
   doAssert not w.inBytes or kind == CborMajor.Bytes
 
+  w.wantBytesElm = false
   w.wantBytes = false
-  w.wantByte = false
   w.beginElement()
 
   if length >= 0:
     w.writeHead(kind, length.uint64)
-    w.wantByte = true
+    w.wantBytes = true
   else:
     w.stream.write initialByte(kind, cborMinorIndef)
-    w.wantBytes = true
+    w.wantBytesElm = true
 
   w.stack.add kind
 
@@ -217,7 +217,7 @@ proc endText*(w: var CborWriter, stopCode = true) {.raises: [IOError].} =
   endStringLike(w, stopCode)
 
 proc writeByte*(w: var CborWriter, x: byte) {.raises: [IOError].} =
-  doAssert w.wantByte
+  doAssert w.wantBytes
   w.stream.write(x)
 
 proc writeChar*(w: var CborWriter, x: char) {.raises: [IOError].} =
@@ -257,16 +257,16 @@ template streamElement*(w: var CborWriter, streamVar: untyped, body: untyped) =
 
 # https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.8
 proc write*(w: var CborWriter, val: openArray[char]) {.raises: [IOError].} =
-  doAssert not w.wantBytes or w.inText
-  w.wantBytes = false
+  doAssert not w.wantBytesElm or w.inText
+  w.wantBytesElm = false
   w.streamElement(s):
     w.writeHead(CborMajor.Text, val.len.uint64)
     s.write(val)
 
 # https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.6
 proc write*(w: var CborWriter, val: seq[byte]) {.raises: [IOError].} =
-  doAssert not w.wantBytes or w.inBytes
-  w.wantBytes = false
+  doAssert not w.wantBytesElm or w.inBytes
+  w.wantBytesElm = false
   w.streamElement(s):
     w.writeHead(CborMajor.Bytes, val.len.uint64)
     s.write(val)

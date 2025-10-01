@@ -419,6 +419,13 @@ suite "Test write text":
       expect AssertionDefect:
         w.write(123)
 
+  test "text in definite text not allowed":
+    var output: OutputStream
+    var w = toWriter output
+    writeText(w, 1):
+      expect AssertionDefect:
+        w.write("a")
+
 suite "Test write byte-string":
   test "definite":
     let cbor = StringLikeCbor.encode("abc".toBytes.DefinBytes)
@@ -500,6 +507,13 @@ suite "Test write byte-string":
     writeBytes(w, 1):
       expect AssertionDefect:
         w.write(123)
+
+  test "bytes in definite bytes not allowed":
+    var output: OutputStream
+    var w = toWriter output
+    writeBytes(w, 1):
+      expect AssertionDefect:
+        w.write("a".toBytes)
 
 suite "Test write text/bytes object":
   test "write StringLikeObj":
