@@ -49,9 +49,9 @@ MyCbor.configureCborSerialization(Drawer, EnumAsString)
 
 proc writeValue*(w: var CborWriter, val: OWOF) {.gcsafe, raises: [IOError].} =
   w.writeObject:
-    w.writeField("a", val.a)
-    w.writeField("b", val.b)
-    w.writeField("c", val.c)
+    w.writeMember("a", val.a)
+    w.writeMember("b", val.b)
+    w.writeMember("c", val.c)
 
 #func toReader(input: seq[byte]): CborReader[DefaultFlavor] =
 #  var stream = unsafeMemoryInput(input)
@@ -127,7 +127,7 @@ suite "Test writer":
     check yy.hex == "0xa161631903e7" # {"c": 999}
     checkCbor yy, y
 
-  test "writeField with object with optional fields":
+  test "writeMember with object with optional fields":
     let x = OWOF(a: Opt.some(123), b: some("nano"), c: 456)
 
     let y = OWOF(a: Opt.none(int), b: none(string), c: 999)

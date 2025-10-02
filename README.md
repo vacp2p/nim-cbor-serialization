@@ -34,18 +34,16 @@ requires "cbor_serialization"
 Create a type and use it to encode and decode CBOR:
 
 ```nim
-import cbor_serialization, stew/[byteutils]
+import cbor_serialization
 
 type Request = object
   cborrpc: string
   `method`: string
 
-# {"cborrpc": "2.0", "method": "name"}
-let cbor = hexToSeqByte "0xA26763626F7272706363322E30666D6574686F64646E616D65"
-let decoded = Cbor.decode(cbor, Request)
+let encoded = Cbor.encode(Request(cborrpc: "2.0", `method`: "name"))
+let decoded = Cbor.decode(encoded, Request)
 
 echo decoded.cborrpc
-echo Cbor.encode(decoded).to0xHex()
 ```
 
 ## Documentation

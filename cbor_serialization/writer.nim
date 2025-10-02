@@ -96,6 +96,11 @@ proc writeHead(
   else:
     discard
 
+proc writeHead(
+    w: var CborWriter, majorType: CborMajor
+) {.raises: [IOError].} =
+  w.stream.write initialByte(majorType, cborMinorIndef)
+
 func inObject(w: CborWriter): bool =
   w.stack.len > 0 and w.stack[^1] == CborMajor.Map
 
@@ -137,7 +142,7 @@ proc beginObject*(w: var CborWriter, length = -1) {.raises: [IOError].} =
   if length >= 0:
     w.writeHead(CborMajor.Map, length.uint64)
   else:
-    w.stream.write initialByte(CborMajor.Map, cborMinorIndef)
+    w.writeHead(CborMajor.Map)
 
   w.wantName = true
   w.stack.add CborMajor.Map
@@ -161,7 +166,7 @@ proc beginArray*(w: var CborWriter, length = -1) {.raises: [IOError].} =
   if length >= 0:
     w.writeHead(CborMajor.Array, length.uint64)
   else:
-    w.stream.write initialByte(CborMajor.Array, cborMinorIndef)
+    w.writeHead(CborMajor.Array)
 
   w.stack.add CborMajor.Array
 
@@ -191,7 +196,7 @@ proc beginStringLike(
     w.writeHead(kind, length.uint64)
     w.wantBytes = true
   else:
-    w.stream.write initialByte(kind, cborMinorIndef)
+    w.writeHead(kind)
     w.wantBytesElm = true
 
   w.stack.add kind
@@ -305,11 +310,11 @@ proc write*(w: var CborWriter, val: SomeFloat) {.raises: [IOError].} =
   w.streamElement(s):
     case val.classify
     of fcNan:
-      s.write [initialByte(CborMajor.SimpleOrFloat, cborMinorLen2), 0x7E'u8, 0x00'u8]
+      w.writeHead(CborMajor.SimpleOrFloat, 0x7E00'u16)
     of fcInf:
-      s.write [initialByte(CborMajor.SimpleOrFloat, cborMinorLen2), 0x7C'u8, 0x00'u8]
+      w.writeHead(CborMajor.SimpleOrFloat, 0x7C00'u16)
     of fcNegInf:
-      s.write [initialByte(CborMajor.SimpleOrFloat, cborMinorLen2), 0xFC'u8, 0x00'u8]
+      w.writeHead(CborMajor.SimpleOrFloat, 0xFC00'u16)
     else:
       # VM requires this cast dance because float32 has 64-bit precision
       #if val == float32(val):
@@ -437,12 +442,15 @@ proc writeRecordValue*(w: var CborWriter, value: object | tuple) {.raises: [IOEr
       discard fieldName
   w.endObject(stopCode = false)
 
-proc writeValue*(w: var CborWriter, value: CborNumber) {.raises: [IOError].} =
+proc write*(w: var CborWriter, value: CborNumber) {.raises: [IOError].} =
   w.streamElement(_):
     if value.sign == CborSign.Neg:
       w.writeHead(CborMajor.Negative, value.integer)
     else:
       w.writeHead(CborMajor.Unsigned, value.integer)
+
+proc writeValue*(w: var CborWriter, value: CborNumber) {.raises: [IOError].} =
+  w.write(value)
 
 proc writeValue*(w: var CborWriter, value: CborObjectType) {.raises: [IOError].} =
   var fieldCount = 0
@@ -677,28 +685,6 @@ proc toCbor*(v: auto, Flavor = DefaultFlavor): seq[byte] =
   except IOError:
     raiseAssert "memoryOutput is exception-free"
   s.getOutput(seq[byte])
-
-# nim-serialization integration / naming
-
-template beginRecord*(w: var CborWriter) =
-  ## Alias for beginObject, for record serialization.
-  beginObject(w)
-
-template beginRecord*(w: var CborWriter, T: type) =
-  ## Alias for beginObject with type, for record serialization.
-  beginObject(w, T)
-
-template writeFieldName*(w: var CborWriter, name: string) =
-  ## Alias for writeName, for record serialization.
-  writeName(w, name)
-
-template writeField*(w: var CborWriter, name: string, value: auto) =
-  ## Alias for writeMember, for record serialization.
-  writeMember(w, name, value)
-
-template endRecord*(w: var CborWriter) =
-  ## Alias for endObject, for record serialization.
-  w.endObject()
 
 template configureCborSerialization*(
     T: type[enum], enumRep: static[EnumRepresentation]

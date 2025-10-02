@@ -88,9 +88,11 @@ func expectedFieldsBitmask*(TT: type, fields: static int): auto {.compileTime.} 
 proc readRecordValue*[T](
     r: var CborReader, value: var T
 ) {.raises: [SerializationError, IOError].} =
+  mixin flavorAllowsUnknownFields, flavorRequiresAllFields
   type
-    ReaderType {.used.} = type r
-    T = type value
+    ReaderType = typeof(r)
+    Flavor = ReaderType.Flavor
+    T = typeof(value)
 
   const
     fieldsTable = T.fieldReadersTable(ReaderType)
@@ -115,18 +117,18 @@ proc readRecordValue*[T](
         let reader = fieldsTable[fieldIdx].reader
         reader(value, r)
         encounteredFields.setBitInArray(fieldIdx)
-      elif flavorAllowsUnknownFields(r.Flavor):
+      elif flavorAllowsUnknownFields(Flavor):
         r.skipSingleValue()
       else:
         r.parser.raiseUnexpectedField(key, cstring typeName)
 
-    if flavorRequiresAllFields(r.Flavor) and
+    if flavorRequiresAllFields(Flavor) and
         not expectedFields.isBitwiseSubsetOf(encounteredFields):
       r.parser.raiseIncompleteObject(typeName)
   else:
     r.parseObject(key):
       # avoid bloat by putting this if inside parseObject
-      if flavorAllowsUnknownFields(r.Flavor):
+      if flavorAllowsUnknownFields(Flavor):
         r.skipSingleValue()
       else:
         r.parser.raiseUnexpectedField(key, cstring typeName)
