@@ -686,6 +686,28 @@ proc toCbor*(v: auto, Flavor = DefaultFlavor): seq[byte] =
     raiseAssert "memoryOutput is exception-free"
   s.getOutput(seq[byte])
 
+# nim-serialization integration / naming
+
+template beginRecord*(w: var CborWriter) =
+  ## Alias for beginObject, for record serialization.
+  beginObject(w)
+
+template beginRecord*(w: var CborWriter, T: type) =
+  ## Alias for beginObject with type, for record serialization.
+  beginObject(w, T)
+
+template writeFieldName*(w: var CborWriter, name: string) =
+  ## Alias for writeName, for record serialization.
+  writeName(w, name)
+
+template writeField*(w: var CborWriter, name: string, value: auto) =
+  ## Alias for writeMember, for record serialization.
+  writeMember(w, name, value)
+
+template endRecord*(w: var CborWriter) =
+  ## Alias for endObject, for record serialization.
+  w.endObject()
+
 template configureCborSerialization*(
     T: type[enum], enumRep: static[EnumRepresentation]
 ) =
