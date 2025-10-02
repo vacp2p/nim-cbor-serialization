@@ -96,9 +96,7 @@ proc writeHead(
   else:
     discard
 
-proc writeHead(
-    w: var CborWriter, majorType: CborMajor
-) {.raises: [IOError].} =
+proc writeHead(w: var CborWriter, majorType: CborMajor) {.raises: [IOError].} =
   w.stream.write initialByte(majorType, cborMinorIndef)
 
 func inObject(w: CborWriter): bool =
