@@ -44,21 +44,21 @@ proc writeValue*(writer: var CborWriter, value: BigInt) {.raises: [IOError].} =
   if value >= 0.initBigInt:
     let sint = toInt[uint64](value)
     if sint.isSome:
-      writer.writeValue(CborNumber(sign: CborSign.None, integer: sint.get()))
+      writer.write(CborNumber(sign: CborSign.None, integer: sint.get()))
     else:
       var bintTag = CborTag[seq[byte]](tag: unsignedTag)
       toBytes(value, bintTag.val)
-      writer.writeValue(bintTag)
+      writer.write(bintTag)
   else:
     var bint = value.abs()
     dec(bint, 1)
     let sint = toInt[uint64](bint)
     if sint.isSome:
-      writer.writeValue(CborNumber(sign: CborSign.Neg, integer: sint.get()))
+      writer.write(CborNumber(sign: CborSign.Neg, integer: sint.get()))
     else:
       var bintTag = CborTag[seq[byte]](tag: negativeTag)
       toBytes(bint, bintTag.val)
-      writer.writeValue(bintTag)
+      writer.write(bintTag)
 
 proc readValue*(
     reader: var CborReader, value: var BigInt
