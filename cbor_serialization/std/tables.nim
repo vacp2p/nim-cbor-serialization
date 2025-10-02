@@ -16,10 +16,10 @@ export tables
 type TableType = OrderedTable | Table
 
 proc writeValue*(writer: var CborWriter, value: TableType) {.raises: [IOError].} =
-  writer.beginObject()
+  writer.beginRecord()
   for key, val in value:
-    writer.writeMember $key, val
-  writer.endObject()
+    writer.writeField $key, val
+  writer.endRecord()
 
 template to*(a: string, b: typed): untyped =
   {.error: "doesnt support keys with type " & $type(b).}
