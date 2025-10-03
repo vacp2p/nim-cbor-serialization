@@ -15,7 +15,7 @@ func cborBool(x: bool): CborValueRef =
 func cborNull(): CborValueRef =
   CborValueRef(kind: CborValueKind.Null)
 
-template allValueRefs {.dirty.} =
+template allValueRefs() {.dirty.} =
   let objA = CborValueRef(
     kind: CborValueKind.Object, objVal: [("a", cborBool(true))].toOrderedTable
   )
