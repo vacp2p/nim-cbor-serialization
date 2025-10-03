@@ -19,29 +19,29 @@ proc specData(): seq[string] =
   doAssert result.len > 0
 
 suite "Test CborBytes":
-  test "decode spec vectors":
+  dualTest "decode spec vectors":
     let cborData = specData()
     check cborData.len > 0
     for val in cborData:
       let cbor = Cbor.decode(val.unhex, CborBytes)
       check cbor.toBytes().toHex() == val
 
-  test "encode spec vectors":
+  dualTest "encode spec vectors":
     let cborData = specData()
     check cborData.len > 0
     for val in cborData:
       let raw = val.unhex.CborBytes
       check Cbor.encode(raw).toHex() == val
 
-  test "decode string":
+  dualTest "decode string":
     let val = "0x6161".unhex
     check Cbor.decode(val, CborBytes) == val
 
-  test "encode string":
+  dualTest "encode string":
     let val = "0x6161".unhex
     check Cbor.encode(val.CborBytes) == val
 
-  test "Object nestedDepthLimit":
+  dualTest "Object nestedDepthLimit":
     let cbor = Cbor.encode((x: (y: (z: "a"))))
     check:
       Cbor.decode(cbor, CborBytes) == cbor
@@ -49,7 +49,7 @@ suite "Test CborBytes":
     expect UnexpectedValueError:
       discard Cbor.decode(cbor, CborBytes, conf = CborReaderConf(nestedDepthLimit: 2))
 
-  test "Array nestedDepthLimit":
+  dualTest "Array nestedDepthLimit":
     let cbor = Cbor.encode(@[@[@["a", "b"], @["c", "d"]], @[@["e", "f"]]])
     check:
       Cbor.decode(cbor, CborBytes) == cbor
@@ -57,7 +57,7 @@ suite "Test CborBytes":
     expect UnexpectedValueError:
       discard Cbor.decode(cbor, CborBytes, conf = CborReaderConf(nestedDepthLimit: 2))
 
-  test "Tag nestedDepthLimit":
+  dualTest "Tag nestedDepthLimit":
     type
       Tag1 = CborTag[Tag2]
       Tag2 = CborTag[Tag3]
@@ -71,7 +71,7 @@ suite "Test CborBytes":
     expect UnexpectedValueError:
       discard Cbor.decode(cbor, Tag1, conf = CborReaderConf(nestedDepthLimit: 2))
 
-  test "Array arrayElementsLimit":
+  dualTest "Array arrayElementsLimit":
     let cbor = Cbor.encode(@["a", "b", "c"])
     check:
       Cbor.decode(cbor, CborBytes) == cbor
@@ -79,7 +79,7 @@ suite "Test CborBytes":
     expect UnexpectedValueError:
       discard Cbor.decode(cbor, CborBytes, conf = CborReaderConf(arrayElementsLimit: 2))
 
-  test "Object objectMembersLimit":
+  dualTest "Object objectMembersLimit":
     let cbor = Cbor.encode((a: "a", b: "b", c: "c"))
     check:
       Cbor.decode(cbor, CborBytes) == cbor
@@ -87,7 +87,7 @@ suite "Test CborBytes":
     expect UnexpectedValueError:
       discard Cbor.decode(cbor, CborBytes, conf = CborReaderConf(objectMembersLimit: 2))
 
-  test "String stringLengthLimit":
+  dualTest "String stringLengthLimit":
     let cbor = Cbor.encode("abc")
     check:
       Cbor.decode(cbor, CborBytes) == cbor
@@ -95,7 +95,7 @@ suite "Test CborBytes":
     expect UnexpectedValueError:
       discard Cbor.decode(cbor, CborBytes, conf = CborReaderConf(stringLengthLimit: 2))
 
-  test "ByteString byteStringLengthLimit":
+  dualTest "ByteString byteStringLengthLimit":
     let cbor = Cbor.encode(@[1.byte, 2, 3])
     check:
       Cbor.decode(cbor, CborBytes) == cbor

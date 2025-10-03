@@ -58,55 +58,55 @@ proc writeValue*(w: var CborWriter, val: OWOF) {.gcsafe, raises: [IOError].} =
 #  CborReader[DefaultFlavor].init(stream)
 
 suite "Test writer":
-  test "results option top level some YourCbor":
+  dualTest "results option top level some YourCbor":
     var val = Opt.some(123)
     let cbor = YourCbor.encode(val)
     check cbor.hex == "0x187b"
     checkCbor cbor, 123
 
-  test "results option top level none YourCbor":
+  dualTest "results option top level none YourCbor":
     var val = Opt.none(int)
     let cbor = YourCbor.encode(val)
     check cbor.hex == "0xf6"
     checkCbor cbor, cborNull
 
-  test "results option top level some MyCbor":
+  dualTest "results option top level some MyCbor":
     var val = Opt.some(123)
     let cbor = MyCbor.encode(val)
     check cbor.hex == "0x187b"
     checkCbor cbor, 123
 
-  test "results option top level none MyCbor":
+  dualTest "results option top level none MyCbor":
     var val = Opt.none(int)
     let cbor = MyCbor.encode(val)
     check cbor.hex == "0xf6"
     checkCbor cbor, cborNull
 
-  test "results option array some YourCbor":
+  dualTest "results option array some YourCbor":
     var val = [Opt.some(123), Opt.some(345)]
     let cbor = YourCbor.encode(val)
     check cbor.hex == "0x82187b190159"
     checkCbor cbor, [123, 345]
 
-  test "results option array none YourCbor":
+  dualTest "results option array none YourCbor":
     var val = [Opt.some(123), Opt.none(int), Opt.some(777)]
     let cbor = YourCbor.encode(val)
     check cbor.hex == "0x83187bf6190309"
     checkCbor cbor, [Opt.some(123), Opt.none(int), Opt.some(777)]
 
-  test "results option array some MyCbor":
+  dualTest "results option array some MyCbor":
     var val = [Opt.some(123), Opt.some(345)]
     let cbor = MyCbor.encode(val)
     check cbor.hex == "0x82187b190159"
     checkCbor cbor, [123, 345]
 
-  test "results option array none MyCbor":
+  dualTest "results option array none MyCbor":
     var val = [Opt.some(123), Opt.none(int), Opt.some(777)]
     let cbor = MyCbor.encode(val)
     check cbor.hex == "0x83187bf6190309"
     checkCbor cbor, [Opt.some(123), Opt.none(int), Opt.some(777)]
 
-  test "object with optional fields":
+  dualTest "object with optional fields":
     let x = ObjectWithOptionalFields(a: Opt.some(123), b: some("nano"), c: 456)
 
     let y = ObjectWithOptionalFields(a: Opt.none(int), b: none(string), c: 999)
@@ -127,7 +127,7 @@ suite "Test writer":
     check yy.hex == "0xa161631903e7" # {"c": 999}
     checkCbor yy, y
 
-  test "writeField with object with optional fields":
+  dualTest "writeField with object with optional fields":
     let x = OWOF(a: Opt.some(123), b: some("nano"), c: 456)
 
     let y = OWOF(a: Opt.none(int), b: none(string), c: 999)
@@ -146,7 +146,7 @@ suite "Test writer":
     check vv.hex == "0xbf6161f66162f661631903e7ff" # {"a": null, "b": null, "c": 999}
     checkCbor vv, y
 
-  test "Enum value representation primitives":
+  dualTest "Enum value representation primitives":
     when DefaultFlavor.flavorEnumRep() == EnumAsString:
       check true
     elif DefaultFlavor.flavorEnumRep() == EnumAsNumber:
@@ -172,7 +172,7 @@ suite "Test writer":
 
     DefaultFlavor.flavorEnumRep(EnumAsString)
 
-  test "Enum value representation of DefaultFlavor":
+  dualTest "Enum value representation of DefaultFlavor":
     type ExoticFruits = enum
       DragonFruit
       SnakeFruit
@@ -194,7 +194,7 @@ suite "Test writer":
     check w.hex == "0x6132"
     checkCbor w, "2"
 
-  test "EnumAsString of DefaultFlavor/Cbor":
+  dualTest "EnumAsString of DefaultFlavor/Cbor":
     type
       Fruit = enum
         Banana = "BaNaNa"
@@ -236,7 +236,7 @@ suite "Test writer":
     check zz.hex == "0xa16566727569746642614e614e61"
     checkCbor zz, obj
 
-  test "Individual enum configuration":
+  dualTest "Individual enum configuration":
     Cbor.flavorEnumRep(EnumAsNumber)
     # Although the flavor config is EnumAsNumber
     # FruitX is configured as EnumAsAstring
@@ -340,32 +340,32 @@ func toWriter(output: var OutputStream): CborWriter[DefaultFlavor] =
   CborWriter[DefaultFlavor].init(output)
 
 suite "Test write text":
-  test "definite":
+  dualTest "definite":
     let cbor = StringLikeCbor.encode("abc".DefinText)
     check cbor.hex == "0x63616263"
     checkCbor cbor, "abc"
 
-  test "indefinite 1 chunk":
+  dualTest "indefinite 1 chunk":
     let cbor = StringLikeCbor.encode(@["abc"].IndefText)
     check cbor.hex == "0x7f63616263ff"
     checkCbor cbor, "abc"
 
-  test "indefinite 3 chunks":
+  dualTest "indefinite 3 chunks":
     let cbor = StringLikeCbor.encode(@["a", "bc", "def"].IndefText)
     check cbor.hex == "0x7f616162626363646566ff"
     checkCbor cbor, "abcdef"
 
-  test "indefinite with writeValue":
+  dualTest "indefinite with writeValue":
     let cbor = StringLikeCbor.encode(@["a", "bc", "def"])
     check cbor.hex == "0x7f616162626363646566ff"
     checkCbor cbor, "abcdef"
 
-  test "array of indefinite text":
+  dualTest "array of indefinite text":
     let cbor = StringLikeCbor.encode(@[@["a", "b"], @["c"]])
     check cbor.hex == "0x9f7f61616162ff7f6163ffff"
     checkCbor cbor, @["ab", "c"]
 
-  test "indefinite nesting not allowed":
+  dualTest "indefinite nesting not allowed":
     var output: OutputStream
     var w = toWriter output
     writeText(w):
@@ -373,7 +373,7 @@ suite "Test write text":
         writeText(w):
           w.writeChar('a')
 
-  test "definite nesting not allowed":
+  dualTest "definite nesting not allowed":
     var output: OutputStream
     var w = toWriter output
     writeText(w, 1):
@@ -381,7 +381,7 @@ suite "Test write text":
         writeText(w, 1):
           w.writeChar('a')
 
-  test "indefinite in definite not allowed":
+  dualTest "indefinite in definite not allowed":
     var output: OutputStream
     var w = toWriter output
     writeText(w, 1):
@@ -389,7 +389,7 @@ suite "Test write text":
         writeText(w):
           w.writeChar('a')
 
-  test "bytes in indefinite text not allowed":
+  dualTest "bytes in indefinite text not allowed":
     var output: OutputStream
     var w = toWriter output
     writeText(w):
@@ -397,7 +397,7 @@ suite "Test write text":
         writeBytes(w, 1):
           w.writeByte('a'.byte)
 
-  test "bytes in definite text not allowed":
+  dualTest "bytes in definite text not allowed":
     var output: OutputStream
     var w = toWriter output
     writeText(w, 1):
@@ -405,21 +405,21 @@ suite "Test write text":
         writeBytes(w, 1):
           w.writeByte('a'.byte)
 
-  test "non-text in indefinite text not allowed":
+  dualTest "non-text in indefinite text not allowed":
     var output: OutputStream
     var w = toWriter output
     writeText(w):
       expect AssertionDefect:
         w.write(123)
 
-  test "non-text in definite text not allowed":
+  dualTest "non-text in definite text not allowed":
     var output: OutputStream
     var w = toWriter output
     writeText(w, 1):
       expect AssertionDefect:
         w.write(123)
 
-  test "text in definite text not allowed":
+  dualTest "text in definite text not allowed":
     var output: OutputStream
     var w = toWriter output
     writeText(w, 1):
@@ -427,34 +427,34 @@ suite "Test write text":
         w.write("a")
 
 suite "Test write byte-string":
-  test "definite":
+  dualTest "definite":
     let cbor = StringLikeCbor.encode("abc".toBytes.DefinBytes)
     check cbor.hex == "0x43616263"
     checkCbor cbor, "abc".toBytes
 
-  test "indefinite 1 chunk":
+  dualTest "indefinite 1 chunk":
     let cbor = StringLikeCbor.encode(@["abc".toBytes].IndefBytes)
     check cbor.hex == "0x5f43616263ff"
     checkCbor cbor, "abc".toBytes
 
-  test "indefinite 3 chunks":
+  dualTest "indefinite 3 chunks":
     let val = @["a".toBytes, "bc".toBytes, "def".toBytes]
     let cbor = StringLikeCbor.encode(val.IndefBytes)
     check cbor.hex == "0x5f416142626343646566ff"
     checkCbor cbor, "abcdef".toBytes
 
-  test "indefinite with byte chunks":
+  dualTest "indefinite with byte chunks":
     let val = @["a".toBytes, "bc".toBytes, "def".toBytes]
     let cbor = StringLikeCbor.encode(val)
     check cbor.hex == "0x5f416142626343646566ff"
     checkCbor cbor, "abcdef".toBytes
 
-  test "array of indefinite byte-strings":
+  dualTest "array of indefinite byte-strings":
     let cbor = StringLikeCbor.encode(@[@["a".toBytes, "b".toBytes], @["c".toBytes]])
     check cbor.hex == "0x9f5f41614162ff5f4163ffff"
     checkCbor cbor, @["ab".toBytes, "c".toBytes]
 
-  test "indefinite nesting not allowed":
+  dualTest "indefinite nesting not allowed":
     var output: OutputStream
     var w = toWriter output
     writeBytes(w):
@@ -462,7 +462,7 @@ suite "Test write byte-string":
         writeBytes(w):
           w.writeByte('a'.byte)
 
-  test "definite nesting not allowed":
+  dualTest "definite nesting not allowed":
     var output: OutputStream
     var w = toWriter output
     writeBytes(w, 1):
@@ -470,7 +470,7 @@ suite "Test write byte-string":
         writeBytes(w, 1):
           w.writeByte('a'.byte)
 
-  test "indefinite in definite not allowed":
+  dualTest "indefinite in definite not allowed":
     var output: OutputStream
     var w = toWriter output
     writeBytes(w, 1):
@@ -478,7 +478,7 @@ suite "Test write byte-string":
         writeBytes(w):
           w.writeByte('a'.byte)
 
-  test "text in indefinite bytes not allowed":
+  dualTest "text in indefinite bytes not allowed":
     var output: OutputStream
     var w = toWriter output
     writeBytes(w):
@@ -486,7 +486,7 @@ suite "Test write byte-string":
         writeText(w, 1):
           w.writeChar('a')
 
-  test "text in definite bytes not allowed":
+  dualTest "text in definite bytes not allowed":
     var output: OutputStream
     var w = toWriter output
     writeBytes(w, 1):
@@ -494,21 +494,21 @@ suite "Test write byte-string":
         writeText(w, 1):
           w.writeChar('a')
 
-  test "non-bytes in indefinite bytes not allowed":
+  dualTest "non-bytes in indefinite bytes not allowed":
     var output: OutputStream
     var w = toWriter output
     writeBytes(w):
       expect AssertionDefect:
         w.write(123)
 
-  test "non-bytes in definite bytes not allowed":
+  dualTest "non-bytes in definite bytes not allowed":
     var output: OutputStream
     var w = toWriter output
     writeBytes(w, 1):
       expect AssertionDefect:
         w.write(123)
 
-  test "bytes in definite bytes not allowed":
+  dualTest "bytes in definite bytes not allowed":
     var output: OutputStream
     var w = toWriter output
     writeBytes(w, 1):
@@ -516,7 +516,7 @@ suite "Test write byte-string":
         w.write("a".toBytes)
 
 suite "Test write text/bytes object":
-  test "write StringLikeObj":
+  dualTest "write StringLikeObj":
     type ExpectedObj = object
       definText, indefText: string
       definBytes, indefBytes: seq[byte]

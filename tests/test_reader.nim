@@ -7,6 +7,7 @@
 # This file may not be copied, modified, or distributed except according to
 # those terms.
 
+import macros
 import faststreams, unittest2, serialization, ./utils, ../cbor_serialization/reader
 
 createCborFlavor NullFields, skipNullFields = true
@@ -102,14 +103,14 @@ createCborFlavor AllowUnknownOffCbor,
   automaticObjectSerialization = true, allowUnknownFields = false
 
 suite "CborReader basic test":
-  test "readArray iterator":
+  dualTest "readArray iterator":
     var r = toReader "0x83F4F5F4".unhex
     var list: seq[bool]
     for x in r.readArray(bool):
       list.add x
     check list == @[false, true, false]
 
-  test "readObjectFields iterator":
+  dualTest "readObjectFields iterator":
     var r = toReader cbor1.unhex
     var keys: seq[string]
     var val: CborValueRef
@@ -118,7 +119,7 @@ suite "CborReader basic test":
       r.parseValue(val)
     check keys == @["string", "number", "int", "bool", "null", "array"]
 
-  test "readObject iterator":
+  dualTest "readObject iterator":
     var r = toReader cbor2.unhex
     var keys: seq[string]
     var vals: seq[uint64]
@@ -130,12 +131,14 @@ suite "CborReader basic test":
       keys == @["string", "number", "int", "bool", "null"]
       vals == @[25'u64, 123, 789, 22, 0]
 
-  test "readValue":
+  dualTest "readValue":
     var r = toReader cbor3.unhex
     var valOrig: MasterReader
     r.readValue(valOrig)
     # workaround for https://github.com/nim-lang/Nim/issues/24274
     let val = valOrig
+    # TODO try removing https://github.com/status-im/nim-unittest2/blob/8b51e99b4a57fcfb31689230e75595f024543024/unittest2.nim#L1218-L1219
+    doAssert val.seven[] == 555
     check:
       val.one == arrNode(@[numNode(1), boolNode(true), nullNode()])
       val.two == 123
@@ -143,7 +146,7 @@ suite "CborReader basic test":
       val.four == "012"
       val.five == "345"
       val.six == true
-      val.seven[] == 555
+      #val.seven[] == 555
       val.eight == mTwo
       val.nine == 77
       val.ten == 88
@@ -152,7 +155,7 @@ suite "CborReader basic test":
       val.thirteen == [3, 4]
       val.fourteen == SecondObject(one: "world", two: false)
 
-  test "Special Types":
+  dualTest "Special Types":
     var r = toReader cbor1.unhex
     var val: SpecialTypes
     r.readValue(val)
@@ -181,7 +184,7 @@ suite "CborReader basic test":
       r.parseValue(val)
       inc result
 
-  test "readObjectFields of null fields":
+  dualTest "readObjectFields of null fields":
     # {"something":null, "bool":true, "string":null}
     var r =
       toReaderNullFields("0xA369736F6D657468696E67F664626F6F6CF566737472696E67F6".unhex)
@@ -202,7 +205,7 @@ suite "CborReader basic test":
     for k, v in r.readObject(string, int):
       inc result
 
-  test "readObjectFields of null fields":
+  dualTest "readObjectFields of null fields":
     # {"something":null, "bool":123, "string":null}
     var r = toReaderNullFields(
       "0xA369736F6D657468696E67F664626F6F6C187B66737472696E67F6".unhex
@@ -221,18 +224,18 @@ suite "CborReader basic test":
     )
     check execReadObject(z) == 2
 
-  test "readValue of array":
+  dualTest "readValue of array":
     # [false, true, false]
     var r = toReader "0x83F4F5F4".unhex
     check r.readValue(array[3, bool]) == [false, true, false]
 
-  test "readValue of array error":
+  dualTest "readValue of array error":
     # [false, true, false]
     var r = toReader "0x83F4F5F4".unhex
     expect CborReaderError:
       discard r.readValue(array[2, bool])
 
-  test "readValue of object without fields":
+  dualTest "readValue of object without fields":
     type NoFields = object
 
     block:
