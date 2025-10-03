@@ -15,7 +15,7 @@ func cborBool(x: bool): CborValueRef =
 func cborNull(): CborValueRef =
   CborValueRef(kind: CborValueKind.Null)
 
-suite "Test CborValueRef":
+template allValueRefs() {.dirty.} =
   let objA = CborValueRef(
     kind: CborValueKind.Object, objVal: [("a", cborBool(true))].toOrderedTable
   )
@@ -54,7 +54,9 @@ suite "Test CborValueRef":
   let objInObjABNull =
     CborValueRef(kind: CborValueKind.Object, objVal: [("x", objABNull)].toOrderedTable)
 
-  test "Test table keys equality":
+suite "Test CborValueRef":
+  dualTest "Test table keys equality":
+    allValueRefs()
     check objA != objAB
     check objA == objA2
     check objA != objABNull
@@ -70,7 +72,8 @@ suite "Test CborValueRef":
     check objInObjA == objInObjA2
     check objInObjAB != objInObjABNull
 
-  test "Test compare":
+  dualTest "Test compare":
+    allValueRefs()
     check compare(objA, objAB) == false
     check compare(objA, objA2) == true
     check compare(objA, objABNull) == true
