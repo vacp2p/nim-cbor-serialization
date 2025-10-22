@@ -12,7 +12,7 @@
 ## and when streaming CBOR directly without first creating Nim objects.
 ##
 ## CBOR values are generally written using `writeValue`. It is also possible to
-## stream the members and elements of objects/arrays using the
+## stream the fields and elements of objects/arrays using the
 ## `writeArray`/`writeObject` templates - alternatively, the low-level
 ## `begin{Array,Object}` and `end{Array,Object}` helpers provide fine-grained
 ## writing access.
@@ -31,7 +31,7 @@ export outputs, format, types, DefaultFlavor
 type CborWriter*[Flavor = DefaultFlavor] = object
   stream: OutputStream
   stack: seq[CborMajor] # Stack that keeps track of nested collections
-  wantName: bool # The next output should be a name (for an object member)
+  wantName: bool # The next output should be a name (for an object field)
   wantBytesElm, wantBytes: bool # The next output should be text/bytes
 
 Cbor.setWriter CborWriter, PreferredOutput = seq[byte]
@@ -47,12 +47,12 @@ proc writeValue*[V: not void](w: var CborWriter, value: V) {.raises: [IOError].}
   ## Write value as Cbor - this is the main entry point for converting "anything"
   ## to Cbor.
   ##
-  ## See also `writeMember`.
+  ## See also `writeField`.
 
-proc writeMember*[V: not void](
+proc writeField*[V: not void](
   w: var CborWriter, name: string, value: V
 ) {.raises: [IOError].}
-  ## Write `name` and `value` as a Cbor member / field of an object.
+  ## Write `name` and `value` as a Cbor field of an object.
 
 template shouldWriteObjectField*[FieldType](field: FieldType): bool =
   ## Template to determine if an object field should be written.
@@ -109,7 +109,7 @@ func inBytes(w: CborWriter): bool =
   w.stack.len > 0 and w.stack[^1] == CborMajor.Bytes
 
 proc beginElement(w: var CborWriter) =
-  ## Start writing an array element or the value part of an object member.
+  ## Start writing an array element or the value part of an object field.
   ##
   ## Must be closed with a corresponding `endElement`.
   ##
@@ -128,13 +128,13 @@ proc endElement(w: var CborWriter) =
 # https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.12
 # https://www.rfc-editor.org/rfc/rfc8949#section-3.2.2
 proc beginObject*(w: var CborWriter, length = -1) {.raises: [IOError].} =
-  ## Start writing an object, to be followed by member fields.
+  ## Start writing an object, to be followed by fields.
   ##
   ## Must be closed with a matching `endObject`.
   ##
   ## See also `writeObject`.
   ##
-  ## Use `writeMember` to add member fields to the object.
+  ## Use `writeField` to add fields to the object.
   w.beginElement()
 
   if length >= 0:
@@ -334,7 +334,7 @@ proc write*(w: var CborWriter, val: CborBytes) {.raises: [IOError].} =
     s.write(seq[byte](val))
 
 proc writeName*(w: var CborWriter, name: string) {.raises: [IOError].} =
-  ## Write the name part of the member of an object, to be followed by the value.
+  ## Write the name part of the field of an object, to be followed by the value.
   doAssert w.inObject()
   doAssert w.wantName
 
@@ -343,8 +343,8 @@ proc writeName*(w: var CborWriter, name: string) {.raises: [IOError].} =
   w.writeHead(CborMajor.Text, name.len.uint64)
   w.stream.write(name)
 
-template writeMember*[T: void](w: var CborWriter, name: string, body: T) =
-  ## Write a member field of an object, i.e., the name followed by the value.
+template writeField*[T: void](w: var CborWriter, name: string, body: T) =
+  ## Write a field of an object, i.e., the name followed by the value.
   ##
   ## Optional field handling is not performed and must be done manually.
   w.writeName(name)
@@ -362,10 +362,10 @@ template shouldWriteValue(w: CborWriter, value: untyped): bool =
   else:
     true
 
-proc writeMember*[V: not void](
+proc writeField*[V: not void](
     w: var CborWriter, name: string, value: V
 ) {.raises: [IOError].} =
-  ## Write a member field of an object, i.e., the name followed by the value.
+  ## Write a field of an object, i.e., the name followed by the value.
   ##
   ## Optional fields may get omitted depending on the Flavor.
   mixin writeValue
@@ -402,27 +402,23 @@ template writeObject*[T: void](w: var CborWriter, body: T) =
   body
   w.endObject()
 
-template writeObjectField*[FieldType, RecordType](
-    w: var CborWriter, record: RecordType, fieldName: static string, field: FieldType
+template writeObjectField*[FieldType, ObjectType](
+    w: var CborWriter, obj: ObjectType, fieldName: static string, field: FieldType
 ) =
-  ## Write a field of a record or tuple as a Cbor object member.
+  ## Write a field of an object or tuple as a Cbor map field.
   mixin writeFieldIMPL, writeValue
 
   w.writeName(fieldName)
 
   w.beginElement()
-  when RecordType is tuple:
+  when ObjectType is tuple:
     w.writeValue(field)
   else:
-    type R = type record
-    w.writeFieldIMPL(FieldTag[R, fieldName], field, record)
+    type R = type obj
+    w.writeFieldIMPL(FieldTag[R, fieldName], field, obj)
   w.endElement()
 
-proc writeRecordValue*(w: var CborWriter, value: object | tuple) {.raises: [IOError].} =
-  ## Write a record or tuple as a Cbor object.
-  ##
-  ## This function exists to satisfy the nim-serialization API - use `writeValue`
-  ## to serialize objects when using `Cborwriter`.
+proc write*(w: var CborWriter, value: object | tuple) {.raises: [IOError].} =
   mixin enumInstanceSerializedFields, writeObjectField
   mixin flavorOmitsOptionalFields, shouldWriteObjectField
 
@@ -456,7 +452,7 @@ proc writeValue*(w: var CborWriter, value: CborObjectType) {.raises: [IOError].}
     fieldCount += w.shouldWriteValue(v).int
   w.beginObject(fieldCount)
   for name, v in value:
-    w.writeMember(name, v)
+    w.writeField(name, v)
   w.endObject(stopCode = false)
 
 proc writeValue*(w: var CborWriter, value: CborValue) {.raises: [IOError].} =
@@ -565,9 +561,9 @@ template writeValueObjectOrTuple(Flavor, w, value) =
     .}
 
   when value is distinct:
-    writeRecordValue(w, distinctBase(value, recursive = false))
+    write(w, distinctBase(value, recursive = false))
   else:
-    writeRecordValue(w, value)
+    write(w, value)
 
 template writeValueStringLike(w, value) =
   w.streamElement(_):
@@ -684,27 +680,9 @@ proc toCbor*(v: auto, Flavor = DefaultFlavor): seq[byte] =
     raiseAssert "memoryOutput is exception-free"
   s.getOutput(seq[byte])
 
-# nim-serialization integration / naming
-
-template beginRecord*(w: var CborWriter) =
-  ## Alias for beginObject, for record serialization.
-  beginObject(w)
-
-template beginRecord*(w: var CborWriter, T: type) =
-  ## Alias for beginObject with type, for record serialization.
-  beginObject(w, T)
-
-template writeFieldName*(w: var CborWriter, name: string) =
-  ## Alias for writeName, for record serialization.
-  writeName(w, name)
-
-template writeField*(w: var CborWriter, name: string, value: auto) =
-  ## Alias for writeMember, for record serialization.
-  writeMember(w, name, value)
-
-template endRecord*(w: var CborWriter) =
-  ## Alias for endObject, for record serialization.
-  w.endObject()
+template writeRecordValue*(w: var CborWriter, value: object | tuple) =
+  ## This exists for nim-serialization integration
+  write(w, value)
 
 template configureCborSerialization*(
     T: type[enum], enumRep: static[EnumRepresentation]
