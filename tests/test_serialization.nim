@@ -986,16 +986,16 @@ suite "Parser limits":
       discard
         Cbor.decode(cbor, seq[string], conf = CborReaderConf(arrayElementsLimit: 2))
 
-  test "Object objectMembersLimit":
+  test "Object objectFieldsLimit":
     type Obj1 = object
       a, b, c: string
 
     let cbor = Cbor.encode(Obj1())
     check:
       Cbor.decode(cbor, Obj1) == Obj1()
-      Cbor.decode(cbor, Obj1, conf = CborReaderConf(objectMembersLimit: 3)) == Obj1()
+      Cbor.decode(cbor, Obj1, conf = CborReaderConf(objectFieldsLimit: 3)) == Obj1()
     expect UnexpectedValueError:
-      discard Cbor.decode(cbor, Obj1, conf = CborReaderConf(objectMembersLimit: 2))
+      discard Cbor.decode(cbor, Obj1, conf = CborReaderConf(objectFieldsLimit: 2))
 
   test "String stringLengthLimit":
     let val = "abc"

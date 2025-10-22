@@ -166,8 +166,8 @@ template parseObjectImpl(p: var CborParser, skipNullFields, keyAction, body: unt
   var numElem = 0
   parseArrayLike(p, CborMajor.Map):
     inc numElem
-    if p.conf.objectMembersLimit > 0 and numElem > p.conf.objectMembersLimit:
-      p.raiseUnexpectedValue("`objectMembersLimit` reached")
+    if p.conf.objectFieldsLimit > 0 and numElem > p.conf.objectFieldsLimit:
+      p.raiseUnexpectedValue("`objectFieldsLimit` reached")
     keyAction
     when skipNullFields:
       if r.parser.cborKind() in {CborValueKind.Null, CborValueKind.Undefined}:
@@ -589,7 +589,7 @@ proc parseValue*(
     parseRawArrayLike(p, val, p.conf.arrayElementsLimit):
       parseValue(r, val)
   of CborMajor.Map:
-    parseRawArrayLike(p, val, p.conf.objectMembersLimit):
+    parseRawArrayLike(p, val, p.conf.objectFieldsLimit):
       parseValue(r, val)
       parseValue(r, val)
   of CborMajor.Tag:

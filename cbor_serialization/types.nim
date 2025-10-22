@@ -47,7 +47,7 @@ type
   CborReaderConf* = object
     nestedDepthLimit*: int
     arrayElementsLimit*: int
-    objectMembersLimit*: int
+    objectFieldsLimit*: int
     stringLengthLimit*: int
     byteStringLengthLimit*: int
     bigNumBytesLimit*: int
@@ -119,7 +119,7 @@ const cborBreakStopCode* = (7 shl 5) or 31
 const defaultCborReaderConf* = CborReaderConf(
   nestedDepthLimit: 512,
   arrayElementsLimit: 0,
-  objectMembersLimit: 0,
+  objectFieldsLimit: 0,
   stringLengthLimit: 0,
   byteStringLengthLimit: 0,
   bigNumBytesLimit: 64,

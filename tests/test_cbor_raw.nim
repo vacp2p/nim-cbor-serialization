@@ -79,13 +79,13 @@ suite "Test CborBytes":
     expect UnexpectedValueError:
       discard Cbor.decode(cbor, CborBytes, conf = CborReaderConf(arrayElementsLimit: 2))
 
-  dualTest "Object objectMembersLimit":
+  dualTest "Object objectFieldsLimit":
     let cbor = Cbor.encode((a: "a", b: "b", c: "c"))
     check:
       Cbor.decode(cbor, CborBytes) == cbor
-      Cbor.decode(cbor, CborBytes, conf = CborReaderConf(objectMembersLimit: 3)) == cbor
+      Cbor.decode(cbor, CborBytes, conf = CborReaderConf(objectFieldsLimit: 3)) == cbor
     expect UnexpectedValueError:
-      discard Cbor.decode(cbor, CborBytes, conf = CborReaderConf(objectMembersLimit: 2))
+      discard Cbor.decode(cbor, CborBytes, conf = CborReaderConf(objectFieldsLimit: 2))
 
   dualTest "String stringLengthLimit":
     let cbor = Cbor.encode("abc")
