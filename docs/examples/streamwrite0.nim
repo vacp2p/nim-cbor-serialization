@@ -8,8 +8,8 @@ writer.beginArray()
 for i in 0 ..< 2:
   writer.beginObject()
 
-  writer.writeMember("id", i)
-  writer.writeMember("name", "item" & $i)
+  writer.writeField("id", i)
+  writer.writeField("name", "item" & $i)
 
   writer.endObject()
 

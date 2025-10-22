@@ -32,7 +32,7 @@ Objects and arrays can be nested arbitrarily.
 
 Here is the same array of CBOR objects, nested in an envelope containing an additional `status` field.
 
-Instead of manually placing `begin`/`end` pairs, we're using the convenience helpers `writeObject` and `writeArrayMember`:
+Instead of manually placing `begin`/`end` pairs, we're using the convenience helpers `writeObject` and `writeArray`:
 
 ```ni
 {{#include ../examples/streamwrite1.nim:Nesting}}
