@@ -49,11 +49,6 @@ proc writeValue*[V: not void](w: var CborWriter, value: V) {.raises: [IOError].}
   ##
   ## See also `writeField`.
 
-proc writeField*[V: not void](
-  w: var CborWriter, name: string, value: V
-) {.raises: [IOError].}
-  ## Write `name` and `value` as a Cbor field of an object.
-
 template shouldWriteObjectField*[FieldType](field: FieldType): bool =
   ## Template to determine if an object field should be written.
   ## Called when `omitsOptionalField` is enabled - the field is omitted if the
