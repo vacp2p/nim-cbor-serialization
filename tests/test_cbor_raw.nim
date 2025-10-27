@@ -80,7 +80,9 @@ suite "Test CborBytes":
       discard Cbor.decode(cbor, CborBytes, conf = CborReaderConf(arrayElementsLimit: 2))
 
   dualTest "Object objectFieldsLimit":
-    let cbor = Cbor.encode((a: "a", b: "b", c: "c"))
+    type MyObj = object
+      a, b, c: string
+    let cbor = Cbor.encode(MyObj(a: "a", b: "b", c: "c"))
     check:
       Cbor.decode(cbor, CborBytes) == cbor
       Cbor.decode(cbor, CborBytes, conf = CborReaderConf(objectFieldsLimit: 3)) == cbor

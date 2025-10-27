@@ -393,22 +393,18 @@ template writeObject*[T: void](w: var CborWriter, body: T) =
 template writeObjectField*[FieldType, ObjectType](
     w: var CborWriter, obj: ObjectType, fieldName: static string, field: FieldType
 ) =
-  ## Write a field of an object or tuple.
+  ## Write a field of an object.
   mixin writeFieldIMPL, writeValue
 
   w.writeName(fieldName)
 
   w.beginElement()
-  when ObjectType is tuple:
-    w.writeValue(field)
-  else:
-    type R = type obj
-    w.writeFieldIMPL(FieldTag[R, fieldName], field, obj)
+  type R = type obj
+  w.writeFieldIMPL(FieldTag[R, fieldName], field, obj)
   w.endElement()
 
-proc write*(w: var CborWriter, value: object | tuple) {.raises: [IOError].} =
+proc write*[T: object](w: var CborWriter, value: T) {.raises: [IOError].} =
   mixin enumInstanceSerializedFields, writeObjectField
-  mixin flavorOmitsOptionalFields, shouldWriteObjectField
 
   var fieldsCount = 0
   value.enumInstanceSerializedFields(_, fieldValue):
@@ -424,14 +420,20 @@ proc write*(w: var CborWriter, value: object | tuple) {.raises: [IOError].} =
       discard fieldName
   w.endObject(stopCode = false)
 
-template writeValueObjectOrTuple(w, value) =
-  when value is distinct:
-    write(w, distinctBase(value, recursive = false))
-  else:
-    write(w, value)
+proc write*[T: tuple](w: var CborWriter, value: T) {.raises: [IOError].} =
+  mixin enumInstanceSerializedFields, writeValue
 
-proc write*[T: object | tuple](w: var CborWriter, val: T) {.raises: [IOError].} =
-  writeValueObjectOrTuple(w, val)
+  var fieldsCount = 0
+  value.enumInstanceSerializedFields(_, fieldValue):
+    when fieldValue isnot CborVoid:
+      fieldsCount += w.shouldWriteValue(fieldValue).int
+
+  w.beginArray(fieldsCount)
+  value.enumInstanceSerializedFields(_, fieldValue):
+    when fieldValue isnot CborVoid:
+      if w.shouldWriteValue(fieldValue):
+        writeValue(w, fieldValue)
+  w.endArray(stopCode = false)
 
 proc write*(w: var CborWriter, value: CborNumber) {.raises: [IOError].} =
   w.streamElement(_):
@@ -534,7 +536,7 @@ proc toCbor*(v: auto, Flavor = DefaultFlavor): seq[byte] =
     raiseAssert "memoryOutput is exception-free"
   s.getOutput(seq[byte])
 
-template writeRecordValue*(w: var CborWriter, value: object | tuple) =
+template writeRecordValue*(w: var CborWriter, value: object) =
   ## This exists for nim-serialization integration
   write(w, value)
 

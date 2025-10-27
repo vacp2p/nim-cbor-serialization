@@ -24,9 +24,12 @@ type
     b: array[2, int]
 
   Obj2 = object
-    a, b, c, d, e: string
+    b: string
 
   Obj3 = object
+    a, b, c, d, e: string
+
+  Obj4 = object
     Fun: bool
     Amt: int
 
@@ -98,13 +101,7 @@ suite "Test spec":
     check enc("𐅑") == "0x64f0908591"
     check enc(newSeq[int]()) == "0x80"
     check enc([1, 2, 3]) == "0x83010203"
-    check enc(
-      @[
-        numNode(1),
-        arrNode(@[numNode(2), numNode(3)]),
-        arrNode(@[numNode(4), numNode(5)]),
-      ]
-    ) == "0x8301820203820405"
+    check enc((1, @[2, 3], @[4, 5])) == "0x8301820203820405"
     check enc(
       [
         1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,
@@ -113,9 +110,8 @@ suite "Test spec":
     ) == "0x98190102030405060708090a0b0c0d0e0f101112131415161718181819"
     check enc(EmptyObj()) == "0xa0"
     check enc(Obj1(a: 1, b: [2, 3])) == "0xa26161016162820203"
-    check enc(@[strNode("a"), objNode({"b": strNode("c")}.toOrderedTable)]) ==
-      "0x826161a161626163"
-    check enc(Obj2(a: "A", b: "B", c: "C", d: "D", e: "E")) ==
+    check enc(("a", Obj2(b: "c"))) == "0x826161a161626163"
+    check enc(Obj3(a: "A", b: "B", c: "C", d: "D", e: "E")) ==
       "0xa56161614161626142616361436164614461656145"
 
   dualTest "decode":
@@ -198,12 +194,7 @@ suite "Test spec":
     check decode("0x80", seq[int]) == newSeq[int]()
     check decode("0x83010203", seq[int]) == @[1, 2, 3]
     check decode("0x83010203", array[3, int]) == [1, 2, 3]
-    check decode("0x8301820203820405", seq[CborValueRef]) ==
-      @[
-        numNode(1),
-        arrNode(@[numNode(2), numNode(3)]),
-        arrNode(@[numNode(4), numNode(5)]),
-      ]
+    check decode("0x8301820203820405", (int, seq[int], seq[int])) == (1, @[2, 3], @[4, 5])
     check decode(
       "0x98190102030405060708090a0b0c0d0e0f101112131415161718181819", seq[int]
     ) ==
@@ -214,37 +205,16 @@ suite "Test spec":
     check decode("0xa0", EmptyObj) == EmptyObj()
     # XXX support {1: 2, 3: 4} 0xa201020304
     check decode("0xa26161016162820203", Obj1) == Obj1(a: 1, b: [2, 3])
-    check decode("0x826161a161626163", seq[CborValueRef]) ==
-      @[strNode("a"), objNode({"b": strNode("c")}.toOrderedTable)]
-    check decode("0xa56161614161626142616361436164614461656145", Obj2) ==
-      Obj2(a: "A", b: "B", c: "C", d: "D", e: "E")
+    check decode("0x826161a161626163", (string, Obj2)) == ("a", Obj2(b: "c"))
+    check decode("0xa56161614161626142616361436164614461656145", Obj3) ==
+      Obj3(a: "A", b: "B", c: "C", d: "D", e: "E")
     check decode("0x5f42010243030405ff", seq[byte]) == @[1.byte, 2, 3, 4, 5]
     check decode("0x7f657374726561646d696e67ff", string) == "streaming"
     check decode("0x9fff", seq[int]) == newSeq[int]()
-    check decode("0x9f018202039f0405ffff", seq[CborValueRef]) ==
-      @[
-        numNode(1),
-        arrNode(@[numNode(2), numNode(3)]),
-        arrNode(@[numNode(4), numNode(5)]),
-      ]
-    check decode("0x9f01820203820405ff", seq[CborValueRef]) ==
-      @[
-        numNode(1),
-        arrNode(@[numNode(2), numNode(3)]),
-        arrNode(@[numNode(4), numNode(5)]),
-      ]
-    check decode("0x83018202039f0405ff", seq[CborValueRef]) ==
-      @[
-        numNode(1),
-        arrNode(@[numNode(2), numNode(3)]),
-        arrNode(@[numNode(4), numNode(5)]),
-      ]
-    check decode("0x83019f0203ff820405", seq[CborValueRef]) ==
-      @[
-        numNode(1),
-        arrNode(@[numNode(2), numNode(3)]),
-        arrNode(@[numNode(4), numNode(5)]),
-      ]
+    check decode("0x9f018202039f0405ffff", (int, seq[int], seq[int])) == (1, @[2, 3], @[4, 5])
+    check decode("0x9f01820203820405ff", (int, seq[int], seq[int])) == (1, @[2, 3], @[4, 5])
+    check decode("0x83018202039f0405ff", (int, seq[int], seq[int])) == (1, @[2, 3], @[4, 5])
+    check decode("0x83019f0203ff820405", (int, seq[int], seq[int])) == (1, @[2, 3], @[4, 5])
     check decode(
       "0x9f0102030405060708090a0b0c0d0e0f101112131415161718181819ff", seq[int]
     ) ==
@@ -253,6 +223,5 @@ suite "Test spec":
         23, 24, 25,
       ]
     check decode("0xbf61610161629f0203ffff", Obj1) == Obj1(a: 1, b: [2, 3])
-    check decode("0x826161bf61626163ff", seq[CborValueRef]) ==
-      @[strNode("a"), objNode({"b": strNode("c")}.toOrderedTable)]
-    check decode("0xbf6346756ef563416d7421ff", Obj3) == Obj3(Fun: true, Amt: -2)
+    check decode("0x826161bf61626163ff", (string, Obj2)) == ("a", Obj2(b: "c"))
+    check decode("0xbf6346756ef563416d7421ff", Obj4) == Obj4(Fun: true, Amt: -2)

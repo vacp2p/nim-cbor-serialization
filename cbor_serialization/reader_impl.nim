@@ -17,6 +17,8 @@ import
   serialization/[object_serialization, errors],
   ./[format, types, parser, reader_desc]
 
+from std/strutils import parseInt
+
 export enumutils, inputs, format, types, errors, parser, reader_desc
 
 func allocPtr[T](p: var ptr T) =
@@ -76,14 +78,13 @@ func expectedFieldsBitmask*(TT: type, fields: static int): auto {.compileTime.} 
 
   res
 
-proc readRecordValue*[T](
+proc read*[T: object](
     r: var CborReader, value: var T
 ) {.raises: [SerializationError, IOError].} =
   mixin flavorAllowsUnknownFields, flavorRequiresAllFields
   type
     ReaderType = typeof(r)
     Flavor = ReaderType.Flavor
-    T = typeof(value)
 
   const
     fieldsTable = T.fieldReadersTable(ReaderType)
@@ -97,12 +98,7 @@ proc readRecordValue*[T](
       mostLikelyNextField = 0
 
     r.parseObject(key):
-      when T is tuple:
-        let fieldIdx = mostLikelyNextField
-        mostLikelyNextField += 1
-        discard key
-      else:
-        let fieldIdx = findFieldIdx(fieldsTable, key, mostLikelyNextField)
+      let fieldIdx = findFieldIdx(fieldsTable, key, mostLikelyNextField)
 
       if fieldIdx != -1:
         let reader = fieldsTable[fieldIdx].reader
@@ -123,6 +119,50 @@ proc readRecordValue*[T](
         r.skipSingleValue()
       else:
         r.parser.raiseUnexpectedField(key, cstring typeName)
+
+type
+  FieldTupleReader[RecordType, Reader] =
+    proc(rec: var RecordType, reader: var Reader) {.gcsafe, nimcall, raises: [IOError, SerializationError].}
+
+proc tupleFieldReaderTable(
+  RecordType, ReaderType: distinct type,
+  numFields: static[int]
+): array[numFields, FieldTupleReader[RecordType, ReaderType]] =
+  mixin enumAllSerializedFields
+
+  enumAllSerializedFields(RecordType):
+    const i = fieldName.parseInt
+    proc readField(obj: var RecordType, reader: var ReaderType) {.gcsafe, nimcall, raises: [IOError, SerializationError].} =
+      mixin readValue
+      reader.readValue obj[i]
+
+    result[i] = readField
+
+proc read*[T: tuple](
+    r: var CborReader, value: var T
+) {.raises: [SerializationError, IOError].} =
+  mixin flavorAllowsUnknownFields, flavorRequiresAllFields
+
+  type
+    ReaderType = typeof(r)
+    Flavor = ReaderType.Flavor
+
+  const
+    numFields = totalSerializedFields(T)
+    fieldsTable = tupleFieldReaderTable(T, ReaderType, numFields)
+    typeName = typetraits.name(T)
+
+  var i = 0
+  r.parseArray():
+    if i < numFields:
+      fieldsTable[i](value, r)
+    elif flavorAllowsUnknownFields(Flavor):
+      r.skipSingleValue()
+    else:
+      r.parser.raiseUnexpectedField($i, cstring typeName)
+    inc i
+  if flavorRequiresAllFields(Flavor) and i < numFields:
+    r.parser.raiseIncompleteObject(typeName)
 
 template readValueRefOrPtr(r, value) =
   mixin readValue
@@ -333,10 +373,9 @@ proc read*[T: array](
     else:
       r.raiseUnexpectedValue("Too many items for " & $(T))
 
-proc read*[T: object | tuple](
-    r: var CborReader, value: var T
-) {.raises: [SerializationError, IOError].} =
-  readRecordValue(r, value)
+template readRecordValue*(r: var CborReader, value: var object) =
+  ## This exists for nim-serialization integration
+  read(r, value)
 
 template configureCborDeserialization*(
     T: type[enum],
