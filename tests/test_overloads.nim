@@ -311,13 +311,33 @@ proc writeValue(writer: var CborWriter, value: OldObj) =
   register "oc_wv_OldObj":
     writer.write value
 
+proc readValue(reader: var CborReader, value: var int) =
+  register "oc_rv_int":
+    reader.read value
+
+proc writeValue(writer: var CborWriter, value: int) =
+  register "oc_wv_int":
+    writer.write value
+
 suite "Test OldCbor":
   setup:
     registry.setLen 0
 
   test "roundtrip OldObj":
+    check OldCbor.roundtrip(OldObj(s: "foo")) == OldObj(s: "foo")
+    check registry == @["oc_wv_OldObj", "oc_rv_OldObj"]
+
+  test "roundtrip OldObj default flavor":
     check Cbor.roundtrip(OldObj(s: "foo")) == OldObj(s: "foo")
     check registry == @["oc_wv_OldObj", "oc_rv_OldObj"]
+
+  test "roundtrip int":
+    check OldCbor.roundtrip(123) == 123
+    check registry == @["oc_wv_int", "oc_rv_int"]
+
+  test "roundtrip int default flavor":
+    check Cbor.roundtrip(123) == 123
+    check registry == @["oc_wv_int", "oc_rv_int"]
 
 type OldObj2 = object
   s: string
@@ -329,4 +349,33 @@ OldObj2.useDefaultSerializationIn OldCbor2
 
 suite "Test OldCbor2":
   test "roundtrip OldObj2":
+    check OldCbor2.roundtrip(OldObj2(s: "foo")) == OldObj2(s: "foo")
+
+  test "roundtrip OldObj2 default flavor":
     check Cbor.roundtrip(OldObj2(s: "foo")) == OldObj2(s: "foo")
+
+type OldObj3 = object
+  s: string
+
+createCborFlavor OldCbor3,
+  automaticObjectSerialization = true, automaticPrimitivesSerialization = true
+
+OldCbor3.useCustomSerialization(OldObj3.s):
+  read:
+    register "oc_rv_OldObj3":
+      return reader.readValue(string)
+  write:
+    register "oc_wv_OldObj3":
+      writer.writeValue value
+
+suite "Test OldCbor3":
+  setup:
+    registry.setLen 0
+
+  test "roundtrip OldObj3":
+    check OldCbor3.roundtrip(OldObj3(s: "foo")) == OldObj3(s: "foo")
+    check registry == @["oc_wv_OldObj3", "oc_rv_OldObj3"]
+
+  test "roundtrip OldObj3 default flavor":
+    check Cbor.roundtrip(OldObj3(s: "foo")) == OldObj3(s: "foo")
+    check registry.len == 0
