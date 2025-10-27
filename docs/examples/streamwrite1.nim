@@ -1,7 +1,7 @@
 import cbor_serialization, stew/[byteutils]
 
 var output = memoryOutput()
-var writer = CborWriter[DefaultFlavor].init(output)
+var writer = Cbor.Writer.init(output)
 
 # ANCHOR: Nesting
 writer.writeObject:

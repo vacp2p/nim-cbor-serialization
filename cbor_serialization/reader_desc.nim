@@ -43,6 +43,7 @@ type
     absIntVal: BiggestUInt
 
 Cbor.setReader CborReader
+Cbor.defaultReaders()
 
 func valueStr(err: ref IntOverflowError): string =
   if err.isNegative:

@@ -39,7 +39,7 @@ func toBytes(bint: BigInt, bytes: var seq[byte]) {.raises: [].} =
 const unsignedTag = 2
 const negativeTag = 3
 
-proc writeValue*(writer: var CborWriter, value: BigInt) {.raises: [IOError].} =
+proc write*(writer: var CborWriter, value: BigInt) {.raises: [IOError].} =
   # https://www.rfc-editor.org/rfc/rfc8949#section-4.1
   if value >= 0.initBigInt:
     let sint = toInt[uint64](value)
@@ -60,7 +60,7 @@ proc writeValue*(writer: var CborWriter, value: BigInt) {.raises: [IOError].} =
       toBytes(bint, bintTag.val)
       writer.write(bintTag)
 
-proc readValue*(
+proc read*(
     reader: var CborReader, value: var BigInt
 ) {.raises: [IOError, SerializationError].} =
   template p(): untyped =
@@ -69,14 +69,14 @@ proc readValue*(
   let kind = p.cborKind()
   if kind in {CborValueKind.Unsigned, CborValueKind.Negative}:
     var val: CborNumber
-    reader.readValue(val)
+    reader.read(val)
     value = initBigInt(val.integer)
     if val.sign == CborSign.Neg:
       inc(value, 1)
       value *= -1.initBigInt
   elif kind == CborValueKind.Tag:
     var tbint: CborTag[seq[byte]]
-    reader.readValue(tbint)
+    reader.read(tbint)
     if tbint.tag notin {unsignedTag, negativeTag}:
       reader.parser.raiseUnexpectedValue("tag number 2 or 3", $tbint.tag)
     value = initBigInt(0)

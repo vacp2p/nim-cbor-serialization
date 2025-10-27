@@ -35,6 +35,7 @@ type CborWriter*[Flavor = DefaultFlavor] = object
   wantBytesElm, wantBytes: bool # The next output should be text/bytes
 
 Cbor.setWriter CborWriter, PreferredOutput = seq[byte]
+Cbor.defaultWriters()
 
 func init*(W: type CborWriter, stream: OutputStream): W =
   ## Initialize a new CborWriter with the given output stream.
@@ -42,12 +43,6 @@ func init*(W: type CborWriter, stream: OutputStream): W =
   ## The writer generally does not need closing or flushing, which instead is
   ## managed by the stream itself.
   W(stream: stream)
-
-proc writeValue*[V: not void](w: var CborWriter, value: V) {.raises: [IOError].}
-  ## Write value as Cbor - this is the main entry point for converting "anything"
-  ## to Cbor.
-  ##
-  ## See also `writeField`.
 
 template shouldWriteObjectField*[FieldType](field: FieldType): bool =
   ## Template to determine if an object field should be written.
@@ -276,7 +271,7 @@ proc write*(w: var CborWriter, val: CborSimpleValue) {.raises: [IOError].} =
 
 # https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.2
 # https://www.rfc-editor.org/rfc/rfc8949#name-pseudocode-for-encoding-a-s
-proc writeInt(w: var CborWriter, val: SomeSignedInt) {.raises: [IOError].} =
+proc writeInt[T: SomeSignedInt](w: var CborWriter, val: T) {.raises: [IOError].} =
   w.streamElement(_):
     var ui = uint64(val shr (sizeof(typeof(val)) * 8 - 1))
     let mt = CborMajor(ui and 1)
@@ -285,21 +280,21 @@ proc writeInt(w: var CborWriter, val: SomeSignedInt) {.raises: [IOError].} =
     w.writeHead(mt, ui)
 
 # https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.2
-proc writeUint(w: var CborWriter, val: SomeUnsignedInt) {.raises: [IOError].} =
+proc writeUint[T: SomeUnsignedInt](w: var CborWriter, val: T) {.raises: [IOError].} =
   w.streamElement(_):
     w.writeHead(CborMajor.Unsigned, val.uint64)
 
-# TODO https://github.com/nim-lang/Nim/issues/25172
+# TODO: https://github.com/nim-lang/Nim/issues/25172
 proc write*[T: SomeInteger](w: var CborWriter, val: T) {.raises: [IOError].} =
   when T is SomeSignedInt:
     writeInt(w, val)
   else:
     static:
-      doAssert T is SomeUnsignedInt
+      assert T is SomeUnsignedInt
     writeUint(w, val)
 
 # https://www.rfc-editor.org/rfc/rfc8949#section-3.3
-proc write*(w: var CborWriter, val: SomeFloat) {.raises: [IOError].} =
+proc write*[T: SomeFloat](w: var CborWriter, val: T) {.raises: [IOError].} =
   w.streamElement(s):
     case val.classify
     of fcNan:
@@ -348,9 +343,7 @@ template writeField*[T: void](w: var CborWriter, name: string, body: T) =
 template shouldWriteValue(w: CborWriter, value: untyped): bool =
   mixin flavorOmitsOptionalFields, shouldWriteObjectField
 
-  type
-    Writer = typeof w
-    Flavor = Writer.Flavor
+  type Flavor = w.Flavor
 
   when flavorOmitsOptionalFields(Flavor):
     shouldWriteObjectField(value)
@@ -383,7 +376,7 @@ template writeArray*[T: void](w: var CborWriter, body: T) =
   body
   w.endArray()
 
-proc writeArray*[C: not void](w: var CborWriter, values: C) {.raises: [IOError].} =
+proc write*[T](w: var CborWriter, values: openArray[T]) {.raises: [IOError].} =
   ## Write a collection as a Cbor array.
   mixin writeValue
   w.beginArray(values.len)
@@ -400,7 +393,7 @@ template writeObject*[T: void](w: var CborWriter, body: T) =
 template writeObjectField*[FieldType, ObjectType](
     w: var CborWriter, obj: ObjectType, fieldName: static string, field: FieldType
 ) =
-  ## Write a field of an object or tuple as a Cbor map field.
+  ## Write a field of an object or tuple.
   mixin writeFieldIMPL, writeValue
 
   w.writeName(fieldName)
@@ -431,6 +424,15 @@ proc write*(w: var CborWriter, value: object | tuple) {.raises: [IOError].} =
       discard fieldName
   w.endObject(stopCode = false)
 
+template writeValueObjectOrTuple(w, value) =
+  when value is distinct:
+    write(w, distinctBase(value, recursive = false))
+  else:
+    write(w, value)
+
+proc write*[T: object | tuple](w: var CborWriter, val: T) {.raises: [IOError].} =
+  writeValueObjectOrTuple(w, val)
+
 proc write*(w: var CborWriter, value: CborNumber) {.raises: [IOError].} =
   w.streamElement(_):
     if value.sign == CborSign.Neg:
@@ -441,7 +443,7 @@ proc write*(w: var CborWriter, value: CborNumber) {.raises: [IOError].} =
 proc writeValue*(w: var CborWriter, value: CborNumber) {.raises: [IOError].} =
   w.write(value)
 
-proc writeValue*(w: var CborWriter, value: CborObjectType) {.raises: [IOError].} =
+proc write*(w: var CborWriter, value: CborObjectType) {.raises: [IOError].} =
   var fieldCount = 0
   for _, v in value:
     fieldCount += w.shouldWriteValue(v).int
@@ -450,7 +452,8 @@ proc writeValue*(w: var CborWriter, value: CborObjectType) {.raises: [IOError].}
     w.writeField(name, v)
   w.endObject(stopCode = false)
 
-proc writeValue*(w: var CborWriter, value: CborValue) {.raises: [IOError].} =
+proc write*(w: var CborWriter, value: CborValue) {.raises: [IOError].} =
+  mixin writeValue
   case value.kind
   of CborValueKind.Bytes:
     w.writeValue(value.bytesVal)
@@ -484,183 +487,39 @@ template writeEnumImpl(w: var CborWriter, value, enumRep) =
   elif enumRep == EnumAsStringifiedNumber:
     w.writeValue $value.int
 
-template writeValue*(w: var CborWriter, value: enum) =
+template write*(w: var CborWriter, value: enum) =
   ## Write an enum value as Cbor according to the flavor's enum representation.
-  type Flavor = type(w).Flavor
+  type Flavor = w.Flavor
   writeEnumImpl(w, value, Flavor.flavorEnumRep())
 
-type StringLikeTypes = string | cstring | openArray[char] | seq[char]
+proc write*(w: var CborWriter, val: CborVoid) {.raises: [IOError].} =
+  discard
 
-template isStringLike(v: StringLikeTypes): bool =
-  true
-
-template isStringLike(v: auto): bool =
-  false
-
-template isStringLikeArray[N](v: array[N, char]): bool =
-  true
-
-template isStringLikeArray(v: auto): bool =
-  false
-
-template autoSerializeCheck(F: distinct type, T: distinct type, body) =
-  when declared(macrocache.hasKey): # Nim 1.6 have no macrocache.hasKey
-    mixin typeAutoSerialize
-    when not F.typeAutoSerialize(T):
-      const
-        typeName = typetraits.name(T)
-        flavorName = typetraits.name(F)
-      {.
-        error:
-          flavorName &
-          ": automatic serialization is not enabled or writeValue not implemented for `" &
-          typeName & "`"
-      .}
-    else:
-      body
-  else:
-    body
-
-template autoSerializeCheck(
-    F: distinct type, TC: distinct type, M: distinct type, body
-) =
-  when declared(macrocache.hasKey): # Nim 1.6 have no macrocache.hasKey
-    mixin typeClassOrMemberAutoSerialize
-    when not F.typeClassOrMemberAutoSerialize(TC, M):
-      const
-        typeName = typetraits.name(M)
-        typeClassName = typetraits.name(TC)
-        flavorName = typetraits.name(F)
-      {.
-        error:
-          flavorName &
-          ": automatic serialization is not enabled or writeValue not implemented for `" &
-          typeName & "` of typeclass `" & typeClassName & "`"
-      .}
-    else:
-      body
-  else:
-    body
-
-template writeValueObjectOrTuple(Flavor, w, value) =
-  mixin flavorUsesAutomaticObjectSerialization
-
-  const isAutomatic = flavorUsesAutomaticObjectSerialization(Flavor)
-
-  when not isAutomatic:
-    const typeName = typetraits.name(type value)
-    {.
-      error:
-        "Please override writeValue for the " & typeName &
-        " type (or import the module where the override is provided)"
-    .}
-
-  when value is distinct:
-    write(w, distinctBase(value, recursive = false))
-  else:
-    write(w, value)
-
-template writeValueStringLike(w, value) =
-  w.streamElement(_):
-    when value is cstring:
-      if value == nil:
-        w.write(cborNull)
-      else:
-        w.write toOpenArray(value, 0, value.len - 1)
-    else:
-      w.write(value)
-
-proc writeValue*[V: not void](w: var CborWriter, value: V) {.raises: [IOError].} =
-  ## Write a generic value as Cbor, using type-based dispatch. Overload this
-  ## function to provide custom conversions of your own types.
+proc write*[T](w: var CborWriter, val: ref T) {.raises: [IOError].} =
   mixin writeValue
-
-  type Flavor = CborWriter.Flavor
-
-  when value is CborVoid:
-    autoSerializeCheck(Flavor, CborVoid):
-      discard
-  elif value is CborSimpleValue:
-    autoSerializeCheck(Flavor, CborSimpleValue):
-      w.write value
-  elif value is CborTag:
-    autoSerializeCheck(Flavor, CborTag):
-      w.write value
-  elif value is CborBytes:
-    autoSerializeCheck(Flavor, CborBytes):
-      w.write value
-  elif value is ref:
-    autoSerializeCheck(Flavor, ref, typeof(value)):
-      if value.isNil:
-        w.write(cborNull)
-      else:
-        writeValue(w, value[])
-  elif isStringLike(value):
-    autoSerializeCheck(Flavor, StringLikeTypes, typeof(value)):
-      writeValueStringLike(w, value)
-  elif isStringLikeArray(value):
-    autoSerializeCheck(Flavor, array, typeof(value)):
-      writeValueStringLike(w, value)
-  elif value is bool:
-    autoSerializeCheck(Flavor, bool):
-      w.write if value: cborTrue else: cborFalse
-  elif value is range:
-    autoSerializeCheck(Flavor, range, typeof(value)):
-      when low(typeof(value)) < 0:
-        w.writeValue int64(value)
-      else:
-        w.writeValue uint64(value)
-  elif value is SomeInteger:
-    autoSerializeCheck(Flavor, SomeInteger, typeof(value)):
-      w.write value
-  elif value is SomeFloat:
-    autoSerializeCheck(Flavor, SomeFloat, typeof(value)):
-      w.write value
-  elif value is seq[byte]:
-    autoSerializeCheck(Flavor, seq[byte]):
-      w.write(value)
-  elif value is seq or (value is distinct and distinctBase(value) is seq):
-    autoSerializeCheck(Flavor, seq, typeof(value)):
-      when value is distinct:
-        w.writeArray(distinctBase value)
-      else:
-        w.writeArray(value)
-  elif value is array or (value is distinct and distinctBase(value) is array):
-    autoSerializeCheck(Flavor, array, typeof(value)):
-      when value is distinct:
-        w.writeArray(distinctBase value)
-      else:
-        w.writeArray(value)
-  elif value is openArray or (value is distinct and distinctBase(value) is openArray):
-    autoSerializeCheck(Flavor, openArray, typeof(value)):
-      when value is distinct:
-        w.writeArray(distinctBase value)
-      else:
-        w.writeArray(value)
-  elif value is object:
-    when declared(macrocache.hasKey):
-      # Nim 1.6 have no macrocache.hasKey and cannot accept `object` param
-      autoSerializeCheck(Flavor, object, typeof(value)):
-        writeValueObjectOrTuple(Flavor, w, value)
-    else:
-      writeValueObjectOrTuple(Flavor, w, value)
-  elif value is tuple:
-    when declared(macrocache.hasKey):
-      # Nim 1.6 have no macrocache.hasKey and cannot accept `tuple` param
-      autoSerializeCheck(Flavor, tuple, typeof(value)):
-        writeValueObjectOrTuple(Flavor, w, value)
-    else:
-      writeValueObjectOrTuple(Flavor, w, value)
-  elif value is distinct:
-    autoSerializeCheck(Flavor, distinct, typeof(value)):
-      writeValueObjectOrTuple(Flavor, w, value)
+  if val.isNil:
+    w.write(cborNull)
   else:
-    const
-      typeName = typetraits.name(value.type)
-      flavorName = typetraits.name(Flavor)
-    {.
-      error: flavorName & ": Failed to convert to Cbor an unsupported type: " & typeName
-    .}
+    w.writeValue(val[])
+
+proc write*(w: var CborWriter, val: cstring) {.raises: [IOError].} =
+  if val == nil:
+    w.write(cborNull)
+  else:
+    w.write toOpenArray(val, 0, val.len - 1)
+
+proc write*(w: var CborWriter, val: bool) {.raises: [IOError].} =
+  w.write if val: cborTrue else: cborFalse
+
+proc write*[T: range](w: var CborWriter, val: T) {.raises: [IOError].} =
+  when T.low < 0:
+    w.write int64(val)
+  else:
+    w.write uint64(val)
+
+proc write*[T: distinct](w: var CborWriter, val: T) {.raises: [IOError].} =
+  mixin writeValue
+  writeValue(w, distinctBase(val, recursive = false))
 
 proc toCbor*(v: auto, Flavor = DefaultFlavor): seq[byte] =
   ## Convert a value to its Cbor byte string representation.
@@ -668,7 +527,7 @@ proc toCbor*(v: auto, Flavor = DefaultFlavor): seq[byte] =
 
   var
     s = memoryOutput()
-    w = CborWriter[DefaultFlavor].init(s) # XXX Flavor
+    w = CborWriter[Flavor].init(s)
   try:
     w.writeValue v
   except IOError:
