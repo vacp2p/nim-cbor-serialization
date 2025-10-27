@@ -11,13 +11,15 @@ createCborFlavor CrpcSys,
   requireAllFields = true,
   omitOptionalFields = true, # Don't output `none` values when writing
   allowUnknownFields = false
+
+CrpcSys.defaultSerialization(Result)
 # ANCHOR_END: Create
 
 # ANCHOR: Custom
 type CborRpcId = distinct CborBytes
 
 proc readValue*(
-    r: var CborReader[CrpcSys], val: var CborRpcId
+    r: var CrpcSys.Reader, val: var CborRpcId
 ) {.raises: [IOError, CborReaderError].} =
   let ckind = r.parser.cborKind()
   case ckind
@@ -30,7 +32,7 @@ proc readValue*(
   else:
     r.parser.raiseUnexpectedValue("Invalid RequestId, got " & $ckind)
 
-proc writeValue*(w: var CborWriter[CrpcSys], val: CborRpcId) {.raises: [IOError].} =
+proc writeValue*(w: var CrpcSys.Writer, val: CborRpcId) {.raises: [IOError].} =
   w.writeValue(CborBytes(val)) # Preserve the original content
 
 # ANCHOR_END: Custom
@@ -47,7 +49,7 @@ type Request = object
 # ANCHOR: Auto
 # Allow serializing the `Request` type - serializing other types will result in
 # a compile-time error because `automaticObjectSerialization` is false!
-CrpcSys.useDefaultSerializationFor Request
+CrpcSys.defaultSerialization Request
 # ANCHOR_END: Auto
 
 # ANCHOR: Encode

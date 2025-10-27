@@ -60,10 +60,12 @@ type
   ListOnly = object
     list: seq[int64]
 
-Container.useDefaultSerializationIn StringyCbor
+StringyCbor.defaultSerialization Container
 
 createCborFlavor OptCbor
-OptionalFields.useDefaultSerializationIn OptCbor
+OptCbor.defaultSerialization Result
+OptCbor.defaultSerialization Option
+OptCbor.defaultSerialization OptionalFields
 
 #{
 #  "one": "this text will gone",
@@ -88,8 +90,8 @@ const cborTextWithNullFields = "0xA1646C697374F6"
 
 createCborFlavor NullyFields, skipNullFields = true, requireAllFields = false
 
-Container.useDefaultSerializationIn NullyFields
-ListOnly.useDefaultSerializationIn NullyFields
+NullyFields.defaultSerialization Container
+NullyFields.defaultSerialization ListOnly
 
 suite "Test CborFlavor":
   dualTest "basic test":

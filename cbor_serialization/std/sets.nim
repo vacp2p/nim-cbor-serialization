@@ -14,13 +14,35 @@ export sets
 
 type SetType = OrderedSet | HashSet | set
 
-proc writeValue*(writer: var CborWriter, value: SetType) {.raises: [IOError].} =
+proc writeImpl(writer: var CborWriter, value: SetType) {.raises: [IOError].} =
   writer.writeIterable value
 
-proc readValue*(
+proc readImpl(
     reader: var CborReader, value: var SetType
 ) {.raises: [IOError, SerializationError].} =
   type ElemType = type(value.items)
   value = init SetType
   for elem in readArray(reader, ElemType):
     value.incl elem
+
+# TODO: https://github.com/nim-lang/Nim/issues/25174
+
+template write*(writer: var CborWriter, value: OrderedSet) =
+  writeImpl(writer, value)
+
+template write*(writer: var CborWriter, value: HashSet) =
+  writeImpl(writer, value)
+
+template write*(writer: var CborWriter, value: set) =
+  writeImpl(writer, value)
+
+template read*(reader: var CborReader, value: var OrderedSet) =
+  readImpl(reader, value)
+
+template read*(reader: var CborReader, value: var HashSet) =
+  readImpl(reader, value)
+
+template read*(reader: var CborReader, value: var set) =
+  readImpl(reader, value)
+
+Cbor.defaultSerialization(set)

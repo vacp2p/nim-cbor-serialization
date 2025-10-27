@@ -27,11 +27,15 @@ type
     c: int
 
 createCborFlavor YourCbor, omitOptionalFields = false
+YourCbor.defaultSerialization Result
+YourCbor.defaultSerialization Option
 
 createCborFlavor MyCbor, omitOptionalFields = true
+MyCbor.defaultSerialization Result
+MyCbor.defaultSerialization Option
 
-ObjectWithOptionalFields.useDefaultSerializationIn YourCbor
-ObjectWithOptionalFields.useDefaultSerializationIn MyCbor
+YourCbor.defaultSerialization ObjectWithOptionalFields
+MyCbor.defaultSerialization ObjectWithOptionalFields
 
 type
   FruitX = enum
