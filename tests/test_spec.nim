@@ -194,7 +194,8 @@ suite "Test spec":
     check decode("0x80", seq[int]) == newSeq[int]()
     check decode("0x83010203", seq[int]) == @[1, 2, 3]
     check decode("0x83010203", array[3, int]) == [1, 2, 3]
-    check decode("0x8301820203820405", (int, seq[int], seq[int])) == (1, @[2, 3], @[4, 5])
+    check decode("0x8301820203820405", (int, seq[int], seq[int])) ==
+      (1, @[2, 3], @[4, 5])
     check decode(
       "0x98190102030405060708090a0b0c0d0e0f101112131415161718181819", seq[int]
     ) ==
@@ -211,10 +212,14 @@ suite "Test spec":
     check decode("0x5f42010243030405ff", seq[byte]) == @[1.byte, 2, 3, 4, 5]
     check decode("0x7f657374726561646d696e67ff", string) == "streaming"
     check decode("0x9fff", seq[int]) == newSeq[int]()
-    check decode("0x9f018202039f0405ffff", (int, seq[int], seq[int])) == (1, @[2, 3], @[4, 5])
-    check decode("0x9f01820203820405ff", (int, seq[int], seq[int])) == (1, @[2, 3], @[4, 5])
-    check decode("0x83018202039f0405ff", (int, seq[int], seq[int])) == (1, @[2, 3], @[4, 5])
-    check decode("0x83019f0203ff820405", (int, seq[int], seq[int])) == (1, @[2, 3], @[4, 5])
+    check decode("0x9f018202039f0405ffff", (int, seq[int], seq[int])) ==
+      (1, @[2, 3], @[4, 5])
+    check decode("0x9f01820203820405ff", (int, seq[int], seq[int])) ==
+      (1, @[2, 3], @[4, 5])
+    check decode("0x83018202039f0405ff", (int, seq[int], seq[int])) ==
+      (1, @[2, 3], @[4, 5])
+    check decode("0x83019f0203ff820405", (int, seq[int], seq[int])) ==
+      (1, @[2, 3], @[4, 5])
     check decode(
       "0x9f0102030405060708090a0b0c0d0e0f101112131415161718181819ff", seq[int]
     ) ==

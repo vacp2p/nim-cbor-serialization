@@ -82,6 +82,7 @@ suite "Test CborBytes":
   dualTest "Object objectFieldsLimit":
     type MyObj = object
       a, b, c: string
+
     let cbor = Cbor.encode(MyObj(a: "a", b: "b", c: "c"))
     check:
       Cbor.decode(cbor, CborBytes) == cbor

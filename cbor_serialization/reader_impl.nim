@@ -120,19 +120,20 @@ proc read*[T: object](
       else:
         r.parser.raiseUnexpectedField(key, cstring typeName)
 
-type
-  FieldTupleReader[RecordType, Reader] =
-    proc(rec: var RecordType, reader: var Reader) {.gcsafe, nimcall, raises: [IOError, SerializationError].}
+type FieldTupleReader[RecordType, Reader] = proc(
+  rec: var RecordType, reader: var Reader
+) {.gcsafe, nimcall, raises: [IOError, SerializationError].}
 
 proc tupleFieldReaderTable(
-  RecordType, ReaderType: distinct type,
-  numFields: static[int]
+    RecordType, ReaderType: distinct type, numFields: static[int]
 ): array[numFields, FieldTupleReader[RecordType, ReaderType]] =
   mixin enumAllSerializedFields
 
   enumAllSerializedFields(RecordType):
     const i = fieldName.parseInt
-    proc readField(obj: var RecordType, reader: var ReaderType) {.gcsafe, nimcall, raises: [IOError, SerializationError].} =
+    proc readField(
+        obj: var RecordType, reader: var ReaderType
+    ) {.gcsafe, nimcall, raises: [IOError, SerializationError].} =
       mixin readValue
       reader.readValue obj[i]
 
@@ -153,7 +154,7 @@ proc read*[T: tuple](
     typeName = typetraits.name(T)
 
   var i = 0
-  r.parseArray():
+  r.parseArray:
     if i < numFields:
       fieldsTable[i](value, r)
     elif flavorAllowsUnknownFields(Flavor):
