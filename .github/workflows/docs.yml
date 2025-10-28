@@ -2,7 +2,7 @@ name: Docgen
 on:
   push:
     branches:
-      - master
+      - main
       - docs
   workflow_dispatch:
 
