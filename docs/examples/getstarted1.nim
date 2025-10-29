@@ -8,7 +8,7 @@ import cbor_serialization
 type CborRpcId = distinct CborBytes
 
 proc readValue*(
-    r: var CborReader, val: var CborRpcId
+    r: var Cbor.Reader, val: var CborRpcId
 ) {.raises: [IOError, CborReaderError].} =
   let ckind = r.parser.cborKind()
   case ckind
@@ -33,8 +33,8 @@ type Request = object
   params: seq[int]
   id: CborRpcId # CBOR blob
 
-let encoded = Cbor.encode((id: Cbor.encode("test").CborRpcId))
+let encoded = Cbor.encode(Request(id: Cbor.encode("test").CborRpcId))
 let decoded = Cbor.decode(encoded, Request)
-echo Cbor.decode(decoded.id.CborBytes.toBytes(), string)
+doAssert Cbor.decode(decoded.id.CborBytes.toBytes(), string) == "test"
 
 # ANCHOR_END: Custom

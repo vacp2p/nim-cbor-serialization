@@ -54,10 +54,16 @@ CrpcSys.defaultSerialization Request
 
 # ANCHOR: Encode
 let cbor = Cbor.encode(
-  (cborrpc: "2.0", `method`: "subtract", params: [42, 3], id: Cbor.encode(1).CborBytes)
+  Request(
+    cborrpc: "2.0",
+    `method`: "subtract",
+    params: Opt.some(@[42, 3]),
+    id: Opt.some(Cbor.encode(1).CborRpcId),
+  )
 )
 
 let decoded = CrpcSys.decode(cbor, Request)
 echo decoded
-doAssert CrpcSys.encode(decoded) == cbor
 # ANCHOR_END: Encode
+
+doAssert CrpcSys.encode(decoded) == cbor

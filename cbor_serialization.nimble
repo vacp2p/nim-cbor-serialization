@@ -46,10 +46,10 @@ task test, "Run all tests":
     run threads, "tests/test_all"
 
 task examples, "Build examples":
-  # Build book examples
+  # Run book examples
   for file in listFiles("docs/examples"):
     if file.endsWith(".nim"):
-      build "--threads:on", file
+      run "--threads:on", file
 
 task mdbook, "Install mdbook (requires cargo)":
   exec "cargo install mdbook@0.4.51 mdbook-toc@0.14.2 mdbook-open-on-gh@2.4.3 mdbook-admonish@1.20.0"

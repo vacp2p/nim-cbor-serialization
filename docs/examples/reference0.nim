@@ -1,7 +1,6 @@
 import cbor_serialization
 
 # ANCHOR: Decode
-let rawCbor = Cbor.encode((name: "localhost", port: 42))
 type
   NimServer = object
     name: string
@@ -15,8 +14,7 @@ type
     name: CborBytes
     port: CborBytes
 
-var conf = defaultCborReaderConf
-conf.nestedDepthLimit = 0
+let rawCbor = Cbor.encode(NimServer(name: "localhost", port: 42))
 
 # decode into native Nim
 let native = Cbor.decode(rawCbor, NimServer)
@@ -51,5 +49,8 @@ let blob = Cbor.encode(native)
 var output = memoryOutput()
 var writer = Cbor.Writer.init(output)
 writer.writeValue(native)
-echo Cbor.decode(output.getOutput(seq[byte]), NimServer)
+let decoded = Cbor.decode(output.getOutput(seq[byte]), NimServer)
+echo decoded
 # ANCHOR_END: Writer
+
+doAssert decoded == native
