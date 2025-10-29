@@ -24,7 +24,7 @@ let encoded =
 # Decode the CBOR blob into our Request type
 let decoded = Cbor.decode(encoded, Request)
 
-echo decoded.id
+doAssert decoded.id == 1
 # ANCHOR_END: Decode
 
 # ANCHOR: Errors
