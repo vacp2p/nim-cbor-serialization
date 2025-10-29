@@ -45,7 +45,7 @@ task test, "Run all tests":
   for threads in ["--threads:off", "--threads:on"]:
     run threads, "tests/test_all"
 
-task examples, "Build examples":
+task examples, "Run examples":
   # Run book examples
   for file in listFiles("docs/examples"):
     if file.endsWith(".nim"):
