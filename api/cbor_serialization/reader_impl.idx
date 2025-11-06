@@ -1,0 +1,32 @@
+nimTitle	reader_impl	cbor_serialization/reader_impl.html	module cbor_serialization/reader_impl		0
+nim	isFieldExpected	cbor_serialization/reader_impl.html#isFieldExpected,type	proc isFieldExpected(T: type): bool		54
+nim	totalExpectedFields	cbor_serialization/reader_impl.html#totalExpectedFields,type	proc totalExpectedFields(T: type): int		57
+nim	expectedFieldsBitmask	cbor_serialization/reader_impl.html#expectedFieldsBitmask,type,staticint	proc expectedFieldsBitmask(TT: type; fields: static int): auto		64
+nim	read	cbor_serialization/reader_impl.html#read,CborReader,T	proc read[T: object](r: var CborReader; value: var T)		81
+nim	read	cbor_serialization/reader_impl.html#read,CborReader,T_2	proc read[T: tuple](r: var CborReader; value: var T)		142
+nim	readArray	cbor_serialization/reader_impl.html#readArray.i,CborReader,typedesc	iterator readArray(r: var CborReader; ElemType: typedesc): ElemType:type		226
+nim	readObjectFields	cbor_serialization/reader_impl.html#readObjectFields.i,CborReader,type	iterator readObjectFields(r: var CborReader; KeyType: type): KeyType:type		236
+nim	readObjectFields	cbor_serialization/reader_impl.html#readObjectFields.i,CborReader	iterator readObjectFields(r: var CborReader): string		247
+nim	readObject	cbor_serialization/reader_impl.html#readObject.i,CborReader,type,type	iterator readObject(r: var CborReader; KeyType: type; ValueType: type): (KeyType:type,\n    ValueType:type)		253
+nim	read	cbor_serialization/reader_impl.html#read,CborReader,CborValueRef	proc read(r: var CborReader; value: var CborValueRef)		263
+nim	read	cbor_serialization/reader_impl.html#read,CborReader,CborNumber	proc read(r: var CborReader; value: var CborNumber)		268
+nim	read	cbor_serialization/reader_impl.html#read,CborReader,CborTag	proc read(r: var CborReader; value: var CborTag)		273
+nim	read	cbor_serialization/reader_impl.html#read,CborReader,CborVoid	proc read(r: var CborReader; value: var CborVoid)		281
+nim	read	cbor_serialization/reader_impl.html#read,CborReader,CborBytes	proc read(r: var CborReader; value: var CborBytes)		286
+nim	read	cbor_serialization/reader_impl.html#read,CborReader,string	proc read(r: var CborReader; value: var string)		291
+nim	read	cbor_serialization/reader_impl.html#read,CborReader,seq[char]	proc read(r: var CborReader; value: var seq[char])		296
+nim	read	cbor_serialization/reader_impl.html#read,CborReader,array[N,char]	proc read[N](r: var CborReader; value: var array[N, char])		305
+nim	read	cbor_serialization/reader_impl.html#read,CborReader,seq[byte]	proc read(r: var CborReader; value: var seq[byte])		314
+nim	read	cbor_serialization/reader_impl.html#read,CborReader,bool	proc read(r: var CborReader; value: var bool)		319
+nim	read	cbor_serialization/reader_impl.html#read,CborReader,ref.T	proc read[T](r: var CborReader; value: var ref T)		324
+nim	read	cbor_serialization/reader_impl.html#read,CborReader,ptr.T	proc read[T](r: var CborReader; value: var ptr T)		329
+nim	read	cbor_serialization/reader_impl.html#read,CborReader,CborSimpleValue	proc read(r: var CborReader; value: var CborSimpleValue)		334
+nim	read	cbor_serialization/reader_impl.html#read,CborReader,T_3	proc read[T: enum](r: var CborReader; value: var T)		339
+nim	read	cbor_serialization/reader_impl.html#read,CborReader,T_4	proc read[T: SomeInteger](r: var CborReader; value: var T)		344
+nim	read	cbor_serialization/reader_impl.html#read,CborReader,T_5	proc read[T: SomeFloat](r: var CborReader; value: var T)		349
+nim	read	cbor_serialization/reader_impl.html#read,CborReader,seq[T]	proc read[T](r: var CborReader; value: var seq[T])		354
+nim	read	cbor_serialization/reader_impl.html#read,CborReader,T_6	proc read[T: array](r: var CborReader; value: var T)		364
+nim	readRecordValue	cbor_serialization/reader_impl.html#readRecordValue.t,CborReader,	template readRecordValue(r: var CborReader; value: var object)		377
+nim	configureCborDeserialization	cbor_serialization/reader_impl.html#configureCborDeserialization.t,type[],static[bool],static[proc(string)]	template configureCborDeserialization(T: type[enum];\n                             allowNumericRepr: static[bool] = false;\n    stringNormalizer: static[proc (s: string): string] = strictNormalize)		381
+nimgrp	read	cbor_serialization/reader_impl.html#read-procs-all	proc		81
+nimgrp	readobjectfields	cbor_serialization/reader_impl.html#readObjectFields-iterators-all	iterator		236

@@ -1,0 +1,2 @@
+nimTitle	utils	cbor_serialization/utils.html	module cbor_serialization/utils		0
+nim	decodeHalf	cbor_serialization/utils.html#decodeHalf,uint16	proc decodeHalf(half: uint16): float		16
