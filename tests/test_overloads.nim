@@ -12,7 +12,7 @@ import unittest2, strutils, ./utils, ../cbor_serialization
 proc roundtrip*[T](flavor: type, val: T): T =
   flavor.decode(flavor.encode(val), T)
 
-var registry: seq[string]
+var registry {.global, compileTime.}: seq[string]
 
 template register(s: string, body: untyped) =
   {.cast(gcsafe).}:
@@ -34,14 +34,13 @@ type NestedObj = object
   s: seq[FlatObj]
 
 suite "Test Cbor":
-  setup:
-    registry.setLen 0
-
   test "roundtrip FlatObj":
+    registry.setLen 0
     check Cbor.roundtrip(FlatObj(s: "foo")) == FlatObj(s: "foo")
     check registry == @["c_wv_FlatObj", "c_rv_FlatObj"]
 
   test "roundtrip NestedObj":
+    registry.setLen 0
     let val = NestedObj(s: @[FlatObj(s: "foo")])
     check Cbor.roundtrip(val) == val
     check registry == @["c_wv_FlatObj", "c_rv_FlatObj"]
@@ -58,16 +57,15 @@ proc writeValue[T](writer: var GenericCbor.Writer, value: T) =
     writer.write value
 
 suite "Test GenericCbor":
-  setup:
-    registry.setLen 0
-
   test "roundtrip FlatObj":
+    registry.setLen 0
     check GenericCbor.roundtrip(FlatObj(s: "foo")) == FlatObj(s: "foo")
     check registry == @[
       "gc_wv_FlatObj", "gc_wv_string", "gc_rv_FlatObj", "gc_rv_string"
     ]
 
   test "roundtrip NestedObj":
+    registry.setLen 0
     let val = NestedObj(s: @[FlatObj(s: "foo")])
     check GenericCbor.roundtrip(val) == val
     check registry ==
@@ -101,10 +99,8 @@ proc writeValue(writer: var DisSeqCbor.Writer, value: DisSeqInt) =
     writer.write(seq[int](value))
 
 suite "Test DisSeqCbor":
-  setup:
-    registry.setLen 0
-
   test "roundtrip DisSeq":
+    registry.setLen 0
     check DisSeqCbor.roundtrip(@[1, 2, 3].DisSeqInt) == @[1, 2, 3].DisSeqInt
     check registry == @["ac_wv_DisSeqInt", "ac_rv_DisSeqInt"]
 
@@ -158,18 +154,18 @@ proc writeValue(writer: var OverloadCbor.Writer, value: seq) =
     writer.write(value)
 
 suite "Test OverloadCbor":
-  setup:
-    registry.setLen 0
-
   test "roundtrip string":
+    registry.setLen 0
     check OverloadCbor.roundtrip("foo") == "foo"
     check registry == @["oc_wv_string", "oc_rv_string"]
 
   test "roundtrip int":
+    registry.setLen 0
     check OverloadCbor.roundtrip(123) == 123
     check registry == @["oc_wv_int", "oc_rv_int"]
 
   test "roundtrip seq[int]":
+    registry.setLen 0
     check OverloadCbor.roundtrip(@[1]) == @[1]
     check registry == @["oc_wv_seq", "oc_wv_int", "oc_rv_seq", "oc_rv_int"]
 
@@ -320,22 +316,23 @@ proc writeValue(writer: var CborWriter, value: int) =
     writer.write value
 
 suite "Test OldCbor":
-  setup:
-    registry.setLen 0
-
   test "roundtrip OldObj":
+    registry.setLen 0
     check OldCbor.roundtrip(OldObj(s: "foo")) == OldObj(s: "foo")
     check registry == @["oc_wv_OldObj", "oc_rv_OldObj"]
 
   test "roundtrip OldObj default flavor":
+    registry.setLen 0
     check Cbor.roundtrip(OldObj(s: "foo")) == OldObj(s: "foo")
     check registry == @["oc_wv_OldObj", "oc_rv_OldObj"]
 
   test "roundtrip int":
+    registry.setLen 0
     check OldCbor.roundtrip(123) == 123
     check registry == @["oc_wv_int", "oc_rv_int"]
 
   test "roundtrip int default flavor":
+    registry.setLen 0
     check Cbor.roundtrip(123) == 123
     check registry == @["oc_wv_int", "oc_rv_int"]
 
@@ -369,13 +366,12 @@ OldCbor3.useCustomSerialization(OldObj3.s):
       writer.writeValue value
 
 suite "Test OldCbor3":
-  setup:
-    registry.setLen 0
-
   test "roundtrip OldObj3":
+    registry.setLen 0
     check OldCbor3.roundtrip(OldObj3(s: "foo")) == OldObj3(s: "foo")
     check registry == @["oc_wv_OldObj3", "oc_rv_OldObj3"]
 
   test "roundtrip OldObj3 default flavor":
+    registry.setLen 0
     check Cbor.roundtrip(OldObj3(s: "foo")) == OldObj3(s: "foo")
     check registry.len == 0

@@ -32,7 +32,8 @@ from strutils import endsWith
 let cfg =
   " --styleCheck:usages --styleCheck:error" &
   (if verbose: "" else: " --verbosity:0 --hints:off") & " --outdir:build " &
-  quoteShell("--nimcache:build/nimcache/$projectName") & " -d:nimOldCaseObjects"
+  quoteShell("--nimcache:build/nimcache/$projectName") &
+  " -d:serializationTestAllRountrips -d:unittest2Static"
 
 proc build(args, path: string) =
   exec nimc & " " & lang & " " & cfg & " " & flags & " " & args & " " & path

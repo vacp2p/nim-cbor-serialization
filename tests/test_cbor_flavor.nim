@@ -94,7 +94,7 @@ NullyFields.defaultSerialization Container
 NullyFields.defaultSerialization ListOnly
 
 suite "Test CborFlavor":
-  dualTest "basic test":
+  test "basic test":
     let c = Container(name: "c", x: -10, y: 20, list: @[1'i64, 2, 25])
     let encoded = StringyCbor.encode(c)
     # {"name":"c","x":"-10","y":"20","list":["1","2","25"]}
@@ -104,7 +104,7 @@ suite "Test CborFlavor":
     let decoded = StringyCbor.decode(encoded, Container)
     check decoded == Container(name: "c", x: -10, y: 20, list: @[1, 2, 25])
 
-  dualTest "optional fields":
+  test "optional fields":
     let a = OptionalFields(one: Opt.some("hello"))
     let b = OptionalFields(two: some(567))
     let c = OptionalFields(one: Opt.some("burn"), two: some(333))
@@ -121,7 +121,7 @@ suite "Test CborFlavor":
     check cc.hex == "0xa2636f6e65646275726e6374776f19014d" # {"one":"burn","two":333}
     checkCbor cc, c
 
-  dualTest "Write special types":
+  test "Write special types":
     let vv = Cbor.decode(cborText.unhex, SpecialTypes)
     let xx = Cbor.encode(vv)
     var ww = Cbor.decode(xx, SpecialTypes)
@@ -131,7 +131,7 @@ suite "Test CborFlavor":
       xx.hex ==
         "0xA36374776F3903146574687265651903E764666F7572A2656170706C658301F56574687265656662616E616E61A36463686970187B617AF66176F4".toLowerAscii
 
-  dualTest "object with null fields":
+  test "object with null fields":
     expect CborReaderError:
       let x = Cbor.decode(cborTextWithNullFields.unhex, Container)
       discard x
@@ -143,7 +143,7 @@ suite "Test CborFlavor":
     let y = NullyFields.decode(cborTextWithNullFields.unhex, ListOnly)
     check y.list.len == 0
 
-  dualTest "Enum value representation primitives":
+  test "Enum value representation primitives":
     NullyFields.flavorEnumRep(EnumAsString)
     when NullyFields.flavorEnumRep() == EnumAsString:
       check true
@@ -168,7 +168,7 @@ suite "Test CborFlavor":
     elif NullyFields.flavorEnumRep() == EnumAsStringifiedNumber:
       check true
 
-  dualTest "Enum value representation of custom flavor":
+  test "Enum value representation of custom flavor":
     type ExoticFruits = enum
       DragonFruit
       SnakeFruit
@@ -189,7 +189,7 @@ suite "Test CborFlavor":
     check w.hex == "0x6132"
     checkCbor w, "2"
 
-  dualTest "EnumAsString of custom flavor":
+  test "EnumAsString of custom flavor":
     type Fruit = enum
       Banana = "BaNaNa"
       Apple = "ApplE"
@@ -221,7 +221,7 @@ suite "Test CborFlavor":
     check z.hex == "0x00"
     checkCbor z, 0
 
-  dualTest "custom writer that uses stream":
+  test "custom writer that uses stream":
     let value = @[@[byte 0, 1], @[byte 2, 3]]
     let cbor = StringyCbor.encode(value)
     check cbor.hex == "0x8264303030316430323033"

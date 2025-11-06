@@ -14,14 +14,14 @@ import
   ../cbor_serialization/std/[options, sets, tables]
 
 suite "Test Options":
-  dualTest "some":
+  test "some":
     let val = some(123)
     let cbor = Cbor.encode(val)
     check cbor.hex == "0x187b"
     checkCbor cbor, 123
     checkCbor cbor, val
 
-  dualTest "none":
+  test "none":
     let val = none(int)
     let cbor = Cbor.encode(val)
     check cbor.hex == "0xf6"
@@ -29,48 +29,48 @@ suite "Test Options":
     checkCbor cbor, val
 
 suite "Test Sets":
-  dualTest "set[int8]":
+  test "set[int8]":
     let val = {1'i8, 2, 3}
     let cbor = Cbor.encode(val)
     check cbor.hex == "0x9f010203ff"
     checkCbor cbor, val
 
-  dualTest "set[uint8]":
+  test "set[uint8]":
     let val = {1'u8, 2, 3}
     let cbor = Cbor.encode(val)
     check cbor.hex == "0x9f010203ff"
     checkCbor cbor, val
 
-  dualTest "OrderedSet[int]":
+  test "OrderedSet[int]":
     let val = toOrderedSet([1, 2, 3])
     let cbor = Cbor.encode(val)
     check cbor.hex == "0x9f010203ff"
     checkCbor cbor, val
 
-  dualTest "HashSet[int]":
+  test "HashSet[int]":
     let val = toHashSet([1, 2, 3])
     let cbor = Cbor.encode(val)
     checkCbor cbor, val
 
 suite "Test Tables":
-  dualTest "OrderedTable[int, string]":
+  test "OrderedTable[int, string]":
     let val = toOrderedTable [(1, "one"), (2, "two")]
     let cbor = Cbor.encode(val)
     check cbor.hex == "0xbf6131636f6e6561326374776fff"
     checkCbor cbor, val
 
-  dualTest "OrderedTable[string, string]":
+  test "OrderedTable[string, string]":
     let val = toOrderedTable [("1", "one"), ("2", "two")]
     let cbor = Cbor.encode(val)
     check cbor.hex == "0xbf6131636f6e6561326374776fff"
     checkCbor cbor, val
 
-  dualTest "Table[int, string]":
+  test "Table[int, string]":
     let val = {1: "one", 2: "two"}.toTable
     let cbor = Cbor.encode(val)
     checkCbor cbor, val
 
-  dualTest "Table[string, string]":
+  test "Table[string, string]":
     let val = {"1": "one", "2": "two"}.toTable
     let cbor = Cbor.encode(val)
     checkCbor cbor, val

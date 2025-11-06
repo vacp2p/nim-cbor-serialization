@@ -55,7 +55,7 @@ template allValueRefs() {.dirty.} =
     CborValueRef(kind: CborValueKind.Object, objVal: [("x", objABNull)].toOrderedTable)
 
 suite "Test CborValueRef":
-  dualTest "Test table keys equality":
+  test "Test table keys equality":
     allValueRefs()
     check objA != objAB
     check objA == objA2
@@ -72,7 +72,7 @@ suite "Test CborValueRef":
     check objInObjA == objInObjA2
     check objInObjAB != objInObjABNull
 
-  dualTest "Test compare":
+  test "Test compare":
     allValueRefs()
     check compare(objA, objAB) == false
     check compare(objA, objA2) == true

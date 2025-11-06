@@ -245,7 +245,7 @@ proc readValue*(
 
 {.pop.}
 
-var customVisit: TokenRegistry
+var customVisit {.global, compileTime.}: TokenRegistry
 
 Cbor.useCustomSerialization(WithCustomFieldRule.intVal):
   read:
@@ -402,9 +402,9 @@ suite "toCbor tests":
 
   test "enums":
     Cbor.flavorEnumRep(EnumAsString)
-    Cbor.roundtripTest x0, "0x627830".unhex # "x0"
-    Cbor.roundtripTest x1, "0x627831".unhex # "x1"
-    Cbor.roundtripTest x2, "0x627832".unhex # "x2"
+    Cbor.roundtripChecks x0, "0x627830".unhex # "x0"
+    Cbor.roundtripChecks x1, "0x627831".unhex # "x1"
+    Cbor.roundtripChecks x2, "0x627832".unhex # "x2"
     expect UnexpectedValueError:
       discard Cbor.decode(Cbor.encode(0), EnumTestX)
     expect UnexpectedValueError:
@@ -425,10 +425,10 @@ suite "toCbor tests":
       discard Cbor.decode(Cbor.encode(""), EnumTestX)
     expect UnexpectedValueError:
       discard Cbor.decode(Cbor.encode("0"), EnumTestX)
-    Cbor.roundtripTest y1, "0x627931".unhex # "y1"
-    Cbor.roundtripTest y3, "0x627933".unhex # "y3"
-    Cbor.roundtripTest y4, "0x627934".unhex # "y4"
-    Cbor.roundtripTest y6, "0x627936".unhex # "y6"
+    Cbor.roundtripChecks y1, "0x627931".unhex # "y1"
+    Cbor.roundtripChecks y3, "0x627933".unhex # "y3"
+    Cbor.roundtripChecks y4, "0x627934".unhex # "y4"
+    Cbor.roundtripChecks y6, "0x627936".unhex # "y6"
     check:
       Cbor.decode(Cbor.encode(1), EnumTestY) == y1
       Cbor.decode(Cbor.encode(3), EnumTestY) == y3
@@ -456,9 +456,9 @@ suite "toCbor tests":
       discard Cbor.decode(Cbor.encode(""), EnumTestY)
     expect UnexpectedValueError:
       discard Cbor.decode(Cbor.encode("1"), EnumTestY)
-    Cbor.roundtripTest z1, "0x63616161".unhex # "aaa"
-    Cbor.roundtripTest z2, "0x63626262".unhex # "bbb"
-    Cbor.roundtripTest z3, "0x63636363".unhex # "ccc"
+    Cbor.roundtripChecks z1, "0x63616161".unhex # "aaa"
+    Cbor.roundtripChecks z2, "0x63626262".unhex # "bbb"
+    Cbor.roundtripChecks z3, "0x63636363".unhex # "ccc"
     expect UnexpectedValueError:
       discard Cbor.decode(Cbor.encode(0), EnumTestZ)
     expect UnexpectedValueError:
@@ -475,9 +475,9 @@ suite "toCbor tests":
       discard Cbor.decode(Cbor.encode(""), EnumTestZ)
     expect UnexpectedValueError:
       discard Cbor.decode(Cbor.encode("\ud83d\udc3c"), EnumTestZ)
-    Cbor.roundtripTest n1, "0x63616161".unhex # "aaa"
-    Cbor.roundtripTest n2, "0x63626262".unhex # "bbb"
-    Cbor.roundtripTest n3, "0x63636363".unhex # "ccc"
+    Cbor.roundtripChecks n1, "0x63616161".unhex # "aaa"
+    Cbor.roundtripChecks n2, "0x63626262".unhex # "bbb"
+    Cbor.roundtripChecks n3, "0x63636363".unhex # "ccc"
     check:
       Cbor.decode(Cbor.encode("aAA"), EnumTestN) == n1
       Cbor.decode(Cbor.encode("bBB"), EnumTestN) == n2
@@ -507,9 +507,9 @@ suite "toCbor tests":
       discard Cbor.decode(Cbor.encode(""), EnumTestN)
     expect UnexpectedValueError:
       discard Cbor.decode(Cbor.encode("\ud83d\udc3c"), EnumTestN)
-    Cbor.roundtripTest o1, "0x626F31".unhex # "o1"
-    Cbor.roundtripTest o2, "0x626F32".unhex # "o2"
-    Cbor.roundtripTest o3, "0x626F33".unhex # "o3"
+    Cbor.roundtripChecks o1, "0x626F31".unhex # "o1"
+    Cbor.roundtripChecks o2, "0x626F32".unhex # "o2"
+    Cbor.roundtripChecks o3, "0x626F33".unhex # "o3"
     check:
       Cbor.decode(Cbor.encode("o_1"), EnumTestO) == o1
       Cbor.decode(Cbor.encode("o_2"), EnumTestO) == o2
@@ -621,7 +621,10 @@ suite "toCbor tests":
       try:
         AutoCbor.decode(cbor, Simple)
       except SerializationError as err:
-        checkpoint "Unexpected deserialization failure: " & err.formatMsg("<input>")
+        when nimvm:
+          checkpoint "Unexpected deserialization failure: " & err.msg
+        else:
+          checkpoint "Unexpected deserialization failure: " & err.formatMsg("<input>")
         raise
     check:
       decoded.x == 20
@@ -690,9 +693,9 @@ suite "toCbor tests":
       h3 = Cbor.decode(h2.toCbor(), HoldsOption)
 
     # {"r":null,"o":{"distance":3,"x":1,"y":"2"}}
-    Cbor.roundtripTest h1, "0xA26172F6616FA36864697374616E63650361780161796132".unhex
+    Cbor.roundtripChecks h1, "0xA26172F6616FA36864697374616E63650361780161796132".unhex
     # {"r":{"distance":3,"x":1,"y":"2"}}
-    Cbor.roundtripTest h2, "0xA16172A36864697374616E63650361780161796132".unhex
+    Cbor.roundtripChecks h2, "0xA16172A36864697374616E63650361780161796132".unhex
     check h3 == h2
     expect SerializationError:
       #{ "o":{"distance":3,"x":1,"y":"2"}}
@@ -708,10 +711,10 @@ suite "toCbor tests":
       h5 = OtherOptionTest(b: some Meter(2))
       h6 = OtherOptionTest(a: some Meter(3), b: some Meter(4))
 
-    Cbor.roundtripTest h3, "0xA0".unhex # {}
-    Cbor.roundtripTest h4, "0xA1616101".unhex # {"a":1}
-    Cbor.roundtripTest h5, "0xA1616202".unhex # {"b":2}
-    Cbor.roundtripTest h6, "0xA2616103616204".unhex # {"a":3,"b":4}
+    Cbor.roundtripChecks h3, "0xA0".unhex # {}
+    Cbor.roundtripChecks h4, "0xA1616101".unhex # {"a":1}
+    Cbor.roundtripChecks h5, "0xA1616202".unhex # {"b":2}
+    Cbor.roundtripChecks h6, "0xA2616103616204".unhex # {"a":3,"b":4}
 
     let
       arr = @[some h3, some h4, some h5, some h6, none(OtherOptionTest)]
@@ -750,12 +753,12 @@ suite "toCbor tests":
         # lent iterator error
         let a = a
         let b = b
-        Cbor.roundtripTest NestedOptionTest(c: a, d: b), results[r]
+        Cbor.roundtripChecks NestedOptionTest(c: a, d: b), results[r]
         r.inc
 
-    Cbor.roundtripTest SeqOptionTest(a: @[some 5.Meter, none Meter], b: Meter(5)),
+    Cbor.roundtripChecks SeqOptionTest(a: @[some 5.Meter, none Meter], b: Meter(5)),
       "0xA261618205F6616205".unhex # {"a":[5,null],"b":5}
-    Cbor.roundtripTest OtherOptionTest2(
+    Cbor.roundtripChecks OtherOptionTest2(
       a: some 5.Meter, b: none Meter, c: some 10.Meter
     ), "0xA261610561630A".unhex # {"a":5,"c":10}
 
@@ -769,9 +772,9 @@ suite "toCbor tests":
       h1 = HoldsResultOpt(o: Opt[Simple].ok Simple(x: 1, y: "2", distance: Meter(3)))
       h2 = HoldsResultOpt(r: newSimple(1, "2", Meter(3)))
 
-    Cbor.roundtripTest h1, "0xA2616FA36864697374616E636503617801617961326172F6".unhex
+    Cbor.roundtripChecks h1, "0xA2616FA36864697374616E636503617801617961326172F6".unhex
       # {"o":{"distance":3,"x":1,"y":"2"},"r":null}
-    Cbor.roundtripTest h2, "0xA16172A36864697374616E63650361780161796132".unhex
+    Cbor.roundtripChecks h2, "0xA16172A36864697374616E63650361780161796132".unhex
       # {"r":{"distance":3,"x":1,"y":"2"}}
 
     # {"r":{"distance":3,"x":1,"y":"2"}}
@@ -790,7 +793,7 @@ suite "toCbor tests":
 
   test "Custom field serialization":
     let obj = WithCustomFieldRule(str: "test", intVal: 10)
-    Cbor.roundtripTest obj, "0xA263737472647465737466696E7456616C623130".unhex
+    Cbor.roundtripChecks obj, "0xA263737472647465737466696E7456616C623130".unhex
       # {"str":"test","intVal":"10"}
 
   test "Case object as field":
