@@ -15,39 +15,39 @@ template isFn(val: var set[CborSimpleValue], fn: untyped) =
       val.incl x.CborSimpleValue
 
 suite "Test CborSimpleValue":
-  dualTest "to string":
+  test "to string":
     check $cborTrue == "true"
     check $cborFalse == "false"
     check $cborNull == "null"
     check $cborUndefined == "undefined"
     check $CborSimpleValue(30) == "simple(30)"
 
-  dualTest "isTrue":
+  test "isTrue":
     var val: set[CborSimpleValue]
     isFn(val, isTrue)
     check val == {cborTrue}
 
-  dualTest "isFalse":
+  test "isFalse":
     var val: set[CborSimpleValue]
     isFn(val, isFalse)
     check val == {cborFalse}
 
-  dualTest "isFalsy":
+  test "isFalsy":
     var val: set[CborSimpleValue]
     isFn(val, isFalsy)
     check val == {cborFalse, cborNull, cborUndefined}
 
-  dualTest "isNull":
+  test "isNull":
     var val: set[CborSimpleValue]
     isFn(val, isNull)
     check val == {cborNull}
 
-  dualTest "isUndefined":
+  test "isUndefined":
     var val: set[CborSimpleValue]
     isFn(val, isUndefined)
     check val == {cborUndefined}
 
-  dualTest "isNullish":
+  test "isNullish":
     var val: set[CborSimpleValue]
     isFn(val, isNullish)
     check val == {cborNull, cborUndefined}

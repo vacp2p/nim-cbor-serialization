@@ -26,7 +26,7 @@ func toReaderNullFields(input: seq[byte]): CborReader[NullFields] =
   CborReader[NullFields].init(stream)
 
 suite "Custom iterators":
-  dualTest "parseStringIt":
+  test "parseStringIt":
     var text: string
     var r = toReader "0x6D68656C6C6F200920776F726C64".unhex # "hello \t world"
     for c in r.parseStringIt:
@@ -36,7 +36,7 @@ suite "Custom iterators":
         text.add c
     check text == "hello \t world"
 
-  dualTest "parseStringIt safe break":
+  test "parseStringIt safe break":
     var text: string
     var r = toReader "0x6548454C4C4F65574F524C44".unhex # "HELLO""WORLD"
     for c in r.parseStringIt:
@@ -47,7 +47,7 @@ suite "Custom iterators":
       break
     check text == "HW"
 
-  dualTest "parseStringIt unsafe break":
+  test "parseStringIt unsafe break":
     var text: string
     var r = toReader "0x6548454C4C4F65574F524C44".unhex # "HELLO""WORLD"
     for c in r.parseStringIt(safeBreak = false):
@@ -59,7 +59,7 @@ suite "Custom iterators":
         break
     check text == "H"
 
-  dualTest "parseByteStringIt":
+  test "parseByteStringIt":
     var bytes: seq[byte]
     var r = toReader "0x43010203".unhex # [1,2,3]
     for c in r.parseByteStringIt:
@@ -69,7 +69,7 @@ suite "Custom iterators":
         bytes.add c
     check bytes == @[1.byte, 2, 3]
 
-  dualTest "parseByteStringIt safe break":
+  test "parseByteStringIt safe break":
     var bytes: seq[byte]
     var r = toReader "0x4301020343010203".unhex # [1,2,3] [1,2,3]
     for c in r.parseByteStringIt:
@@ -80,7 +80,7 @@ suite "Custom iterators":
       break
     check bytes == @[1.byte, 1]
 
-  dualTest "parseByteStringIt unsafe break":
+  test "parseByteStringIt unsafe break":
     var bytes: seq[byte]
     var r = toReader "0x4301020343010203".unhex # [1,2,3] [1,2,3]
     for c in r.parseByteStringIt(safeBreak = false):
@@ -93,7 +93,7 @@ suite "Custom iterators":
     check bytes == @[1.byte]
 
 suite "Public parser":
-  dualTest "parseArray":
+  test "parseArray":
     proc parse(
         r: var CborReader, list: var seq[bool]
     ) {.gcsafe, raises: [IOError, CborReaderError].} =
@@ -106,7 +106,7 @@ suite "Public parser":
     check list.len == 3
     check list == @[true, true, false]
 
-  dualTest "parseArray with idx":
+  test "parseArray with idx":
     proc parse(
         r: var CborReader, list: var seq[bool]
     ) {.gcsafe, raises: [IOError, CborReaderError].} =
@@ -120,7 +120,7 @@ suite "Public parser":
     check list.len == 6
     check list == @[true, true, false, true, true, false]
 
-  dualTest "parseObject":
+  test "parseObject":
     type Duck = object
       id: string
       ok: bool
@@ -136,7 +136,7 @@ suite "Public parser":
     check list.len == 2
     check list == @[Duck(id: "a", ok: true), Duck(id: "b", ok: false)]
 
-  dualTest "parseNumber uint64":
+  test "parseNumber uint64":
     var r = toReader "0x3904D1".unhex # -1234
     let val = r.parseNumber()
     check:
@@ -181,31 +181,31 @@ suite "Public parser":
         let val = r.parseInt(T)
         discard val
 
-  dualTest "parseInt uint8":
+  test "parseInt uint8":
     testParseIntU(uint8)
 
-  dualTest "parseInt int8":
+  test "parseInt int8":
     testParseIntI(int8)
 
-  dualTest "parseInt uint16":
+  test "parseInt uint16":
     testParseIntU(uint16)
 
-  dualTest "parseInt int16":
+  test "parseInt int16":
     testParseIntI(int16)
 
-  dualTest "parseInt uint32":
+  test "parseInt uint32":
     testParseIntU(uint32)
 
-  dualTest "parseInt int32":
+  test "parseInt int32":
     testParseIntI(int32)
 
-  dualTest "parseInt uint64":
+  test "parseInt uint64":
     testParseIntU(uint64)
 
-  dualTest "parseInt int64":
+  test "parseInt int64":
     testParseIntI(int64)
 
-  dualTest "parseFloat":
+  test "parseFloat":
     var
       r = toReader "0xFB404C0126E978D4FE".unhex # 56.009 
       val = r.parseFloat(float64)
@@ -221,7 +221,7 @@ suite "Public parser":
       discard r.parseValue()
       inc result
 
-  dualTest "parseObject of null fields":
+  test "parseObject of null fields":
     # {"something":null, "bool":true, "string":null}
     var r =
       toReaderNullFields "0xA369736F6D657468696E67F664626F6F6CF566737472696E67F6".unhex
@@ -236,7 +236,7 @@ suite "Public parser":
     var z = toReaderNullFields "0xA369736F6D657468696E67F664626F6F6CF566737472696E67646D6F6F6E".unhex
     check execParseObject(z) == 2
 
-  dualTest "parseVaue of null fields":
+  test "parseVaue of null fields":
     # {"something":null, "bool":true, "string":null}
     var r =
       toReaderNullFields "0xA369736F6D657468696E67F664626F6F6CF566737472696E67F6".unhex
@@ -255,7 +255,7 @@ suite "Public parser":
       z["bool"].kind == CborValueKind.Bool
       z["string"].kind == CborValueKind.String
 
-  dualTest "CborValueRef comparison":
+  test "CborValueRef comparison":
     var x = CborValueRef(kind: CborValueKind.Null)
     var n = CborValueRef(nil)
     check x != n
@@ -279,7 +279,7 @@ const cborText =
   "0xA766737472696E676B68656C6C6F20776F726C64666E756D626572FBC05EDD2F1A9FBE7763696E7419031564626F6F6CF5646E756C6CF665617272617985F5FB4081BF1EB851EB856F737472696E6720696E206172726179F681187B666F626A656374A263616263FB407BC020C49BA5E363646566F4"
 
 suite "Parse to runtime dynamic structure":
-  dualTest "parseValue":
+  test "parseValue":
     var r = toReader(cborText.unhex)
     let n = r.parseValue()
     check:

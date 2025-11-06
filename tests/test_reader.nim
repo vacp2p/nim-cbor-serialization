@@ -102,14 +102,14 @@ createCborFlavor AllowUnknownOffCbor,
   automaticObjectSerialization = true, allowUnknownFields = false
 
 suite "CborReader basic test":
-  dualTest "readArray iterator":
+  test "readArray iterator":
     var r = toReader "0x83F4F5F4".unhex
     var list: seq[bool]
     for x in r.readArray(bool):
       list.add x
     check list == @[false, true, false]
 
-  dualTest "readObjectFields iterator":
+  test "readObjectFields iterator":
     var r = toReader cbor1.unhex
     var keys: seq[string]
     var val: CborValueRef
@@ -118,7 +118,7 @@ suite "CborReader basic test":
       r.parseValue(val)
     check keys == @["string", "number", "int", "bool", "null", "array"]
 
-  dualTest "readObject iterator":
+  test "readObject iterator":
     var r = toReader cbor2.unhex
     var keys: seq[string]
     var vals: seq[uint64]
@@ -130,7 +130,7 @@ suite "CborReader basic test":
       keys == @["string", "number", "int", "bool", "null"]
       vals == @[25'u64, 123, 789, 22, 0]
 
-  dualTest "readValue":
+  test "readValue":
     var r = toReader cbor3.unhex
     var valOrig: MasterReader
     r.readValue(valOrig)
@@ -154,7 +154,7 @@ suite "CborReader basic test":
       val.thirteen == [3, 4]
       val.fourteen == SecondObject(one: "world", two: false)
 
-  dualTest "Special Types":
+  test "Special Types":
     var r = toReader cbor1.unhex
     var val: SpecialTypes
     r.readValue(val)
@@ -183,7 +183,7 @@ suite "CborReader basic test":
       r.parseValue(val)
       inc result
 
-  dualTest "readObjectFields of null fields":
+  test "readObjectFields of null fields":
     # {"something":null, "bool":true, "string":null}
     var r =
       toReaderNullFields("0xA369736F6D657468696E67F664626F6F6CF566737472696E67F6".unhex)
@@ -204,7 +204,7 @@ suite "CborReader basic test":
     for k, v in r.readObject(string, int):
       inc result
 
-  dualTest "readObjectFields of null fields":
+  test "readObjectFields of null fields":
     # {"something":null, "bool":123, "string":null}
     var r = toReaderNullFields(
       "0xA369736F6D657468696E67F664626F6F6C187B66737472696E67F6".unhex
@@ -223,18 +223,18 @@ suite "CborReader basic test":
     )
     check execReadObject(z) == 2
 
-  dualTest "readValue of array":
+  test "readValue of array":
     # [false, true, false]
     var r = toReader "0x83F4F5F4".unhex
     check r.readValue(array[3, bool]) == [false, true, false]
 
-  dualTest "readValue of array error":
+  test "readValue of array error":
     # [false, true, false]
     var r = toReader "0x83F4F5F4".unhex
     expect CborReaderError:
       discard r.readValue(array[2, bool])
 
-  dualTest "readValue of object without fields":
+  test "readValue of object without fields":
     type NoFields = object
 
     block:
