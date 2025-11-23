@@ -356,10 +356,12 @@ proc read*[T](
 ) {.raises: [SerializationError, IOError].} =
   mixin readValue
 
-  r.parseArray:
-    let lastPos = value.len
-    value.setLen(lastPos + 1)
-    readValue(r, value[lastPos])
+  var i = value.len
+  r.parseArray(arrLen):
+    value.setLen value.len.uint64 + arrLen
+  do:
+    readValue(r, value[i])
+    inc i
 
 proc read*[T: array](
     r: var CborReader, value: var T
