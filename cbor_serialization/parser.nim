@@ -117,7 +117,8 @@ proc parseStringLike[T: string or seq[byte]](
     p: var CborParser, majorExpected: CborMajor, limit: int, val: var T
 ) {.raises: [IOError, CborReaderError].} =
   type ElmType = typeof val[0]
-  var i = val.len
+  val.setLen 0
+  var i = 0
   parseStringLikeImpl(p, majorExpected, limit, strLen):
     val.setLen val.len.uint64 + strLen
   do:
@@ -182,9 +183,7 @@ template parseArrayLikeImpl(
       body
   exitNestedStructure(p)
 
-template parseArrayLikeImpl(
-    p: var CborParser, majorExpected: CborMajor, body: untyped
-) =
+template parseArrayLikeImpl(p: var CborParser, majorExpected: CborMajor, body: untyped) =
   parseArrayLikeImpl(p, majorExpected, arrLen):
     discard arrLen
   do:

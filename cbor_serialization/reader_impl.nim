@@ -356,7 +356,8 @@ proc read*[T](
 ) {.raises: [SerializationError, IOError].} =
   mixin readValue
 
-  var i = value.len
+  value.setLen 0
+  var i = 0
   r.parseArray(arrLen):
     value.setLen value.len.uint64 + arrLen
   do:
