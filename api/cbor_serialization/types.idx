@@ -1,0 +1,47 @@
+nimTitle	types	cbor_serialization/types.html	module cbor_serialization/types		0
+nim	CborMajor	cbor_serialization/types.html#CborMajor	enum CborMajor		18
+nim	CborError	cbor_serialization/types.html#CborError	object CborError		28
+nim	CborVoid	cbor_serialization/types.html#CborVoid	object CborVoid		30
+nim	CborBytes	cbor_serialization/types.html#CborBytes	type CborBytes		32
+nim	CborSign	cbor_serialization/types.html#CborSign	enum CborSign		37
+nim	CborNumber	cbor_serialization/types.html#CborNumber	object CborNumber		41
+nim	CborSimpleValue	cbor_serialization/types.html#CborSimpleValue	type CborSimpleValue		45
+nim	CborReaderConf	cbor_serialization/types.html#CborReaderConf	object CborReaderConf		47
+nim	CborValueKind	cbor_serialization/types.html#CborValueKind	enum CborValueKind		55
+nim	CborTag	cbor_serialization/types.html#CborTag	object CborTag		69
+nim	CborObjectType	cbor_serialization/types.html#CborObjectType	type CborObjectType		73
+nim	CborValueRef	cbor_serialization/types.html#CborValueRef	type CborValueRef		75
+nim	CborValue	cbor_serialization/types.html#CborValue	object CborValue		76
+nim	cborFalse	cbor_serialization/types.html#cborFalse	const cborFalse		101
+nim	cborTrue	cbor_serialization/types.html#cborTrue	const cborTrue		102
+nim	cborNull	cbor_serialization/types.html#cborNull	const cborNull		103
+nim	cborUndefined	cbor_serialization/types.html#cborUndefined	const cborUndefined		104
+nim	cborMinorLen0	cbor_serialization/types.html#cborMinorLen0	const cborMinorLen0		108
+nim	cborMinorLen1	cbor_serialization/types.html#cborMinorLen1	const cborMinorLen1		109
+nim	cborMinorLen2	cbor_serialization/types.html#cborMinorLen2	const cborMinorLen2		110
+nim	cborMinorLen4	cbor_serialization/types.html#cborMinorLen4	const cborMinorLen4		111
+nim	cborMinorLen8	cbor_serialization/types.html#cborMinorLen8	const cborMinorLen8		112
+nim	cborMinorIndef	cbor_serialization/types.html#cborMinorIndef	const cborMinorIndef		113
+nim	cborMinorLens	cbor_serialization/types.html#cborMinorLens	const cborMinorLens		114
+nim	cborBreakStopCode	cbor_serialization/types.html#cborBreakStopCode	const cborBreakStopCode		117
+nim	defaultCborReaderConf	cbor_serialization/types.html#defaultCborReaderConf	const defaultCborReaderConf		119
+nim	add	cbor_serialization/types.html#add,CborBytes,byte	proc add(a: var CborBytes; b: byte)		128
+nim	`==`	cbor_serialization/types.html#==,CborBytes,CborBytes	proc `==`(a, b: CborBytes): bool		129
+nim	`==`	cbor_serialization/types.html#==,CborBytes,seq[byte]	proc `==`(a: CborBytes; b: seq[byte]): bool		130
+nim	`==`	cbor_serialization/types.html#==,seq[byte],CborBytes	proc `==`(a: seq[byte]; b: CborBytes): bool		131
+nim	toBytes	cbor_serialization/types.html#toBytes.t,CborBytes	template toBytes(val: CborBytes): untyped		133
+nim	`==`	cbor_serialization/types.html#==,CborSimpleValue,CborSimpleValue	proc `==`(a, b: CborSimpleValue): bool		136
+nim	contains	cbor_serialization/types.html#contains,set[uint8],CborSimpleValue	proc contains(x: set[uint8]; y: CborSimpleValue): bool		137
+nim	isTrue	cbor_serialization/types.html#isTrue,CborSimpleValue	proc isTrue(v: CborSimpleValue): bool		139
+nim	isFalse	cbor_serialization/types.html#isFalse,CborSimpleValue	proc isFalse(v: CborSimpleValue): bool		142
+nim	isFalsy	cbor_serialization/types.html#isFalsy,CborSimpleValue	proc isFalsy(v: CborSimpleValue): bool		145
+nim	isNull	cbor_serialization/types.html#isNull,CborSimpleValue	proc isNull(v: CborSimpleValue): bool		148
+nim	isUndefined	cbor_serialization/types.html#isUndefined,CborSimpleValue	proc isUndefined(v: CborSimpleValue): bool		151
+nim	isNullish	cbor_serialization/types.html#isNullish,CborSimpleValue	proc isNullish(v: CborSimpleValue): bool		154
+nim	`$`	cbor_serialization/types.html#$,CborSimpleValue	proc `$`(v: CborSimpleValue): string		157
+nim	toInt	cbor_serialization/types.html#toInt,CborSign	proc toInt(sign: CborSign): int		169
+nim	toInt	cbor_serialization/types.html#toInt,CborNumber,typeSomeSignedInt	proc toInt(val: CborNumber; T: type SomeSignedInt): Opt[T]		174
+nim	toInt	cbor_serialization/types.html#toInt,CborNumber,typeSomeUnsignedInt	proc toInt(val: CborNumber; T: type SomeUnsignedInt): Opt[T]		191
+nim	`==`	cbor_serialization/types.html#==,CborValueRef,CborValueRef	proc `==`(lhs, rhs: CborValueRef): bool		200
+nimgrp	toint	cbor_serialization/types.html#toInt-procs-all	proc		169
+nimgrp	==	cbor_serialization/types.html#==-procs-all	proc		129

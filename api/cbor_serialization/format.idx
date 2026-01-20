@@ -1,0 +1,34 @@
+nimTitle	format	cbor_serialization/format.html	module cbor_serialization/format		0
+nim	defaultReader	cbor_serialization/format.html#defaultReader.t,type,untyped	template defaultReader(Flavor: type; T: untyped)		42
+nim	defaultWriter	cbor_serialization/format.html#defaultWriter.t,type,untyped	template defaultWriter(Flavor: type; T: untyped)		56
+nim	defaultSerialization	cbor_serialization/format.html#defaultSerialization.t,type,untyped	template defaultSerialization(Flavor: type; T: untyped)		62
+nim	defaultBuiltinReader	cbor_serialization/format.html#defaultBuiltinReader.t,type	template defaultBuiltinReader(Flavor: type)		66
+nim	defaultBuiltinWriter	cbor_serialization/format.html#defaultBuiltinWriter.t,type	template defaultBuiltinWriter(Flavor: type)		74
+nim	defaultBuiltinSerialization	cbor_serialization/format.html#defaultBuiltinSerialization.t,type	template defaultBuiltinSerialization(Flavor: type)		82
+nim	defaultPrimitiveWriter	cbor_serialization/format.html#defaultPrimitiveWriter.t,type	template defaultPrimitiveWriter(Flavor: type)		86
+nim	defaultPrimitiveReader	cbor_serialization/format.html#defaultPrimitiveReader.t,type	template defaultPrimitiveReader(Flavor: type)		101
+nim	defaultPrimitiveSerialization	cbor_serialization/format.html#defaultPrimitiveSerialization.t,type	template defaultPrimitiveSerialization(Flavor: type)		116
+nim	defaultObjectWriter	cbor_serialization/format.html#defaultObjectWriter.t,type	template defaultObjectWriter(Flavor: type)		120
+nim	defaultObjectReader	cbor_serialization/format.html#defaultObjectReader.t,type	template defaultObjectReader(Flavor: type)		124
+nim	defaultObjectSerialization	cbor_serialization/format.html#defaultObjectSerialization.t,type	template defaultObjectSerialization(Flavor: type)		128
+nim	defaultReaders	cbor_serialization/format.html#defaultReaders.t,type	template defaultReaders(Flavor: type)		132
+nim	defaultWriters	cbor_serialization/format.html#defaultWriters.t,type	template defaultWriters(Flavor: type)		137
+nim	defaultSerialization	cbor_serialization/format.html#defaultSerialization.t,type	template defaultSerialization(Flavor: type)		142
+nim	Cbor	cbor_serialization/format.html#Cbor	object Cbor		22
+nim	mimeType	cbor_serialization/format.html#mimeType.t,typeCbor	template mimeType(T: type Cbor): string		146
+nim	supports	cbor_serialization/format.html#supports.t,typeCbor,type	template supports(_: type Cbor; T: type): bool		148
+nim	EnumAsString	cbor_serialization/format.html#EnumAsString	EnumRepresentation.EnumAsString		152
+nim	EnumAsNumber	cbor_serialization/format.html#EnumAsNumber	EnumRepresentation.EnumAsNumber		152
+nim	EnumAsStringifiedNumber	cbor_serialization/format.html#EnumAsStringifiedNumber	EnumRepresentation.EnumAsStringifiedNumber		152
+nim	EnumRepresentation	cbor_serialization/format.html#EnumRepresentation	enum EnumRepresentation		152
+nim	flavorUsesAutomaticObjectSerialization	cbor_serialization/format.html#flavorUsesAutomaticObjectSerialization.t,typeDefaultFlavor	template flavorUsesAutomaticObjectSerialization(T: type DefaultFlavor): bool		157
+nim	flavorOmitsOptionalFields	cbor_serialization/format.html#flavorOmitsOptionalFields.t,typeDefaultFlavor	template flavorOmitsOptionalFields(T: type DefaultFlavor): bool		160
+nim	flavorRequiresAllFields	cbor_serialization/format.html#flavorRequiresAllFields.t,typeDefaultFlavor	template flavorRequiresAllFields(T: type DefaultFlavor): bool		163
+nim	flavorAllowsUnknownFields	cbor_serialization/format.html#flavorAllowsUnknownFields.t,typeDefaultFlavor	template flavorAllowsUnknownFields(T: type DefaultFlavor): bool		166
+nim	flavorSkipNullFields	cbor_serialization/format.html#flavorSkipNullFields.t,typeDefaultFlavor	template flavorSkipNullFields(T: type DefaultFlavor): bool		169
+nim	flavorEnumRep	cbor_serialization/format.html#flavorEnumRep.t,typeDefaultFlavor	template flavorEnumRep(T: type DefaultFlavor): EnumRepresentation		173
+nim	flavorEnumRep	cbor_serialization/format.html#flavorEnumRep.t,typeDefaultFlavor,static[EnumRepresentation]	template flavorEnumRep(T: type DefaultFlavor; rep: static[EnumRepresentation])		176
+nim	flavorEnumRep	cbor_serialization/format.html#flavorEnumRep.t,typeCbor,static[EnumRepresentation]	template flavorEnumRep(T: type Cbor; rep: static[EnumRepresentation])		181
+nim	createCborFlavor	cbor_serialization/format.html#createCborFlavor.t,untyped,string	template createCborFlavor(FlavorName: untyped; mimeTypeValue = "application/cbor";\n                 automaticObjectSerialization = false;\n                 automaticPrimitivesSerialization = true;\n                 requireAllFields = true; omitOptionalFields = true;\n                 allowUnknownFields = true; skipNullFields = false)		185
+nimgrp	flavorenumrep	cbor_serialization/format.html#flavorEnumRep-templates-all	template		173
+nimgrp	defaultserialization	cbor_serialization/format.html#defaultSerialization-templates-all	template		62

@@ -1,0 +1,81 @@
+nimTitle	writer	cbor_serialization/writer.html	module cbor_serialization/writer		0
+nim	CborWriter	cbor_serialization/writer.html#CborWriter	object CborWriter		31
+nim	WriterType	cbor_serialization/writer.html#WriterType.t,typeCbor	template WriterType(T`gensym0: type Cbor; F`gensym0: distinct type = DefaultFlavor): type		38
+nim	Writer	cbor_serialization/writer.html#Writer.t,typeCbor	template Writer(T`gensym0: type Cbor; F`gensym0: distinct type = DefaultFlavor): type		39
+nim	PreferredOutputType	cbor_serialization/writer.html#PreferredOutputType.t,typeCbor	template PreferredOutputType(T`gensym0: type Cbor): type		37
+nim	writeValue	cbor_serialization/writer.html#writeValue.t,U,W	template writeValue[U: Writer(Cbor); W: string](w`gensym5: var U; value`gensym5: W)		57
+nim	writeValue	cbor_serialization/writer.html#writeValue.t,U,W_2	template writeValue[U: Writer(Cbor); W: bool](w`gensym10: var U; value`gensym10: W)		57
+nim	writeValue	cbor_serialization/writer.html#writeValue.t,U,W_3	template writeValue[U: Writer(Cbor); W: ref](w`gensym15: var U; value`gensym15: W)		57
+nim	writeValue	cbor_serialization/writer.html#writeValue.t,U,W_4	template writeValue[U: Writer(Cbor); W: ptr](w`gensym20: var U; value`gensym20: W)		57
+nim	writeValue	cbor_serialization/writer.html#writeValue.t,U,W_5	template writeValue[U: Writer(Cbor); W: enum](w`gensym25: var U; value`gensym25: W)		57
+nim	writeValue	cbor_serialization/writer.html#writeValue.t,U,W_6	template writeValue[U: Writer(Cbor); W: SomeInteger](w`gensym30: var U; value`gensym30: W)		57
+nim	writeValue	cbor_serialization/writer.html#writeValue.t,U,W_7	template writeValue[U: Writer(Cbor); W: SomeFloat](w`gensym35: var U; value`gensym35: W)		57
+nim	writeValue	cbor_serialization/writer.html#writeValue.t,U,W_8	template writeValue[U: Writer(Cbor); W: seq](w`gensym40: var U; value`gensym40: W)		57
+nim	writeValue	cbor_serialization/writer.html#writeValue.t,U,W_9	template writeValue[U: Writer(Cbor); W: array](w`gensym45: var U; value`gensym45: W)		57
+nim	writeValue	cbor_serialization/writer.html#writeValue.t,U,W_10	template writeValue[U: Writer(Cbor); W: cstring](w`gensym50: var U; value`gensym50: W)		57
+nim	writeValue	cbor_serialization/writer.html#writeValue.t,U,W_11	template writeValue[U: Writer(Cbor); W: openArray](w`gensym55: var U; value`gensym55: W)		57
+nim	writeValue	cbor_serialization/writer.html#writeValue.t,U,W_12	template writeValue[U: Writer(Cbor); W: range](w`gensym60: var U; value`gensym60: W)		57
+nim	writeValue	cbor_serialization/writer.html#writeValue.t,U,W_13	template writeValue[U: Writer(Cbor); W: distinct](w`gensym65: var U; value`gensym65: W)		57
+nim	writeValue	cbor_serialization/writer.html#writeValue.t,U,W_14	template writeValue[U: Writer(Cbor); W: CborNumber](w`gensym71: var U; value`gensym71: W)		57
+nim	writeValue	cbor_serialization/writer.html#writeValue.t,U,W_15	template writeValue[U: Writer(Cbor); W: CborTag](w`gensym76: var U; value`gensym76: W)		57
+nim	writeValue	cbor_serialization/writer.html#writeValue.t,U,W_16	template writeValue[U: Writer(Cbor); W: CborVoid](w`gensym81: var U; value`gensym81: W)		57
+nim	writeValue	cbor_serialization/writer.html#writeValue.t,U,W_17	template writeValue[U: Writer(Cbor); W: CborValueRef](w`gensym86: var U;\n    value`gensym86: W)		57
+nim	writeValue	cbor_serialization/writer.html#writeValue.t,U,W_18	template writeValue[U: Writer(Cbor); W: TT`gensym85](w`gensym91: var U; value`gensym91: W)		60
+nim	writeValue	cbor_serialization/writer.html#writeValue.t,U,W_19	template writeValue[U: Writer(Cbor); W: CborSimpleValue](w`gensym94: var U;\n    value`gensym94: W)		57
+nim	writeValue	cbor_serialization/writer.html#writeValue.t,U,W_20	template writeValue[U: Writer(Cbor); W: CborBytes](w`gensym99: var U; value`gensym99: W)		57
+nim	writeValue	cbor_serialization/writer.html#writeValue.t,U,W_21	template writeValue[U: Writer(Cbor); W: object](w`gensym105: var U; value`gensym105: W)		57
+nim	writeValue	cbor_serialization/writer.html#writeValue.t,U,W_22	template writeValue[U: Writer(Cbor); W: tuple](w`gensym110: var U; value`gensym110: W)		57
+nim	init	cbor_serialization/writer.html#init,typeCborWriter,OutputStream	proc init(W: type CborWriter; stream: OutputStream): W:type		40
+nim	shouldWriteObjectField	cbor_serialization/writer.html#shouldWriteObjectField.t,FieldType	template shouldWriteObjectField[FieldType](field: FieldType): bool		47
+nim	beginObject	cbor_serialization/writer.html#beginObject,CborWriter,int	proc beginObject(w: var CborWriter; length = -1)		120
+nim	endObject	cbor_serialization/writer.html#endObject,CborWriter	proc endObject(w: var CborWriter; stopCode = true)		138
+nim	beginArray	cbor_serialization/writer.html#beginArray,CborWriter,int	proc beginArray(w: var CborWriter; length = -1)		149
+nim	endArray	cbor_serialization/writer.html#endArray,CborWriter	proc endArray(w: var CborWriter; stopCode = true)		161
+nim	beginText	cbor_serialization/writer.html#beginText,CborWriter,int	proc beginText(w: var CborWriter; length = -1)		192
+nim	beginBytes	cbor_serialization/writer.html#beginBytes,CborWriter,int	proc beginBytes(w: var CborWriter; length = -1)		195
+nim	endBytes	cbor_serialization/writer.html#endBytes,CborWriter	proc endBytes(w: var CborWriter; stopCode = true)		206
+nim	endText	cbor_serialization/writer.html#endText,CborWriter	proc endText(w: var CborWriter; stopCode = true)		209
+nim	writeByte	cbor_serialization/writer.html#writeByte,CborWriter,byte	proc writeByte(w: var CborWriter; x: byte)		212
+nim	writeChar	cbor_serialization/writer.html#writeChar,CborWriter,char	proc writeChar(w: var CborWriter; x: char)		216
+nim	writeText	cbor_serialization/writer.html#writeText.t,CborWriter,int,untyped	template writeText(w: var CborWriter; length: int; body: untyped)		219
+nim	writeText	cbor_serialization/writer.html#writeText.t,CborWriter,untyped	template writeText(w: var CborWriter; body: untyped)		225
+nim	writeBytes	cbor_serialization/writer.html#writeBytes.t,CborWriter,int,untyped	template writeBytes(w: var CborWriter; length: int; body: untyped)		229
+nim	writeBytes	cbor_serialization/writer.html#writeBytes.t,CborWriter,untyped	template writeBytes(w: var CborWriter; body: untyped)		235
+nim	streamElement	cbor_serialization/writer.html#streamElement.t,CborWriter,untyped,untyped	template streamElement(w: var CborWriter; streamVar: untyped; body: untyped)		239
+nim	write	cbor_serialization/writer.html#write,CborWriter,openArray[char]	proc write(w: var CborWriter; val: openArray[char])		252
+nim	write	cbor_serialization/writer.html#write,CborWriter,seq[byte]	proc write(w: var CborWriter; val: seq[byte])		260
+nim	write	cbor_serialization/writer.html#write,CborWriter,CborSimpleValue	proc write(w: var CborWriter; val: CborSimpleValue)		268
+nim	write	cbor_serialization/writer.html#write,CborWriter,T	proc write[T: SomeInteger](w: var CborWriter; val: T)		288
+nim	write	cbor_serialization/writer.html#write,CborWriter,T_2	proc write[T: SomeFloat](w: var CborWriter; val: T)		297
+nim	write	cbor_serialization/writer.html#write,CborWriter,CborTag	proc write(w: var CborWriter; val: CborTag)		317
+nim	write	cbor_serialization/writer.html#write,CborWriter,CborBytes	proc write(w: var CborWriter; val: CborBytes)		322
+nim	writeName	cbor_serialization/writer.html#writeName,CborWriter,string	proc writeName(w: var CborWriter; name: string)		326
+nim	writeField	cbor_serialization/writer.html#writeField.t,CborWriter,string,T	template writeField[T: void](w: var CborWriter; name: string; body: T)		336
+nim	writeField	cbor_serialization/writer.html#writeField,CborWriter,string,V	proc writeField[V: not void](w: var CborWriter; name: string; value: V)		353
+nim	writeIterable	cbor_serialization/writer.html#writeIterable,CborWriter,auto	proc writeIterable(w: var CborWriter; collection: auto)		365
+nim	writeArray	cbor_serialization/writer.html#writeArray.t,CborWriter,T	template writeArray[T: void](w: var CborWriter; body: T)		373
+nim	write	cbor_serialization/writer.html#write,CborWriter,openArray[T]	proc write[T](w: var CborWriter; values: openArray[T])		379
+nim	writeObject	cbor_serialization/writer.html#writeObject.t,CborWriter,T	template writeObject[T: void](w: var CborWriter; body: T)		387
+nim	writeObjectField	cbor_serialization/writer.html#writeObjectField.t,CborWriter,ObjectType,staticstring,FieldType	template writeObjectField[FieldType, ObjectType](w: var CborWriter; obj: ObjectType;\n                                        fieldName: static string;\n                                        field: FieldType)		393
+nim	write	cbor_serialization/writer.html#write,CborWriter,T_3	proc write[T: object](w: var CborWriter; value: T)		406
+nim	write	cbor_serialization/writer.html#write,CborWriter,T_4	proc write[T: tuple](w: var CborWriter; value: T)		423
+nim	write	cbor_serialization/writer.html#write,CborWriter,CborNumber	proc write(w: var CborWriter; value: CborNumber)		438
+nim	writeValue	cbor_serialization/writer.html#writeValue,CborWriter,CborNumber	proc writeValue(w: var CborWriter; value: CborNumber)		445
+nim	write	cbor_serialization/writer.html#write,CborWriter,CborObjectType	proc write(w: var CborWriter; value: CborObjectType)		448
+nim	write	cbor_serialization/writer.html#write,CborWriter,CborValue	proc write(w: var CborWriter; value: CborValue)		457
+nim	write	cbor_serialization/writer.html#write.t,CborWriter,	template write(w: var CborWriter; value: enum)		492
+nim	write	cbor_serialization/writer.html#write,CborWriter,CborVoid	proc write(w: var CborWriter; val: CborVoid)		497
+nim	write	cbor_serialization/writer.html#write,CborWriter,ref.T	proc write[T](w: var CborWriter; val: ref T)		500
+nim	write	cbor_serialization/writer.html#write,CborWriter,cstring	proc write(w: var CborWriter; val: cstring)		507
+nim	write	cbor_serialization/writer.html#write,CborWriter,bool	proc write(w: var CborWriter; val: bool)		513
+nim	write	cbor_serialization/writer.html#write,CborWriter,T_5	proc write[T: range](w: var CborWriter; val: T)		516
+nim	write	cbor_serialization/writer.html#write,CborWriter,T_6	proc write[T: distinct](w: var CborWriter; val: T)		522
+nim	toCbor	cbor_serialization/writer.html#toCbor,auto	proc toCbor(v: auto; Flavor = DefaultFlavor): seq[byte]		526
+nim	writeRecordValue	cbor_serialization/writer.html#writeRecordValue.t,CborWriter,	template writeRecordValue(w: var CborWriter; value: object)		539
+nim	configureCborSerialization	cbor_serialization/writer.html#configureCborSerialization.t,type[],static[EnumRepresentation]	template configureCborSerialization(T: type[enum]; enumRep: static[EnumRepresentation])		543
+nim	configureCborSerialization	cbor_serialization/writer.html#configureCborSerialization.t,type,type[],static[EnumRepresentation]	template configureCborSerialization(Flavor: type; T: type[enum];\n                           enumRep: static[EnumRepresentation])		550
+nimgrp	write	cbor_serialization/writer.html#write-procs-all	proc		252
+nimgrp	writetext	cbor_serialization/writer.html#writeText-templates-all	template		219
+nimgrp	writevalue	cbor_serialization/writer.html#writeValue-templates-all	template		52
+nimgrp	writebytes	cbor_serialization/writer.html#writeBytes-templates-all	template		229
+nimgrp	configurecborserialization	cbor_serialization/writer.html#configureCborSerialization-templates-all	template		543
