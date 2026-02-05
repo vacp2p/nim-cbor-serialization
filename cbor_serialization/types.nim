@@ -117,11 +117,11 @@ const
 const cborBreakStopCode* = (7 shl 5) or 31
 
 const defaultCborReaderConf* = CborReaderConf(
-  nestedDepthLimit: 512,
-  arrayElementsLimit: 0,
-  objectFieldsLimit: 0,
-  stringLengthLimit: 0,
-  byteStringLengthLimit: 0,
+  nestedDepthLimit: 32,
+  objectFieldsLimit: 1024,
+  arrayElementsLimit: 4 * 1024,
+  stringLengthLimit: 32 * 1024,
+  byteStringLengthLimit: 32 * 1024,
   bigNumBytesLimit: 64,
 )
 
