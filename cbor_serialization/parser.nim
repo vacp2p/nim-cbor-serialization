@@ -72,20 +72,21 @@ template parseStringLikeImpl(
   let c = p.read()
   if c.major != majorExpected:
     p.raiseUnexpectedValue($majorExpected, $c.major)
+  var strLen = 0'u64
   if c.minor == cborMinorIndef:
     # https://www.rfc-editor.org/rfc/rfc8949#section-3.2.3
     while p.peek() != cborBreakStopCode:
       let c2 = p.read()
       if c2.major != majorExpected:
         p.raiseUnexpectedValue($majorExpected, $c2.major)
-      let strLen {.inject.} = readMinorValue(p, c2.minor)
+      strLen = readMinorValue(p, c2.minor)
       prelude
       for _ in 0 ..< strLen:
         body
     discard p.read() # stop code
   else:
     # https://www.rfc-editor.org/rfc/rfc8949#section-3-3.2
-    let strLen {.inject.} = readMinorValue(p, c.minor)
+    strLen = readMinorValue(p, c.minor)
     prelude
     for _ in 0 ..< strLen:
       body
@@ -168,16 +169,17 @@ template parseArrayLikeImpl(
   let c = p.read()
   if c.major != majorExpected:
     p.raiseUnexpectedValue($majorExpected, $c.major)
+  var arrLen = 0'u64
   if c.minor == cborMinorIndef:
     # https://www.rfc-editor.org/rfc/rfc8949#section-3.2.2
     while p.peek() != cborBreakStopCode:
-      let arrLen {.inject.} = 1'u64
+      arrLen = 1'u64
       prelude
       body
     discard p.read() # stop code
   else:
     # https://www.rfc-editor.org/rfc/rfc8949#section-3-3.2
-    let arrLen {.inject.} = readMinorValue(p, c.minor)
+    arrLen = readMinorValue(p, c.minor)
     prelude
     for _ in 0 ..< arrLen:
       body
@@ -201,7 +203,7 @@ template parseArray(p: var CborParser, arrLen, prelude, body: untyped) =
     body
 
 template parseArray(p: var CborParser, idx, body: untyped) =
-  var idx {.inject.} = 0
+  var idx = 0
   parseArrayLikeImpl(p, CborMajor.Array):
     if p.conf.arrayElementsLimit > 0 and idx + 1 > p.conf.arrayElementsLimit:
       p.raiseUnexpectedValue("`arrayElementsLimit` reached")
@@ -226,7 +228,7 @@ template parseObjectImpl(p: var CborParser, skipNullFields, keyAction, body: unt
 
 template parseObject(p: var CborParser, skipNullFields, key, body: untyped) =
   parseObjectImpl(p, skipNullFields):
-    var key {.inject.} = ""
+    var key = ""
     p.parseString(key)
   do:
     body
