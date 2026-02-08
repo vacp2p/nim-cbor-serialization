@@ -192,7 +192,7 @@ template createCborFlavor*(
     allowUnknownFields = true,
     skipNullFields = false,
 ) {.dirty.} =
-  bind EnumRepresentation
+  bind EnumRepresentation, Reader, Writer, createFlavor, Cbor
 
   when declared(SerializationFormat): # Earlier versions lack mimeTypeValue
     createFlavor(Cbor, FlavorName, mimeTypeValue)

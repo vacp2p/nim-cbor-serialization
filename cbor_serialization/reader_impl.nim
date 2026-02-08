@@ -61,7 +61,9 @@ func totalExpectedFields*(T: type): int {.compileTime.} =
     if isFieldExpected(Cbor, FieldType):
       inc result
 
-func expectedFieldsBitmask*(F: type Cbor, TT: type, fields: static int): auto {.compileTime.} =
+func expectedFieldsBitmask*(
+    F: type Cbor, TT: type, fields: static int
+): auto {.compileTime.} =
   type T = TT
 
   mixin isFieldExpected, enumAllSerializedFields
