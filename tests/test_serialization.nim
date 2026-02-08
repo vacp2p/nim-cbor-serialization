@@ -764,7 +764,7 @@ suite "toCbor tests":
 
   test "Result Opt types":
     check:
-      false == static(isFieldExpected Opt[Simple])
+      false == static(isFieldExpected(Cbor, Opt[Simple]))
       2 == static(HoldsResultOpt.totalSerializedFields)
       1 == static(HoldsResultOpt.totalExpectedFields)
 

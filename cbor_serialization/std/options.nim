@@ -12,7 +12,7 @@
 import std/options, ../../cbor_serialization/[reader, writer]
 export options
 
-template shouldWriteObjectField*(field: Option): bool =
+template shouldWriteObjectField*(F: type Cbor, field: Option): bool =
   field.isSome
 
 proc write*(writer: var CborWriter, value: Option) {.raises: [IOError].} =

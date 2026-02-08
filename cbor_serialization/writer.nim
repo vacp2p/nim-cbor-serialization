@@ -44,7 +44,7 @@ func init*(W: type CborWriter, stream: OutputStream): W =
   ## managed by the stream itself.
   W(stream: stream)
 
-template shouldWriteObjectField*[FieldType](field: FieldType): bool =
+template shouldWriteObjectField*[FieldType](F: type Cbor, field: FieldType): bool =
   ## Template to determine if an object field should be written.
   ## Called when `omitsOptionalField` is enabled - the field is omitted if the
   ## template returns `false`.
@@ -346,7 +346,7 @@ template shouldWriteValue(w: CborWriter, value: untyped): bool =
   type Flavor = w.Flavor
 
   when flavorOmitsOptionalFields(Flavor):
-    shouldWriteObjectField(value)
+    shouldWriteObjectField(Cbor, value)
   else:
     true
 

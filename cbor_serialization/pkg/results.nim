@@ -13,7 +13,7 @@ import pkg/results, ../../cbor_serialization/[reader, writer]
 
 export results
 
-template shouldWriteObjectField*[T](field: Result[T, void]): bool =
+template shouldWriteObjectField*[T](F: type Cbor, field: Result[T, void]): bool =
   field.isOk
 
 proc write*[T](writer: var CborWriter, value: Result[T, void]) {.raises: [IOError].} =
@@ -35,5 +35,5 @@ proc read*[T](
   else:
     value.ok reader.readValue(T)
 
-func isFieldExpected*[T, E](_: type[Result[T, E]]): bool {.compileTime.} =
+func isFieldExpected*[T, E](F: type Cbor, _: type[Result[T, E]]): bool {.compileTime.} =
   false
