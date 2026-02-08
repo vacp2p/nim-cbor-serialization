@@ -442,9 +442,6 @@ proc write*(w: var CborWriter, value: CborNumber) {.raises: [IOError].} =
     else:
       w.writeHead(CborMajor.Unsigned, value.integer)
 
-proc writeValue*(w: var CborWriter, value: CborNumber) {.raises: [IOError].} =
-  w.write(value)
-
 proc write*(w: var CborWriter, value: CborObjectType) {.raises: [IOError].} =
   var fieldCount = 0
   for _, v in value:
