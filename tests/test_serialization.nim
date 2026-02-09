@@ -405,25 +405,25 @@ suite "toCbor tests":
     Cbor.roundtripChecks x0, "0x627830".unhex # "x0"
     Cbor.roundtripChecks x1, "0x627831".unhex # "x1"
     Cbor.roundtripChecks x2, "0x627832".unhex # "x2"
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode(0), EnumTestX)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode(1), EnumTestX)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode(2), EnumTestX)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode(3), EnumTestX)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("X0"), EnumTestX)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("X1"), EnumTestX)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("X2"), EnumTestX)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("x_0"), EnumTestX)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode(""), EnumTestX)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("0"), EnumTestX)
     Cbor.roundtripChecks y1, "0x627931".unhex # "y1"
     Cbor.roundtripChecks y3, "0x627933".unhex # "y3"
@@ -434,46 +434,46 @@ suite "toCbor tests":
       Cbor.decode(Cbor.encode(3), EnumTestY) == y3
       Cbor.decode(Cbor.encode(4), EnumTestY) == y4
       Cbor.decode(Cbor.encode(6), EnumTestY) == y6
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode(0), EnumTestY)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode(2), EnumTestY)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode(5), EnumTestY)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode(7), EnumTestY)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("Y1"), EnumTestY)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("Y3"), EnumTestY)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("Y4"), EnumTestY)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("Y6"), EnumTestY)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("y_1"), EnumTestY)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode(""), EnumTestY)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("1"), EnumTestY)
     Cbor.roundtripChecks z1, "0x63616161".unhex # "aaa"
     Cbor.roundtripChecks z2, "0x63626262".unhex # "bbb"
     Cbor.roundtripChecks z3, "0x63636363".unhex # "ccc"
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode(0), EnumTestZ)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("AAA"), EnumTestZ)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("BBB"), EnumTestZ)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("CCC"), EnumTestZ)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("z1"), EnumTestZ)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("a_a_a"), EnumTestZ)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode(""), EnumTestZ)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("\ud83d\udc3c"), EnumTestZ)
     Cbor.roundtripChecks n1, "0x63616161".unhex # "aaa"
     Cbor.roundtripChecks n2, "0x63626262".unhex # "bbb"
@@ -485,27 +485,27 @@ suite "toCbor tests":
       Cbor.decode(Cbor.encode("a_a_a"), EnumTestN) == n1
       Cbor.decode(Cbor.encode("b_b_b"), EnumTestN) == n2
       Cbor.decode(Cbor.encode("c_c_c"), EnumTestN) == n3
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode(0), EnumTestN)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("AAA"), EnumTestN)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("BBB"), EnumTestN)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("CCC"), EnumTestN)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("Aaa"), EnumTestN)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("Bbb"), EnumTestN)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("Ccc"), EnumTestN)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("n1"), EnumTestN)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("_aaa"), EnumTestN)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode(""), EnumTestN)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("\ud83d\udc3c"), EnumTestN)
     Cbor.roundtripChecks o1, "0x626F31".unhex # "o1"
     Cbor.roundtripChecks o2, "0x626F32".unhex # "o2"
@@ -517,19 +517,19 @@ suite "toCbor tests":
       Cbor.decode(Cbor.encode(0), EnumTestO) == o1
       Cbor.decode(Cbor.encode(1), EnumTestO) == o2
       Cbor.decode(Cbor.encode(2), EnumTestO) == o3
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode(3), EnumTestO)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("O1"), EnumTestO)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("O2"), EnumTestO)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("O3"), EnumTestO)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("_o1"), EnumTestO)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode(""), EnumTestO)
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(Cbor.encode("\ud83d\udc3c"), EnumTestO)
 
   test "simple objects":
@@ -594,7 +594,7 @@ suite "toCbor tests":
   test "all fields were required, but not all were provided":
     # {"x": -20, "distance": 10}
     let cbor = "0xA26178336864697374616E63650A".unhex
-    expect IncompleteObjectError:
+    expect CborIncompleteObjectError:
       let shouldNotDecode = AutoCbor.decode(cbor, Simple)
       echo "This should not have decoded ", shouldNotDecode
 
@@ -602,14 +602,14 @@ suite "toCbor tests":
     # {"futureBool": false, "y": "y value", "futureObject": {"a": -1, "b": [1, 2.0, 3.1], "c": null, "d": true}, "distance": 10}
     let cbor =
       "0xA46A667574757265426F6F6CF4617967792076616C75656C6675747572654F626A656374A461612061628301F94000FB4008CCCCCCCCCCCD6163F66164F56864697374616E63650A".unhex
-    expect IncompleteObjectError:
+    expect CborIncompleteObjectError:
       let shouldNotDecode = AutoCbor.decode(cbor, Simple)
       echo "This should not have decoded ", shouldNotDecode
 
   test "all fields were required, but none were provided":
     # {}
     let cbor = "0xA0".unhex
-    expect IncompleteObjectError:
+    expect CborIncompleteObjectError:
       let shouldNotDecode = AutoCbor.decode(cbor, Simple)
       echo "This should not have decoded ", shouldNotDecode
 
@@ -657,7 +657,7 @@ suite "toCbor tests":
       # 9223372036854775807
       validCborValue == "0x1B7FFFFFFFFFFFFFFF".unhex
       Cbor.decode(validCborValue, BiggestInt) == intVal
-    expect IntOverflowError:
+    expect CborIntOverflowError:
       discard Cbor.decode(invalidCborValue, BiggestInt)
 
   test "min signed value":
@@ -669,7 +669,7 @@ suite "toCbor tests":
       # -9223372036854775808
       validCborValue == "0x3B7FFFFFFFFFFFFFFF".unhex
       Cbor.decode(validCborValue, BiggestInt) == intVal
-    expect IntOverflowError:
+    expect CborIntOverflowError:
       discard Cbor.decode(invalidCborValue, BiggestInt)
 
   test "Unusual field names":
@@ -941,7 +941,7 @@ suite "Parser limits":
     check:
       Cbor.decode(cbor, Obj1) == Obj1()
       Cbor.decode(cbor, Obj1, conf = CborReaderConf(nestedDepthLimit: 3)) == Obj1()
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(cbor, Obj1, conf = CborReaderConf(nestedDepthLimit: 2))
 
   test "Array nestedDepthLimit":
@@ -951,7 +951,7 @@ suite "Parser limits":
     check:
       Cbor.decode(cbor, Arr3) == val
       Cbor.decode(cbor, Arr3, conf = CborReaderConf(nestedDepthLimit: 3)) == val
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(cbor, Arr3, conf = CborReaderConf(nestedDepthLimit: 2))
 
   test "Array/Object mix nestedDepthLimit":
@@ -967,7 +967,7 @@ suite "Parser limits":
     check:
       Cbor.decode(cbor, Obj1) == val
       Cbor.decode(cbor, Obj1, conf = CborReaderConf(nestedDepthLimit: 3)) == val
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(cbor, Obj1, conf = CborReaderConf(nestedDepthLimit: 2))
 
   test "Tag nestedDepthLimit":
@@ -981,7 +981,7 @@ suite "Parser limits":
     check:
       Cbor.decode(cbor, Tag1) == val
       Cbor.decode(cbor, Tag1, conf = CborReaderConf(nestedDepthLimit: 3)) == val
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(cbor, Tag1, conf = CborReaderConf(nestedDepthLimit: 2))
 
   test "Array arrayElementsLimit":
@@ -990,7 +990,7 @@ suite "Parser limits":
     check:
       Cbor.decode(cbor, seq[string]) == val
       Cbor.decode(cbor, seq[string], conf = CborReaderConf(arrayElementsLimit: 3)) == val
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard
         Cbor.decode(cbor, seq[string], conf = CborReaderConf(arrayElementsLimit: 2))
 
@@ -1002,7 +1002,7 @@ suite "Parser limits":
     check:
       Cbor.decode(cbor, Obj1) == Obj1()
       Cbor.decode(cbor, Obj1, conf = CborReaderConf(objectFieldsLimit: 3)) == Obj1()
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(cbor, Obj1, conf = CborReaderConf(objectFieldsLimit: 2))
 
   test "String stringLengthLimit":
@@ -1011,7 +1011,7 @@ suite "Parser limits":
     check:
       Cbor.decode(cbor, string) == val
       Cbor.decode(cbor, string, conf = CborReaderConf(stringLengthLimit: 3)) == val
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(cbor, string, conf = CborReaderConf(stringLengthLimit: 2))
 
   test "ByteString byteStringLengthLimit":
@@ -1021,6 +1021,6 @@ suite "Parser limits":
       Cbor.decode(cbor, seq[byte]) == val
       Cbor.decode(cbor, seq[byte], conf = CborReaderConf(byteStringLengthLimit: 3)) ==
         val
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard
         Cbor.decode(cbor, seq[byte], conf = CborReaderConf(byteStringLengthLimit: 2))

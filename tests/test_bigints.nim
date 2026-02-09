@@ -67,7 +67,7 @@ suite "Test BigInt":
     check:
       Cbor.decode(cbor, BigInt) == val
       Cbor.decode(cbor, BigInt, conf = CborReaderConf(bigNumBytesLimit: 16)) == val
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(cbor, BigInt, conf = CborReaderConf(bigNumBytesLimit: 15))
 
   test "Tag negative Bignum bigNumBytesLimit":
@@ -77,7 +77,7 @@ suite "Test BigInt":
     check:
       Cbor.decode(cbor, BigInt) == val
       Cbor.decode(cbor, BigInt, conf = CborReaderConf(bigNumBytesLimit: 16)) == val
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(cbor, BigInt, conf = CborReaderConf(bigNumBytesLimit: 15))
 
   test "Tag negative Bignum bigNumBytesLimit":
@@ -86,5 +86,5 @@ suite "Test BigInt":
     val *= -1.initBigInt
     let cbor = Cbor.encode(val)
     check Cbor.decode(cbor, BigInt) == val
-    expect UnexpectedValueError:
+    expect CborUnexpectedValueError:
       discard Cbor.decode(cbor, BigInt, conf = CborReaderConf(bigNumBytesLimit: 16))
