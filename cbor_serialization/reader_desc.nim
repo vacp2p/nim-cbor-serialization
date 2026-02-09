@@ -29,23 +29,23 @@ type
   CborReaderError* = object of CborError
     pos*: int
 
-  UnexpectedFieldError* = object of CborReaderError
+  CborUnexpectedFieldError* = object of CborReaderError
     encounteredField*: string
     deserializedType*: cstring
 
-  UnexpectedValueError* = object of CborReaderError
+  CborUnexpectedValueError* = object of CborReaderError
 
-  IncompleteObjectError* = object of CborReaderError
+  CborIncompleteObjectError* = object of CborReaderError
     objectType: cstring
 
-  IntOverflowError* = object of CborReaderError
+  CborIntOverflowError* = object of CborReaderError
     isNegative: bool
     absIntVal: BiggestUInt
 
 Cbor.setReader CborReader
 Cbor.defaultReaders()
 
-func valueStr(err: ref IntOverflowError): string =
+func valueStr(err: ref CborIntOverflowError): string =
   if err.isNegative:
     result.add '-'
   result.add($err.absIntVal)
@@ -53,19 +53,19 @@ func valueStr(err: ref IntOverflowError): string =
 method formatMsg*(err: ref CborReaderError, filename: string): string =
   fmt"{filename}({err.pos}) Error while reading cbor data: {err.msg}"
 
-method formatMsg*(err: ref IntOverflowError, filename: string): string =
+method formatMsg*(err: ref CborIntOverflowError, filename: string): string =
   fmt"{filename}({err.pos}) The value '{err.valueStr}' is outside of the allowed range"
 
-method formatMsg*(err: ref UnexpectedValueError, filename: string): string =
+method formatMsg*(err: ref CborUnexpectedValueError, filename: string): string =
   fmt"{filename}({err.pos}) {err.msg}"
 
-method formatMsg*(err: ref IncompleteObjectError, filename: string): string =
+method formatMsg*(err: ref CborIncompleteObjectError, filename: string): string =
   fmt"{filename}({err.pos}) Not all required fields were specified when reading '{err.objectType}'"
 
 func raiseUnexpectedValue*(
     p: CborParser, msg: string
 ) {.noreturn, raises: [CborReaderError].} =
-  var ex = new UnexpectedValueError
+  var ex = new CborUnexpectedValueError
   ex.pos = p.stream.pos
   ex.msg = msg
   raise ex
@@ -81,7 +81,7 @@ template raiseUnexpectedValue*(r: CborReader, msg: string) =
 func raiseIntOverflow*(
     p: CborParser, absIntVal: BiggestUInt, isNegative: bool
 ) {.noreturn, raises: [CborReaderError].} =
-  var ex = new IntOverflowError
+  var ex = new CborIntOverflowError
   ex.pos = p.stream.pos
   ex.absIntVal = absIntVal
   ex.isNegative = isNegative
@@ -90,7 +90,7 @@ func raiseIntOverflow*(
 func raiseUnexpectedField*(
     p: CborParser, fieldName: string, deserializedType: cstring
 ) {.noreturn, raises: [CborReaderError].} =
-  var ex = new UnexpectedFieldError
+  var ex = new CborUnexpectedFieldError
   ex.pos = p.stream.pos
   ex.encounteredField = fieldName
   ex.deserializedType = deserializedType
@@ -99,7 +99,7 @@ func raiseUnexpectedField*(
 func raiseIncompleteObject*(
     p: CborParser, objectType: cstring
 ) {.noreturn, raises: [CborReaderError].} =
-  var ex = new IncompleteObjectError
+  var ex = new CborIncompleteObjectError
   ex.pos = p.stream.pos
   ex.objectType = objectType
   raise ex
