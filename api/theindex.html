@@ -318,7 +318,7 @@
           </ul></dd>
 <dt><a name="expectedFieldsBitmask" href="#expectedFieldsBitmask"><span>expectedFieldsBitmask:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="reader_impl: proc expectedFieldsBitmask(TT: type; fields: static int): auto" href="cbor_serialization/reader_impl.html#expectedFieldsBitmask%2Ctype%2Cstaticint">reader_impl: proc expectedFieldsBitmask(TT: type; fields: static int): auto</a></li>
+          data-doc-search-tag="reader_impl: proc expectedFieldsBitmask(F: type Cbor; TT: type; fields: static int): auto" href="cbor_serialization/reader_impl.html#expectedFieldsBitmask%2CtypeCbor%2Ctype%2Cstaticint">reader_impl: proc expectedFieldsBitmask(F: type Cbor; TT: type; fields: static int): auto</a></li>
           </ul></dd>
 <dt><a name="flavorAllowsUnknownFields" href="#flavorAllowsUnknownFields"><span>flavorAllowsUnknownFields:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -388,7 +388,7 @@
           </ul></dd>
 <dt><a name="isFieldExpected" href="#isFieldExpected"><span>isFieldExpected:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="reader_impl: proc isFieldExpected(T: type): bool" href="cbor_serialization/reader_impl.html#isFieldExpected%2Ctype">reader_impl: proc isFieldExpected(T: type): bool</a></li>
+          data-doc-search-tag="reader_impl: proc isFieldExpected(F: type Cbor; T: type): bool" href="cbor_serialization/reader_impl.html#isFieldExpected%2CtypeCbor%2Ctype">reader_impl: proc isFieldExpected(F: type Cbor; T: type): bool</a></li>
           </ul></dd>
 <dt><a name="isNull" href="#isNull"><span>isNull:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -454,6 +454,10 @@
 <li><a class="reference external"
           data-doc-search-tag="parser: template parseObjectCustomKey(r: var CborReader; keyAction, body: untyped)" href="cbor_serialization/parser.html#parseObjectCustomKey.t%2CCborReader%2Cuntyped%2Cuntyped">parser: template parseObjectCustomKey(r: var CborReader; keyAction, body: untyped)</a></li>
           </ul></dd>
+<dt><a name="parseObjectWithoutSkip" href="#parseObjectWithoutSkip"><span>parseObjectWithoutSkip:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="parser: template parseObjectWithoutSkip(r: var CborReader; key: untyped; body: untyped)" href="cbor_serialization/parser.html#parseObjectWithoutSkip.t%2CCborReader%2Cuntyped%2Cuntyped">parser: template parseObjectWithoutSkip(r: var CborReader; key: untyped; body: untyped)</a></li>
+          </ul></dd>
 <dt><a name="parseSimpleValue" href="#parseSimpleValue"><span>parseSimpleValue:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="parser: proc parseSimpleValue(r: var CborReader): CborSimpleValue" href="cbor_serialization/parser.html#parseSimpleValue%2CCborReader">parser: proc parseSimpleValue(r: var CborReader): CborSimpleValue</a></li>
@@ -489,6 +493,8 @@
 <dt><a name="raiseIncompleteObject" href="#raiseIncompleteObject"><span>raiseIncompleteObject:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="reader_desc: proc raiseIncompleteObject(p: CborParser; objectType: cstring)" href="cbor_serialization/reader_desc.html#raiseIncompleteObject%2CCborParser%2Ccstring">reader_desc: proc raiseIncompleteObject(p: CborParser; objectType: cstring)</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="reader_desc: template raiseIncompleteObject(r: CborReader; objectType: cstring)" href="cbor_serialization/reader_desc.html#raiseIncompleteObject.t%2CCborReader%2Ccstring">reader_desc: template raiseIncompleteObject(r: CborReader; objectType: cstring)</a></li>
           </ul></dd>
 <dt><a name="raiseIntOverflow" href="#raiseIntOverflow"><span>raiseIntOverflow:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -636,7 +642,7 @@
           </ul></dd>
 <dt><a name="shouldWriteObjectField" href="#shouldWriteObjectField"><span>shouldWriteObjectField:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="writer: template shouldWriteObjectField[FieldType](field: FieldType): bool" href="cbor_serialization/writer.html#shouldWriteObjectField.t%2CFieldType">writer: template shouldWriteObjectField[FieldType](field: FieldType): bool</a></li>
+          data-doc-search-tag="writer: template shouldWriteObjectField[FieldType](F: type Cbor; field: FieldType): bool" href="cbor_serialization/writer.html#shouldWriteObjectField.t%2CtypeCbor%2CFieldType">writer: template shouldWriteObjectField[FieldType](F: type Cbor; field: FieldType): bool</a></li>
           </ul></dd>
 <dt><a name="skipSingleValue" href="#skipSingleValue"><span>skipSingleValue:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -784,8 +790,6 @@
           </ul></dd>
 <dt><a name="writeValue" href="#writeValue"><span>writeValue:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
-          data-doc-search-tag="writer: proc writeValue(w: var CborWriter; value: CborNumber)" href="cbor_serialization/writer.html#writeValue%2CCborWriter%2CCborNumber">writer: proc writeValue(w: var CborWriter; value: CborNumber)</a></li>
-          <li><a class="reference external"
           data-doc-search-tag="writer: template writeValue[U: Writer(Cbor); W: string](w`gensym5: var U; value`gensym5: W)" href="cbor_serialization/writer.html#writeValue.t%2CU%2CW">writer: template writeValue[U: Writer(Cbor); W: string](w`gensym5: var U; value`gensym5: W)</a></li>
           <li><a class="reference external"
           data-doc-search-tag="writer: template writeValue[U: Writer(Cbor); W: cstring](w`gensym50: var U; value`gensym50: W)" href="cbor_serialization/writer.html#writeValue.t%2CU%2CW_10">writer: template writeValue[U: Writer(Cbor); W: cstring](w`gensym50: var U; value`gensym50: W)</a></li>
@@ -838,7 +842,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-01-30 20:54:05 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-02-09 20:28:01 UTC</small>
       </div>
     </div>
   </div>

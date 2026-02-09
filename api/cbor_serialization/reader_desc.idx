@@ -38,9 +38,10 @@ nim	raiseUnexpectedValue	cbor_serialization/reader_desc.html#raiseUnexpectedValu
 nim	raiseIntOverflow	cbor_serialization/reader_desc.html#raiseIntOverflow,CborParser,BiggestUInt,bool	proc raiseIntOverflow(p: CborParser; absIntVal: BiggestUInt; isNegative: bool)		81
 nim	raiseUnexpectedField	cbor_serialization/reader_desc.html#raiseUnexpectedField,CborParser,string,cstring	proc raiseUnexpectedField(p: CborParser; fieldName: string; deserializedType: cstring)		90
 nim	raiseIncompleteObject	cbor_serialization/reader_desc.html#raiseIncompleteObject,CborParser,cstring	proc raiseIncompleteObject(p: CborParser; objectType: cstring)		99
-nim	init	cbor_serialization/reader_desc.html#init,typeCborParser,InputStream,CborReaderConf	proc init(T: type CborParser; stream: InputStream;\n     conf: CborReaderConf = defaultCborReaderConf): T:type		107
-nim	init	cbor_serialization/reader_desc.html#init,typeCborReader,InputStream,CborReaderConf	proc init(T: type CborReader; stream: InputStream;\n     conf: CborReaderConf = defaultCborReaderConf): T:type		114
+nim	raiseIncompleteObject	cbor_serialization/reader_desc.html#raiseIncompleteObject.t,CborReader,cstring	template raiseIncompleteObject(r: CborReader; objectType: cstring)		107
+nim	init	cbor_serialization/reader_desc.html#init,typeCborParser,InputStream,CborReaderConf	proc init(T: type CborParser; stream: InputStream;\n     conf: CborReaderConf = defaultCborReaderConf): T:type		110
+nim	init	cbor_serialization/reader_desc.html#init,typeCborReader,InputStream,CborReaderConf	proc init(T: type CborReader; stream: InputStream;\n     conf: CborReaderConf = defaultCborReaderConf): T:type		117
 nimgrp	raiseunexpectedvalue	cbor_serialization/reader_desc.html#raiseUnexpectedValue-procs-all	proc		65
-nimgrp	init	cbor_serialization/reader_desc.html#init-procs-all	proc		107
+nimgrp	init	cbor_serialization/reader_desc.html#init-procs-all	proc		110
 nimgrp	formatmsg	cbor_serialization/reader_desc.html#formatMsg-methods-all	method		53
 nimgrp	readvalue	cbor_serialization/reader_desc.html#readValue-templates-all	template		38
