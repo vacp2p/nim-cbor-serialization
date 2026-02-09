@@ -82,6 +82,14 @@
 <li><a class="reference external"
           data-doc-search-tag="types: const cborFalse" href="cbor_serialization/types.html#cborFalse">types: const cborFalse</a></li>
           </ul></dd>
+<dt><a name="CborIncompleteObjectError" href="#CborIncompleteObjectError"><span>CborIncompleteObjectError:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="reader_desc: object CborIncompleteObjectError" href="cbor_serialization/reader_desc.html#CborIncompleteObjectError">reader_desc: object CborIncompleteObjectError</a></li>
+          </ul></dd>
+<dt><a name="CborIntOverflowError" href="#CborIntOverflowError"><span>CborIntOverflowError:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="reader_desc: object CborIntOverflowError" href="cbor_serialization/reader_desc.html#CborIntOverflowError">reader_desc: object CborIntOverflowError</a></li>
+          </ul></dd>
 <dt><a name="cborKind" href="#cborKind"><span>cborKind:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="parser: proc cborKind(p: CborParser): CborValueKind" href="cbor_serialization/parser.html#cborKind%2CCborParser">parser: proc cborKind(p: CborParser): CborValueKind</a></li>
@@ -165,6 +173,14 @@
 <dt><a name="cborUndefined" href="#cborUndefined"><span>cborUndefined:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="types: const cborUndefined" href="cbor_serialization/types.html#cborUndefined">types: const cborUndefined</a></li>
+          </ul></dd>
+<dt><a name="CborUnexpectedFieldError" href="#CborUnexpectedFieldError"><span>CborUnexpectedFieldError:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="reader_desc: object CborUnexpectedFieldError" href="cbor_serialization/reader_desc.html#CborUnexpectedFieldError">reader_desc: object CborUnexpectedFieldError</a></li>
+          </ul></dd>
+<dt><a name="CborUnexpectedValueError" href="#CborUnexpectedValueError"><span>CborUnexpectedValueError:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="reader_desc: object CborUnexpectedValueError" href="cbor_serialization/reader_desc.html#CborUnexpectedValueError">reader_desc: object CborUnexpectedValueError</a></li>
           </ul></dd>
 <dt><a name="CborValue" href="#CborValue"><span>CborValue:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -350,17 +366,13 @@
           </ul></dd>
 <dt><a name="formatMsg" href="#formatMsg"><span>formatMsg:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
+          data-doc-search-tag="reader_desc: method formatMsg(err: ref CborIncompleteObjectError; filename: string): string" href="cbor_serialization/reader_desc.html#formatMsg.e%2Cref.CborIncompleteObjectError%2Cstring">reader_desc: method formatMsg(err: ref CborIncompleteObjectError; filename: string): string</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="reader_desc: method formatMsg(err: ref CborIntOverflowError; filename: string): string" href="cbor_serialization/reader_desc.html#formatMsg.e%2Cref.CborIntOverflowError%2Cstring">reader_desc: method formatMsg(err: ref CborIntOverflowError; filename: string): string</a></li>
+          <li><a class="reference external"
           data-doc-search-tag="reader_desc: method formatMsg(err: ref CborReaderError; filename: string): string" href="cbor_serialization/reader_desc.html#formatMsg.e%2Cref.CborReaderError%2Cstring">reader_desc: method formatMsg(err: ref CborReaderError; filename: string): string</a></li>
           <li><a class="reference external"
-          data-doc-search-tag="reader_desc: method formatMsg(err: ref IncompleteObjectError; filename: string): string" href="cbor_serialization/reader_desc.html#formatMsg.e%2Cref.IncompleteObjectError%2Cstring">reader_desc: method formatMsg(err: ref IncompleteObjectError; filename: string): string</a></li>
-          <li><a class="reference external"
-          data-doc-search-tag="reader_desc: method formatMsg(err: ref IntOverflowError; filename: string): string" href="cbor_serialization/reader_desc.html#formatMsg.e%2Cref.IntOverflowError%2Cstring">reader_desc: method formatMsg(err: ref IntOverflowError; filename: string): string</a></li>
-          <li><a class="reference external"
-          data-doc-search-tag="reader_desc: method formatMsg(err: ref UnexpectedValueError; filename: string): string" href="cbor_serialization/reader_desc.html#formatMsg.e%2Cref.UnexpectedValueError%2Cstring">reader_desc: method formatMsg(err: ref UnexpectedValueError; filename: string): string</a></li>
-          </ul></dd>
-<dt><a name="IncompleteObjectError" href="#IncompleteObjectError"><span>IncompleteObjectError:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="reader_desc: object IncompleteObjectError" href="cbor_serialization/reader_desc.html#IncompleteObjectError">reader_desc: object IncompleteObjectError</a></li>
+          data-doc-search-tag="reader_desc: method formatMsg(err: ref CborUnexpectedValueError; filename: string): string" href="cbor_serialization/reader_desc.html#formatMsg.e%2Cref.CborUnexpectedValueError%2Cstring">reader_desc: method formatMsg(err: ref CborUnexpectedValueError; filename: string): string</a></li>
           </ul></dd>
 <dt><a name="init" href="#init"><span>init:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -373,10 +385,6 @@
      conf: CborReaderConf = defaultCborReaderConf): T:type</a></li>
           <li><a class="reference external"
           data-doc-search-tag="writer: proc init(W: type CborWriter; stream: OutputStream): W:type" href="cbor_serialization/writer.html#init%2CtypeCborWriter%2COutputStream">writer: proc init(W: type CborWriter; stream: OutputStream): W:type</a></li>
-          </ul></dd>
-<dt><a name="IntOverflowError" href="#IntOverflowError"><span>IntOverflowError:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="reader_desc: object IntOverflowError" href="cbor_serialization/reader_desc.html#IntOverflowError">reader_desc: object IntOverflowError</a></li>
           </ul></dd>
 <dt><a name="isFalse" href="#isFalse"><span>isFalse:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -676,14 +684,6 @@
 <li><a class="reference external"
           data-doc-search-tag="reader_impl: proc totalExpectedFields(T: type): int" href="cbor_serialization/reader_impl.html#totalExpectedFields%2Ctype">reader_impl: proc totalExpectedFields(T: type): int</a></li>
           </ul></dd>
-<dt><a name="UnexpectedFieldError" href="#UnexpectedFieldError"><span>UnexpectedFieldError:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="reader_desc: object UnexpectedFieldError" href="cbor_serialization/reader_desc.html#UnexpectedFieldError">reader_desc: object UnexpectedFieldError</a></li>
-          </ul></dd>
-<dt><a name="UnexpectedValueError" href="#UnexpectedValueError"><span>UnexpectedValueError:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="reader_desc: object UnexpectedValueError" href="cbor_serialization/reader_desc.html#UnexpectedValueError">reader_desc: object UnexpectedValueError</a></li>
-          </ul></dd>
 <dt><a name="write" href="#write"><span>write:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="writer: proc write(w: var CborWriter; val: bool)" href="cbor_serialization/writer.html#write%2CCborWriter%2Cbool">writer: proc write(w: var CborWriter; val: bool)</a></li>
@@ -842,7 +842,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-02-09 20:48:19 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-02-09 22:00:54 UTC</small>
       </div>
     </div>
   </div>
