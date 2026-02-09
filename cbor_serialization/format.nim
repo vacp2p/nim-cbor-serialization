@@ -192,6 +192,8 @@ template createCborFlavor*(
     allowUnknownFields = true,
     skipNullFields = false,
 ) {.dirty.} =
+  bind EnumRepresentation
+
   when declared(SerializationFormat): # Earlier versions lack mimeTypeValue
     createFlavor(Cbor, FlavorName, mimeTypeValue)
   else:
@@ -224,7 +226,7 @@ template createCborFlavor*(
   template flavorSkipNullFields*(T: type FlavorName): bool =
     skipNullFields
 
-  var `FlavorName EnumRep` {.compileTime.} = EnumAsString
+  var `FlavorName EnumRep` {.compileTime.} = EnumRepresentation.EnumAsString
   template flavorEnumRep*(T: type FlavorName): EnumRepresentation =
     `FlavorName EnumRep`
 

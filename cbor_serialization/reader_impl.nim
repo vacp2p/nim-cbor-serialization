@@ -51,17 +51,19 @@ func isBitwiseSubsetOf[N](lhs, rhs: array[N, uint]): bool =
 
   true
 
-func isFieldExpected*(T: type): bool {.compileTime.} =
+func isFieldExpected*(F: type Cbor, T: type): bool {.compileTime.} =
   T isnot Option
 
 func totalExpectedFields*(T: type): int {.compileTime.} =
   mixin isFieldExpected, enumAllSerializedFields
 
   enumAllSerializedFields(T):
-    if isFieldExpected(FieldType):
+    if isFieldExpected(Cbor, FieldType):
       inc result
 
-func expectedFieldsBitmask*(TT: type, fields: static int): auto {.compileTime.} =
+func expectedFieldsBitmask*(
+    F: type Cbor, TT: type, fields: static int
+): auto {.compileTime.} =
   type T = TT
 
   mixin isFieldExpected, enumAllSerializedFields
@@ -72,7 +74,7 @@ func expectedFieldsBitmask*(TT: type, fields: static int): auto {.compileTime.} 
 
   var i = 0
   enumAllSerializedFields(T):
-    if isFieldExpected(FieldType):
+    if isFieldExpected(F, FieldType):
       res[i div bitsPerWord].setBitInWord(i mod bitsPerWord)
     inc i
 
@@ -91,7 +93,7 @@ proc read*[T: object](
     typeName = typetraits.name(T)
 
   when fieldsTable.len > 0:
-    const expectedFields = T.expectedFieldsBitmask(fieldsTable.len)
+    const expectedFields = Cbor.expectedFieldsBitmask(T, fieldsTable.len)
 
     var
       encounteredFields: typeof(expectedFields)

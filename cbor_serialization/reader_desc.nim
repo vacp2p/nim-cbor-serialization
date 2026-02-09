@@ -104,6 +104,9 @@ func raiseIncompleteObject*(
   ex.objectType = objectType
   raise ex
 
+template raiseIncompleteObject*(r: CborReader, objectType: cstring) =
+  raiseIncompleteObject(r.parser, objectType)
+
 proc init*(
     T: type CborParser,
     stream: InputStream,
