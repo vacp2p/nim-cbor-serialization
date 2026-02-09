@@ -578,7 +578,7 @@ suite "toCbor tests":
       decoded.x == -20
       decoded.y == "y value"
       decoded.distance.int == 0
-    expect UnexpectedFieldError:
+    expect CborUnexpectedFieldError:
       let shouldNotDecode = Cbor.decode(cbor, Simple)
       echo "This should not have decoded ", shouldNotDecode
 
@@ -630,7 +630,7 @@ suite "toCbor tests":
       decoded.x == 20
       decoded.y == "y value"
       decoded.distance.int == 10
-    expect UnexpectedFieldError:
+    expect CborUnexpectedFieldError:
       let shouldNotDecode = AllowUnknownFieldsOffCbor.decode(cbor, Simple)
       echo "This should not have decoded ", shouldNotDecode
 
