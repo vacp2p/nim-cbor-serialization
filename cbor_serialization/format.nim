@@ -154,19 +154,16 @@ type EnumRepresentation* = enum
   EnumAsNumber
   EnumAsStringifiedNumber
 
-template cborUsesAutomaticObjectSerialization*(T: type DefaultFlavor): bool =
+template omitsOptionalFields*(F: type Cbor, T: type DefaultFlavor): bool =
   true
 
-template cborOmitsOptionalFields*(T: type DefaultFlavor): bool =
-  true
-
-template cborRequiresAllFields*(T: type DefaultFlavor): bool =
+template requiresAllFields*(F: type Cbor, T: type DefaultFlavor): bool =
   false
 
-template cborAllowsUnknownFields*(T: type DefaultFlavor): bool =
+template allowsUnknownFields*(F: type Cbor, T: type DefaultFlavor): bool =
   false
 
-template cborSkipNullFields*(T: type DefaultFlavor): bool =
+template skipNullFields*(F: type Cbor, T: type DefaultFlavor): bool =
   false
 
 var DefaultFlavorEnumRep {.compileTime.} = EnumAsString
@@ -180,25 +177,19 @@ template enumRep*(
     DefaultFlavorEnumRep = rep
 
 # If user choose to use `Cbor` instead of `DefaultFlavor`, it still goes to `DefaultFlavor`
-template enumRep*(F: type Cbor, T: type Cbor): EnumRepresentation =
+template enumRep*(T: type Cbor): EnumRepresentation =
   DefaultFlavorEnumRep
 
-template enumRep*(F: type Cbor, T: type Cbor, rep: static[EnumRepresentation]) =
+template enumRep*(T: type Cbor, rep: static[EnumRepresentation]) =
   static:
     DefaultFlavorEnumRep = rep
 
 # aliases
-template enumRep*(T: type Cbor): EnumRepresentation =
-  enumRep(Cbor, T)
-
-template enumRep*(T: type Cbor, rep: static[EnumRepresentation]) =
-  enumRep(Cbor, T, rep)
-
 template flavorEnumRep*(T: type Cbor) =
-  enumRep(Cbor, T)
+  enumRep(T)
 
 template flavorEnumRep*(T: type Cbor, rep: static[EnumRepresentation]) =
-  enumRep(Cbor, T, rep)
+  enumRep(T, rep)
 
 template createCborFlavor*(
     FlavorName: untyped,
@@ -229,19 +220,16 @@ template createCborFlavor*(
     template mimeType*(T: type FlavorName): string =
       mimeTypeValue
 
-  template cborUsesAutomaticObjectSerialization*(T: type FlavorName): bool =
-    automaticObjectSerialization
-
-  template cborOmitsOptionalFields*(T: type FlavorName): bool =
+  template omitsOptionalFields*(F: type Cbor, T: type FlavorName): bool =
     omitOptionalFields
 
-  template cborRequiresAllFields*(T: type FlavorName): bool =
+  template requiresAllFields*(F: type Cbor, T: type FlavorName): bool =
     requireAllFields
 
-  template cborAllowsUnknownFields*(T: type FlavorName): bool =
+  template allowsUnknownFields*(F: type Cbor, T: type FlavorName): bool =
     allowUnknownFields
 
-  template cborSkipNullFields*(T: type FlavorName): bool =
+  template skipNullFields*(F: type Cbor, T: type FlavorName): bool =
     skipNullFields
 
   var `FlavorName EnumRep` {.compileTime.} = EnumRepresentation.EnumAsString
