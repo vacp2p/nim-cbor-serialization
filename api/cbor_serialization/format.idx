@@ -21,14 +21,17 @@ nim	EnumAsString	cbor_serialization/format.html#EnumAsString	EnumRepresentation.
 nim	EnumAsNumber	cbor_serialization/format.html#EnumAsNumber	EnumRepresentation.EnumAsNumber		152
 nim	EnumAsStringifiedNumber	cbor_serialization/format.html#EnumAsStringifiedNumber	EnumRepresentation.EnumAsStringifiedNumber		152
 nim	EnumRepresentation	cbor_serialization/format.html#EnumRepresentation	enum EnumRepresentation		152
-nim	flavorUsesAutomaticObjectSerialization	cbor_serialization/format.html#flavorUsesAutomaticObjectSerialization.t,typeDefaultFlavor	template flavorUsesAutomaticObjectSerialization(T: type DefaultFlavor): bool		157
-nim	flavorOmitsOptionalFields	cbor_serialization/format.html#flavorOmitsOptionalFields.t,typeDefaultFlavor	template flavorOmitsOptionalFields(T: type DefaultFlavor): bool		160
-nim	flavorRequiresAllFields	cbor_serialization/format.html#flavorRequiresAllFields.t,typeDefaultFlavor	template flavorRequiresAllFields(T: type DefaultFlavor): bool		163
-nim	flavorAllowsUnknownFields	cbor_serialization/format.html#flavorAllowsUnknownFields.t,typeDefaultFlavor	template flavorAllowsUnknownFields(T: type DefaultFlavor): bool		166
-nim	flavorSkipNullFields	cbor_serialization/format.html#flavorSkipNullFields.t,typeDefaultFlavor	template flavorSkipNullFields(T: type DefaultFlavor): bool		169
-nim	flavorEnumRep	cbor_serialization/format.html#flavorEnumRep.t,typeDefaultFlavor	template flavorEnumRep(T: type DefaultFlavor): EnumRepresentation		173
-nim	flavorEnumRep	cbor_serialization/format.html#flavorEnumRep.t,typeDefaultFlavor,static[EnumRepresentation]	template flavorEnumRep(T: type DefaultFlavor; rep: static[EnumRepresentation])		176
-nim	flavorEnumRep	cbor_serialization/format.html#flavorEnumRep.t,typeCbor,static[EnumRepresentation]	template flavorEnumRep(T: type Cbor; rep: static[EnumRepresentation])		181
-nim	createCborFlavor	cbor_serialization/format.html#createCborFlavor.t,untyped,string	template createCborFlavor(FlavorName: untyped; mimeTypeValue = "application/cbor";\n                 automaticObjectSerialization = false;\n                 automaticPrimitivesSerialization = true;\n                 requireAllFields = true; omitOptionalFields = true;\n                 allowUnknownFields = true; skipNullFields = false)		185
-nimgrp	flavorenumrep	cbor_serialization/format.html#flavorEnumRep-templates-all	template		173
+nim	omitsOptionalFields	cbor_serialization/format.html#omitsOptionalFields.t,typeCbor,typeDefaultFlavor	template omitsOptionalFields(F: type Cbor; T: type DefaultFlavor): bool		157
+nim	requiresAllFields	cbor_serialization/format.html#requiresAllFields.t,typeCbor,typeDefaultFlavor	template requiresAllFields(F: type Cbor; T: type DefaultFlavor): bool		160
+nim	allowsUnknownFields	cbor_serialization/format.html#allowsUnknownFields.t,typeCbor,typeDefaultFlavor	template allowsUnknownFields(F: type Cbor; T: type DefaultFlavor): bool		163
+nim	skipsNullFields	cbor_serialization/format.html#skipsNullFields.t,typeCbor,typeDefaultFlavor	template skipsNullFields(F: type Cbor; T: type DefaultFlavor): bool		166
+nim	enumRep	cbor_serialization/format.html#enumRep.t,typeCbor,typeDefaultFlavor	template enumRep(F: type Cbor; T: type DefaultFlavor): EnumRepresentation		170
+nim	enumRep	cbor_serialization/format.html#enumRep.t,typeCbor,typeDefaultFlavor,static[EnumRepresentation]	template enumRep(F: type Cbor; T: type DefaultFlavor; rep: static[EnumRepresentation])		173
+nim	enumRep	cbor_serialization/format.html#enumRep.t,typeCbor	template enumRep(T: type Cbor): EnumRepresentation		180
+nim	enumRep	cbor_serialization/format.html#enumRep.t,typeCbor,static[EnumRepresentation]	template enumRep(T: type Cbor; rep: static[EnumRepresentation])		183
+nim	flavorEnumRep	cbor_serialization/format.html#flavorEnumRep.t,typeCbor	template flavorEnumRep(T: type Cbor)		188
+nim	flavorEnumRep	cbor_serialization/format.html#flavorEnumRep.t,typeCbor,static[EnumRepresentation]	template flavorEnumRep(T: type Cbor; rep: static[EnumRepresentation])		191
+nim	createCborFlavor	cbor_serialization/format.html#createCborFlavor.t,untyped,string	template createCborFlavor(FlavorName: untyped; mimeTypeValue = "application/cbor";\n                 automaticObjectSerialization = false;\n                 automaticPrimitivesSerialization = true;\n                 requireAllFields = true; omitOptionalFields = true;\n                 allowUnknownFields = true; skipNullFields = false)		194
+nimgrp	enumrep	cbor_serialization/format.html#enumRep-templates-all	template		170
+nimgrp	flavorenumrep	cbor_serialization/format.html#flavorEnumRep-templates-all	template		188
 nimgrp	defaultserialization	cbor_serialization/format.html#defaultSerialization-templates-all	template		62

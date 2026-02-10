@@ -660,23 +660,15 @@ You can configure individual enum types:</li>
 Mixed.configureCborDeserialization(allowNumericRepr = true) # Only at top level
 </code></pre>
 <p>You can also configure enum encoding at the flavor or type level:</p>
-<pre><code class="language-nim">type
-  EnumRepresentation* = enum
-    EnumAsString
-    EnumAsNumber
-    EnumAsStringifiedNumber
-
-# Examples:
-
-# Flavor level
-Cbor.flavorEnumRep(EnumAsString)   # Default flavor, can be called from non-top level
-Flavor.flavorEnumRep(EnumAsNumber) # Custom flavor, can be called from non-top level
+<pre><code class="language-nim"># Flavor level
+Cbor.enumRep(EnumAsString)   # Default flavor, can be called from non-top level
+Flavor.enumRep(EnumAsNumber) # Custom flavor, can be called from non-top level
 
 # Individual enum type, regardless of flavor
 Fruit.configureCborSerialization(EnumAsNumber) # Only at top level
 
 # Individual enum type for a specific flavor
-MyCbor.flavorEnumRep(Drawer, EnumAsString) # Only at top level
+MyCbor.enumRep(Drawer, EnumAsString) # Only at top level
 </code></pre>
 <footer id="open-on-gh">Found a bug? <a href="https://github.com/vacp2p/nim-cbor-serialization//edit/master/docs/src/reference.md">Edit this page on GitHub.</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="updating-this-book"><a class="header" href="#updating-this-book">Updating this book</a></h1>
 <p>This book is built using <a href="https://rust-lang.github.io/mdBook/">mdBook</a>, which in

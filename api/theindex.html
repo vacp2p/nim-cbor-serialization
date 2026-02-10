@@ -46,6 +46,10 @@
 <li><a class="reference external"
           data-doc-search-tag="types: proc add(a: var CborBytes; b: byte)" href="cbor_serialization/types.html#add%2CCborBytes%2Cbyte">types: proc add(a: var CborBytes; b: byte)</a></li>
           </ul></dd>
+<dt><a name="allowsUnknownFields" href="#allowsUnknownFields"><span>allowsUnknownFields:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="format: template allowsUnknownFields(F: type Cbor; T: type DefaultFlavor): bool" href="cbor_serialization/format.html#allowsUnknownFields.t%2CtypeCbor%2CtypeDefaultFlavor">format: template allowsUnknownFields(F: type Cbor; T: type DefaultFlavor): bool</a></li>
+          </ul></dd>
 <dt><a name="beginArray" href="#beginArray"><span>beginArray:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="writer: proc beginArray(w: var CborWriter; length = -1)" href="cbor_serialization/writer.html#beginArray%2CCborWriter%2Cint">writer: proc beginArray(w: var CborWriter; length = -1)</a></li>
@@ -328,6 +332,16 @@
 <li><a class="reference external"
           data-doc-search-tag="format: EnumRepresentation.EnumAsStringifiedNumber" href="cbor_serialization/format.html#EnumAsStringifiedNumber">format: EnumRepresentation.EnumAsStringifiedNumber</a></li>
           </ul></dd>
+<dt><a name="enumRep" href="#enumRep"><span>enumRep:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="format: template enumRep(T: type Cbor): EnumRepresentation" href="cbor_serialization/format.html#enumRep.t%2CtypeCbor">format: template enumRep(T: type Cbor): EnumRepresentation</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="format: template enumRep(T: type Cbor; rep: static[EnumRepresentation])" href="cbor_serialization/format.html#enumRep.t%2CtypeCbor%2Cstatic%5BEnumRepresentation%5D">format: template enumRep(T: type Cbor; rep: static[EnumRepresentation])</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="format: template enumRep(F: type Cbor; T: type DefaultFlavor): EnumRepresentation" href="cbor_serialization/format.html#enumRep.t%2CtypeCbor%2CtypeDefaultFlavor">format: template enumRep(F: type Cbor; T: type DefaultFlavor): EnumRepresentation</a></li>
+          <li><a class="reference external"
+          data-doc-search-tag="format: template enumRep(F: type Cbor; T: type DefaultFlavor; rep: static[EnumRepresentation])" href="cbor_serialization/format.html#enumRep.t%2CtypeCbor%2CtypeDefaultFlavor%2Cstatic%5BEnumRepresentation%5D">format: template enumRep(F: type Cbor; T: type DefaultFlavor; rep: static[EnumRepresentation])</a></li>
+          </ul></dd>
 <dt><a name="EnumRepresentation" href="#EnumRepresentation"><span>EnumRepresentation:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="format: enum EnumRepresentation" href="cbor_serialization/format.html#EnumRepresentation">format: enum EnumRepresentation</a></li>
@@ -336,33 +350,11 @@
 <li><a class="reference external"
           data-doc-search-tag="reader_impl: proc expectedFieldsBitmask(F: type Cbor; TT: type; fields: static int): auto" href="cbor_serialization/reader_impl.html#expectedFieldsBitmask%2CtypeCbor%2Ctype%2Cstaticint">reader_impl: proc expectedFieldsBitmask(F: type Cbor; TT: type; fields: static int): auto</a></li>
           </ul></dd>
-<dt><a name="flavorAllowsUnknownFields" href="#flavorAllowsUnknownFields"><span>flavorAllowsUnknownFields:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="format: template flavorAllowsUnknownFields(T: type DefaultFlavor): bool" href="cbor_serialization/format.html#flavorAllowsUnknownFields.t%2CtypeDefaultFlavor">format: template flavorAllowsUnknownFields(T: type DefaultFlavor): bool</a></li>
-          </ul></dd>
 <dt><a name="flavorEnumRep" href="#flavorEnumRep"><span>flavorEnumRep:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
+          data-doc-search-tag="format: template flavorEnumRep(T: type Cbor)" href="cbor_serialization/format.html#flavorEnumRep.t%2CtypeCbor">format: template flavorEnumRep(T: type Cbor)</a></li>
+          <li><a class="reference external"
           data-doc-search-tag="format: template flavorEnumRep(T: type Cbor; rep: static[EnumRepresentation])" href="cbor_serialization/format.html#flavorEnumRep.t%2CtypeCbor%2Cstatic%5BEnumRepresentation%5D">format: template flavorEnumRep(T: type Cbor; rep: static[EnumRepresentation])</a></li>
-          <li><a class="reference external"
-          data-doc-search-tag="format: template flavorEnumRep(T: type DefaultFlavor): EnumRepresentation" href="cbor_serialization/format.html#flavorEnumRep.t%2CtypeDefaultFlavor">format: template flavorEnumRep(T: type DefaultFlavor): EnumRepresentation</a></li>
-          <li><a class="reference external"
-          data-doc-search-tag="format: template flavorEnumRep(T: type DefaultFlavor; rep: static[EnumRepresentation])" href="cbor_serialization/format.html#flavorEnumRep.t%2CtypeDefaultFlavor%2Cstatic%5BEnumRepresentation%5D">format: template flavorEnumRep(T: type DefaultFlavor; rep: static[EnumRepresentation])</a></li>
-          </ul></dd>
-<dt><a name="flavorOmitsOptionalFields" href="#flavorOmitsOptionalFields"><span>flavorOmitsOptionalFields:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="format: template flavorOmitsOptionalFields(T: type DefaultFlavor): bool" href="cbor_serialization/format.html#flavorOmitsOptionalFields.t%2CtypeDefaultFlavor">format: template flavorOmitsOptionalFields(T: type DefaultFlavor): bool</a></li>
-          </ul></dd>
-<dt><a name="flavorRequiresAllFields" href="#flavorRequiresAllFields"><span>flavorRequiresAllFields:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="format: template flavorRequiresAllFields(T: type DefaultFlavor): bool" href="cbor_serialization/format.html#flavorRequiresAllFields.t%2CtypeDefaultFlavor">format: template flavorRequiresAllFields(T: type DefaultFlavor): bool</a></li>
-          </ul></dd>
-<dt><a name="flavorSkipNullFields" href="#flavorSkipNullFields"><span>flavorSkipNullFields:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="format: template flavorSkipNullFields(T: type DefaultFlavor): bool" href="cbor_serialization/format.html#flavorSkipNullFields.t%2CtypeDefaultFlavor">format: template flavorSkipNullFields(T: type DefaultFlavor): bool</a></li>
-          </ul></dd>
-<dt><a name="flavorUsesAutomaticObjectSerialization" href="#flavorUsesAutomaticObjectSerialization"><span>flavorUsesAutomaticObjectSerialization:</span></a></dt><dd><ul class="simple">
-<li><a class="reference external"
-          data-doc-search-tag="format: template flavorUsesAutomaticObjectSerialization(T: type DefaultFlavor): bool" href="cbor_serialization/format.html#flavorUsesAutomaticObjectSerialization.t%2CtypeDefaultFlavor">format: template flavorUsesAutomaticObjectSerialization(T: type DefaultFlavor): bool</a></li>
           </ul></dd>
 <dt><a name="formatMsg" href="#formatMsg"><span>formatMsg:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -417,6 +409,10 @@
 <dt><a name="mimeType" href="#mimeType"><span>mimeType:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="format: template mimeType(T: type Cbor): string" href="cbor_serialization/format.html#mimeType.t%2CtypeCbor">format: template mimeType(T: type Cbor): string</a></li>
+          </ul></dd>
+<dt><a name="omitsOptionalFields" href="#omitsOptionalFields"><span>omitsOptionalFields:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="format: template omitsOptionalFields(F: type Cbor; T: type DefaultFlavor): bool" href="cbor_serialization/format.html#omitsOptionalFields.t%2CtypeCbor%2CtypeDefaultFlavor">format: template omitsOptionalFields(F: type Cbor; T: type DefaultFlavor): bool</a></li>
           </ul></dd>
 <dt><a name="parseArray" href="#parseArray"><span>parseArray:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -648,6 +644,10 @@
           <li><a class="reference external"
           data-doc-search-tag="reader_desc: template readValue[U: Reader(Cbor); W: array](r`gensym45: var U; value`gensym45: var W)" href="cbor_serialization/reader_desc.html#readValue.t%2CU%2CW_9">reader_desc: template readValue[U: Reader(Cbor); W: array](r`gensym45: var U; value`gensym45: var W)</a></li>
           </ul></dd>
+<dt><a name="requiresAllFields" href="#requiresAllFields"><span>requiresAllFields:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="format: template requiresAllFields(F: type Cbor; T: type DefaultFlavor): bool" href="cbor_serialization/format.html#requiresAllFields.t%2CtypeCbor%2CtypeDefaultFlavor">format: template requiresAllFields(F: type Cbor; T: type DefaultFlavor): bool</a></li>
+          </ul></dd>
 <dt><a name="shouldWriteObjectField" href="#shouldWriteObjectField"><span>shouldWriteObjectField:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="writer: template shouldWriteObjectField[FieldType](F: type Cbor; field: FieldType): bool" href="cbor_serialization/writer.html#shouldWriteObjectField.t%2CtypeCbor%2CFieldType">writer: template shouldWriteObjectField[FieldType](F: type Cbor; field: FieldType): bool</a></li>
@@ -655,6 +655,10 @@
 <dt><a name="skipSingleValue" href="#skipSingleValue"><span>skipSingleValue:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="parser: proc skipSingleValue(r: var CborReader)" href="cbor_serialization/parser.html#skipSingleValue%2CCborReader">parser: proc skipSingleValue(r: var CborReader)</a></li>
+          </ul></dd>
+<dt><a name="skipsNullFields" href="#skipsNullFields"><span>skipsNullFields:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="format: template skipsNullFields(F: type Cbor; T: type DefaultFlavor): bool" href="cbor_serialization/format.html#skipsNullFields.t%2CtypeCbor%2CtypeDefaultFlavor">format: template skipsNullFields(F: type Cbor; T: type DefaultFlavor): bool</a></li>
           </ul></dd>
 <dt><a name="streamElement" href="#streamElement"><span>streamElement:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -842,7 +846,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-02-09 22:00:54 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-02-10 21:35:56 UTC</small>
       </div>
     </div>
   </div>
