@@ -341,11 +341,11 @@ template writeField*[T: void](w: var CborWriter, name: string, body: T) =
   body
 
 template shouldWriteValue(w: CborWriter, value: untyped): bool =
-  mixin flavorOmitsOptionalFields, shouldWriteObjectField
+  mixin cborOmitsOptionalFields, shouldWriteObjectField
 
   type Flavor = w.Flavor
 
-  when flavorOmitsOptionalFields(Flavor):
+  when cborOmitsOptionalFields(Flavor):
     shouldWriteObjectField(Cbor, value)
   else:
     true

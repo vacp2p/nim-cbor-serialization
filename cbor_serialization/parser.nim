@@ -451,10 +451,10 @@ template parseArray*(r: var CborReader, idx, body: untyped) =
   parseArray(r.parser, idx, body)
 
 template skipNullFields(r: CborReader): untyped =
-  mixin flavorSkipNullFields
+  mixin cborSkipNullFields
 
   type Flavor = r.Flavor
-  const skipNullFields = flavorSkipNullFields(Flavor)
+  const skipNullFields = cborSkipNullFields(Flavor)
   skipNullFields
 
 template parseObject*(r: var CborReader, key: untyped, body: untyped) =

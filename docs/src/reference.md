@@ -239,21 +239,13 @@ Mixed.configureCborDeserialization(allowNumericRepr = true) # Only at top level
 You can also configure enum encoding at the flavor or type level:
 
 ```nim
-type
-  EnumRepresentation* = enum
-    EnumAsString
-    EnumAsNumber
-    EnumAsStringifiedNumber
-
-# Examples:
-
 # Flavor level
-Cbor.flavorEnumRep(EnumAsString)   # Default flavor, can be called from non-top level
-Flavor.flavorEnumRep(EnumAsNumber) # Custom flavor, can be called from non-top level
+Cbor.enumRep(EnumAsString)   # Default flavor, can be called from non-top level
+Flavor.enumRep(EnumAsNumber) # Custom flavor, can be called from non-top level
 
 # Individual enum type, regardless of flavor
 Fruit.configureCborSerialization(EnumAsNumber) # Only at top level
 
 # Individual enum type for a specific flavor
-MyCbor.flavorEnumRep(Drawer, EnumAsString) # Only at top level
+MyCbor.enumRep(Drawer, EnumAsString) # Only at top level
 ```
