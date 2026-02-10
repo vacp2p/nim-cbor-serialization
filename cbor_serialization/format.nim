@@ -178,19 +178,25 @@ template enumRep*(F: type Cbor, T: type DefaultFlavor, rep: static[EnumRepresent
     DefaultFlavorEnumRep = rep
 
 # If user choose to use `Cbor` instead of `DefaultFlavor`, it still goes to `DefaultFlavor`
-template enumRep*(T: type Cbor): EnumRepresentation =
+template enumRep*(F: type Cbor, T: type Cbor): EnumRepresentation =
   DefaultFlavorEnumRep
 
-template enumRep*(T: type Cbor, rep: static[EnumRepresentation]) =
+template enumRep*(F: type Cbor, T: type Cbor, rep: static[EnumRepresentation]) =
   static:
     DefaultFlavorEnumRep = rep
 
-# alias
+# aliases
+template enumRep*(T: type Cbor): EnumRepresentation =
+  enumRep(Cbor, T)
+
+template enumRep*(T: type Cbor, rep: static[EnumRepresentation]) =
+  enumRep(Cbor, T, rep)
+
 template flavorEnumRep*(T: type Cbor) =
-  enumRep(T)
+  enumRep(Cbor, T)
 
 template flavorEnumRep*(T: type Cbor, rep: static[EnumRepresentation]) =
-  enumRep(T, rep)
+  enumRep(Cbor, T, rep)
 
 template createCborFlavor*(
     FlavorName: untyped,
@@ -237,19 +243,25 @@ template createCborFlavor*(
     skipNullFields
 
   var `FlavorName EnumRep` {.compileTime.} = EnumRepresentation.EnumAsString
-  template enumRep*(T: type FlavorName): EnumRepresentation =
+  template enumRep*(F: type Cbor, T: type FlavorName): EnumRepresentation =
     `FlavorName EnumRep`
 
-  template enumRep*(T: type FlavorName, rep: static[EnumRepresentation]) =
+  template enumRep*(F: type Cbor, T: type FlavorName, rep: static[EnumRepresentation]) =
     static:
       `FlavorName EnumRep` = rep
 
-  # alias
+  # aliases
+  template enumRep*(T: type FlavorName): EnumRepresentation =
+    enumRep(Cbor, T)
+
+  template enumRep*(T: type FlavorName, rep: static[EnumRepresentation]) =
+    enumRep(Cbor, T, rep)
+
   template flavorEnumRep*(T: type FlavorName): EnumRepresentation =
-    enumRep(T)
+    enumRep(Cbor, T)
 
   template flavorEnumRep*(T: type FlavorName, rep: static[EnumRepresentation]) =
-    enumRep(T, rep)
+    enumRep(Cbor, T, rep)
 
   when automaticPrimitivesSerialization:
     defaultPrimitiveSerialization(FlavorName)

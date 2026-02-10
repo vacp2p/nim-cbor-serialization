@@ -489,7 +489,7 @@ template writeEnumImpl(w: var CborWriter, value, enumRep) =
 template write*(w: var CborWriter, value: enum) =
   ## Write an enum value as Cbor according to the flavor's enum representation.
   type Flavor = w.Flavor
-  writeEnumImpl(w, value, Flavor.flavorEnumRep())
+  writeEnumImpl(w, value, Cbor.enumRep(Flavor))
 
 proc write*(w: var CborWriter, val: CborVoid) {.raises: [IOError].} =
   discard
