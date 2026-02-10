@@ -117,7 +117,7 @@ proc read*[T: object](
   else:
     r.parseObject(key):
       # avoid bloat by putting this if inside parseObject
-      if allowsUnknownFields(Flavor):
+      if allowsUnknownFields(Cbor, Flavor):
         r.skipSingleValue()
       else:
         r.parser.raiseUnexpectedField(key, cstring typeName)
