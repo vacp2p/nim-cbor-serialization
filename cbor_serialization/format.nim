@@ -173,7 +173,9 @@ var DefaultFlavorEnumRep {.compileTime.} = EnumAsString
 template enumRep*(F: type Cbor, T: type DefaultFlavor): EnumRepresentation =
   DefaultFlavorEnumRep
 
-template enumRep*(F: type Cbor, T: type DefaultFlavor, rep: static[EnumRepresentation]) =
+template enumRep*(
+    F: type Cbor, T: type DefaultFlavor, rep: static[EnumRepresentation]
+) =
   static:
     DefaultFlavorEnumRep = rep
 
