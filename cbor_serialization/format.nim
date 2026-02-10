@@ -154,33 +154,42 @@ type EnumRepresentation* = enum
   EnumAsNumber
   EnumAsStringifiedNumber
 
-template flavorUsesAutomaticObjectSerialization*(T: type DefaultFlavor): bool =
+template omitsOptionalFields*(F: type Cbor, T: type DefaultFlavor): bool =
   true
 
-template flavorOmitsOptionalFields*(T: type DefaultFlavor): bool =
-  true
-
-template flavorRequiresAllFields*(T: type DefaultFlavor): bool =
+template requiresAllFields*(F: type Cbor, T: type DefaultFlavor): bool =
   false
 
-template flavorAllowsUnknownFields*(T: type DefaultFlavor): bool =
+template allowsUnknownFields*(F: type Cbor, T: type DefaultFlavor): bool =
   false
 
-template flavorSkipNullFields*(T: type DefaultFlavor): bool =
+template skipsNullFields*(F: type Cbor, T: type DefaultFlavor): bool =
   false
 
 var DefaultFlavorEnumRep {.compileTime.} = EnumAsString
-template flavorEnumRep*(T: type DefaultFlavor): EnumRepresentation =
+template enumRep*(F: type Cbor, T: type DefaultFlavor): EnumRepresentation =
   DefaultFlavorEnumRep
 
-template flavorEnumRep*(T: type DefaultFlavor, rep: static[EnumRepresentation]) =
+template enumRep*(
+    F: type Cbor, T: type DefaultFlavor, rep: static[EnumRepresentation]
+) =
   static:
     DefaultFlavorEnumRep = rep
 
 # If user choose to use `Cbor` instead of `DefaultFlavor`, it still goes to `DefaultFlavor`
-template flavorEnumRep*(T: type Cbor, rep: static[EnumRepresentation]) =
+template enumRep*(T: type Cbor): EnumRepresentation =
+  DefaultFlavorEnumRep
+
+template enumRep*(T: type Cbor, rep: static[EnumRepresentation]) =
   static:
     DefaultFlavorEnumRep = rep
+
+# aliases
+template flavorEnumRep*(T: type Cbor) =
+  enumRep(T)
+
+template flavorEnumRep*(T: type Cbor, rep: static[EnumRepresentation]) =
+  enumRep(T, rep)
 
 template createCborFlavor*(
     FlavorName: untyped,
@@ -211,28 +220,38 @@ template createCborFlavor*(
     template mimeType*(T: type FlavorName): string =
       mimeTypeValue
 
-  template flavorUsesAutomaticObjectSerialization*(T: type FlavorName): bool =
-    automaticObjectSerialization
-
-  template flavorOmitsOptionalFields*(T: type FlavorName): bool =
+  template omitsOptionalFields*(F: type Cbor, T: type FlavorName): bool =
     omitOptionalFields
 
-  template flavorRequiresAllFields*(T: type FlavorName): bool =
+  template requiresAllFields*(F: type Cbor, T: type FlavorName): bool =
     requireAllFields
 
-  template flavorAllowsUnknownFields*(T: type FlavorName): bool =
+  template allowsUnknownFields*(F: type Cbor, T: type FlavorName): bool =
     allowUnknownFields
 
-  template flavorSkipNullFields*(T: type FlavorName): bool =
+  template skipsNullFields*(F: type Cbor, T: type FlavorName): bool =
     skipNullFields
 
   var `FlavorName EnumRep` {.compileTime.} = EnumRepresentation.EnumAsString
-  template flavorEnumRep*(T: type FlavorName): EnumRepresentation =
+  template enumRep*(F: type Cbor, T: type FlavorName): EnumRepresentation =
     `FlavorName EnumRep`
 
-  template flavorEnumRep*(T: type FlavorName, rep: static[EnumRepresentation]) =
+  template enumRep*(F: type Cbor, T: type FlavorName, rep: static[EnumRepresentation]) =
     static:
       `FlavorName EnumRep` = rep
+
+  # aliases
+  template enumRep*(T: type FlavorName): EnumRepresentation =
+    enumRep(Cbor, T)
+
+  template enumRep*(T: type FlavorName, rep: static[EnumRepresentation]) =
+    enumRep(Cbor, T, rep)
+
+  template flavorEnumRep*(T: type FlavorName): EnumRepresentation =
+    enumRep(Cbor, T)
+
+  template flavorEnumRep*(T: type FlavorName, rep: static[EnumRepresentation]) =
+    enumRep(Cbor, T, rep)
 
   when automaticPrimitivesSerialization:
     defaultPrimitiveSerialization(FlavorName)

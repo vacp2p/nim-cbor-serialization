@@ -151,30 +151,31 @@ suite "Test writer":
     checkCbor vv, y
 
   test "Enum value representation primitives":
-    when DefaultFlavor.flavorEnumRep() == EnumAsString:
+    #Cbor.enumRep(DefaultFlavor, EnumAsString)
+    when Cbor.enumRep(DefaultFlavor) == EnumAsString:
       check true
-    elif DefaultFlavor.flavorEnumRep() == EnumAsNumber:
+    elif Cbor.enumRep(DefaultFlavor) == EnumAsNumber:
       check false
-    elif DefaultFlavor.flavorEnumRep() == EnumAsStringifiedNumber:
+    elif Cbor.enumRep(DefaultFlavor) == EnumAsStringifiedNumber:
       check false
 
-    DefaultFlavor.flavorEnumRep(EnumAsNumber)
-    when DefaultFlavor.flavorEnumRep() == EnumAsString:
+    Cbor.enumRep(DefaultFlavor, EnumAsNumber)
+    when Cbor.enumRep(DefaultFlavor) == EnumAsString:
       check false
-    elif DefaultFlavor.flavorEnumRep() == EnumAsNumber:
+    elif Cbor.enumRep(DefaultFlavor) == EnumAsNumber:
       check true
-    elif DefaultFlavor.flavorEnumRep() == EnumAsStringifiedNumber:
+    elif Cbor.enumRep(DefaultFlavor) == EnumAsStringifiedNumber:
       check false
 
-    DefaultFlavor.flavorEnumRep(EnumAsStringifiedNumber)
-    when DefaultFlavor.flavorEnumRep() == EnumAsString:
+    Cbor.enumRep(DefaultFlavor, EnumAsStringifiedNumber)
+    when Cbor.enumRep(DefaultFlavor) == EnumAsString:
       check false
-    elif DefaultFlavor.flavorEnumRep() == EnumAsNumber:
+    elif Cbor.enumRep(DefaultFlavor) == EnumAsNumber:
       check false
-    elif DefaultFlavor.flavorEnumRep() == EnumAsStringifiedNumber:
+    elif Cbor.enumRep(DefaultFlavor) == EnumAsStringifiedNumber:
       check true
 
-    DefaultFlavor.flavorEnumRep(EnumAsString)
+    Cbor.enumRep(DefaultFlavor, EnumAsString)
 
   test "Enum value representation of DefaultFlavor":
     type ExoticFruits = enum
@@ -182,18 +183,18 @@ suite "Test writer":
       SnakeFruit
       StarFruit
 
-    DefaultFlavor.flavorEnumRep(EnumAsNumber)
+    Cbor.enumRep(DefaultFlavor, EnumAsNumber)
     let u = Cbor.encode(DragonFruit)
     check u.hex == "0x00"
     checkCbor u, 0
 
-    DefaultFlavor.flavorEnumRep(EnumAsString)
+    Cbor.enumRep(DefaultFlavor, EnumAsString)
     let v = Cbor.encode(SnakeFruit)
     check v.hex == "0x6a536e616b654672756974"
     checkCbor v, SnakeFruit
     checkCbor v, "SnakeFruit"
 
-    DefaultFlavor.flavorEnumRep(EnumAsStringifiedNumber)
+    Cbor.enumRep(DefaultFlavor, EnumAsStringifiedNumber)
     let w = Cbor.encode(StarFruit)
     check w.hex == "0x6132"
     checkCbor w, "2"

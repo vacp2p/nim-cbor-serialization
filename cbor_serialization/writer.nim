@@ -341,11 +341,11 @@ template writeField*[T: void](w: var CborWriter, name: string, body: T) =
   body
 
 template shouldWriteValue(w: CborWriter, value: untyped): bool =
-  mixin flavorOmitsOptionalFields, shouldWriteObjectField
+  mixin omitsOptionalFields, shouldWriteObjectField
 
   type Flavor = w.Flavor
 
-  when flavorOmitsOptionalFields(Flavor):
+  when omitsOptionalFields(Cbor, Flavor):
     shouldWriteObjectField(Cbor, value)
   else:
     true
@@ -489,7 +489,7 @@ template writeEnumImpl(w: var CborWriter, value, enumRep) =
 template write*(w: var CborWriter, value: enum) =
   ## Write an enum value as Cbor according to the flavor's enum representation.
   type Flavor = w.Flavor
-  writeEnumImpl(w, value, Flavor.flavorEnumRep())
+  writeEnumImpl(w, value, enumRep(Cbor, Flavor))
 
 proc write*(w: var CborWriter, val: CborVoid) {.raises: [IOError].} =
   discard

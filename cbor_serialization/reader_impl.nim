@@ -83,7 +83,7 @@ func expectedFieldsBitmask*(
 proc read*[T: object](
     r: var CborReader, value: var T
 ) {.raises: [SerializationError, IOError].} =
-  mixin flavorAllowsUnknownFields, flavorRequiresAllFields
+  mixin allowsUnknownFields, requiresAllFields
   type
     ReaderType = typeof(r)
     Flavor = ReaderType.Flavor
@@ -106,18 +106,18 @@ proc read*[T: object](
         let reader = fieldsTable[fieldIdx].reader
         reader(value, r)
         encounteredFields.setBitInArray(fieldIdx)
-      elif flavorAllowsUnknownFields(Flavor):
+      elif allowsUnknownFields(Cbor, Flavor):
         r.skipSingleValue()
       else:
         r.parser.raiseUnexpectedField(key, cstring typeName)
 
-    if flavorRequiresAllFields(Flavor) and
+    if requiresAllFields(Cbor, Flavor) and
         not expectedFields.isBitwiseSubsetOf(encounteredFields):
       r.parser.raiseIncompleteObject(typeName)
   else:
     r.parseObject(key):
       # avoid bloat by putting this if inside parseObject
-      if flavorAllowsUnknownFields(Flavor):
+      if allowsUnknownFields(Cbor, Flavor):
         r.skipSingleValue()
       else:
         r.parser.raiseUnexpectedField(key, cstring typeName)
@@ -144,7 +144,7 @@ proc tupleFieldReaderTable(
 proc read*[T: tuple](
     r: var CborReader, value: var T
 ) {.raises: [SerializationError, IOError].} =
-  mixin flavorAllowsUnknownFields, flavorRequiresAllFields
+  mixin allowsUnknownFields, requiresAllFields
 
   type
     ReaderType = typeof(r)
@@ -159,12 +159,12 @@ proc read*[T: tuple](
   r.parseArray:
     if i < numFields:
       fieldsTable[i](value, r)
-    elif flavorAllowsUnknownFields(Flavor):
+    elif allowsUnknownFields(Cbor, Flavor):
       r.skipSingleValue()
     else:
       r.parser.raiseUnexpectedField($i, cstring typeName)
     inc i
-  if flavorRequiresAllFields(Flavor) and i < numFields:
+  if requiresAllFields(Cbor, Flavor) and i < numFields:
     r.parser.raiseIncompleteObject(typeName)
 
 template readValueRefOrPtr(r, value) =
