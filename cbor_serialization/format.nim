@@ -163,7 +163,7 @@ template requiresAllFields*(F: type Cbor, T: type DefaultFlavor): bool =
 template allowsUnknownFields*(F: type Cbor, T: type DefaultFlavor): bool =
   false
 
-template skipNullFields*(F: type Cbor, T: type DefaultFlavor): bool =
+template skipsNullFields*(F: type Cbor, T: type DefaultFlavor): bool =
   false
 
 var DefaultFlavorEnumRep {.compileTime.} = EnumAsString
@@ -229,7 +229,7 @@ template createCborFlavor*(
   template allowsUnknownFields*(F: type Cbor, T: type FlavorName): bool =
     allowUnknownFields
 
-  template skipNullFields*(F: type Cbor, T: type FlavorName): bool =
+  template skipsNullFields*(F: type Cbor, T: type FlavorName): bool =
     skipNullFields
 
   var `FlavorName EnumRep` {.compileTime.} = EnumRepresentation.EnumAsString
