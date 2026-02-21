@@ -15,7 +15,7 @@ export tables
 
 type TableType = OrderedTable | Table
 
-proc writeImpl(writer: var CborWriter, value: TableType) {.raises: [IOError].} =
+proc writeValue*(writer: var CborWriter, value: TableType) {.raises: [IOError].} =
   writer.beginObject()
   for key, val in value:
     writer.writeField $key, val
@@ -33,7 +33,7 @@ template to*(a: string, b: type float): float =
 template to*(a: string, b: type string): string =
   a
 
-proc readImpl(
+proc readValue*(
     reader: var CborReader, value: var TableType
 ) {.raises: [IOError, SerializationError].} =
   try:
@@ -48,13 +48,13 @@ proc readImpl(
 # TODO: https://github.com/nim-lang/Nim/issues/25174
 
 template write*(writer: var CborWriter, value: OrderedTable) =
-  writeImpl(writer, value)
+  writeValue(writer, value)
 
 template write*(writer: var CborWriter, value: Table) =
-  writeImpl(writer, value)
+  writeValue(writer, value)
 
 template read*(reader: var CborReader, value: var OrderedTable) =
-  readImpl(reader, value)
+  readValue(reader, value)
 
 template read*(reader: var CborReader, value: var Table) =
-  readImpl(reader, value)
+  readValue(reader, value)

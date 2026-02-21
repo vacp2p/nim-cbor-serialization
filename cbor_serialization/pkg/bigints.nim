@@ -39,7 +39,7 @@ func toBytes(bint: BigInt, bytes: var seq[byte]) {.raises: [].} =
 const unsignedTag = 2
 const negativeTag = 3
 
-proc write*(writer: var CborWriter, value: BigInt) {.raises: [IOError].} =
+proc writeImpl*(writer: var CborWriter, value: BigInt) {.raises: [IOError].} =
   # https://www.rfc-editor.org/rfc/rfc8949#section-4.1
   if value >= 0.initBigInt:
     let sint = toInt[uint64](value)
@@ -60,7 +60,7 @@ proc write*(writer: var CborWriter, value: BigInt) {.raises: [IOError].} =
       toBytes(bint, bintTag.val)
       writer.write(bintTag)
 
-proc read*(
+proc readImpl*(
     reader: var CborReader, value: var BigInt
 ) {.raises: [IOError, SerializationError].} =
   template p(): untyped =
@@ -99,3 +99,15 @@ proc read*(
       value *= -1.initBigInt
   else:
     reader.parser.raiseUnexpectedValue("number", $kind)
+
+template writeValue*(writer: var CborWriter, value: BigInt) =
+  writeImpl(writer, value)
+
+template readValue*(reader: var CborReader, value: var BigInt) =
+  readImpl(reader, value)
+
+template write*(writer: var CborWriter, value: BigInt) =
+  writeImpl(writer, value)
+
+template read*(reader: var CborReader, value: var BigInt) =
+  readImpl(reader, value)

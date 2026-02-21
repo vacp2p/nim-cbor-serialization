@@ -13,11 +13,11 @@ import std/[net, strutils], chronos/transports/common, ../../cbor_serialization
 
 export net, common
 
-proc write*(writer: var CborWriter, value: IpAddress) {.raises: [IOError].} =
+proc writeValue*(writer: var CborWriter, value: IpAddress) {.raises: [IOError].} =
   mixin writeValue
   writeValue(writer, $value)
 
-proc read*(reader: var CborReader, value: var IpAddress) =
+proc readValue*(reader: var CborReader, value: var IpAddress) =
   mixin readValue
   let s = reader.readValue(string)
   try:
@@ -25,18 +25,36 @@ proc read*(reader: var CborReader, value: var IpAddress) =
   except CatchableError:
     raiseUnexpectedValue(reader, "Invalid IP address")
 
-proc write*(writer: var CborWriter, value: Port) {.raises: [IOError].} =
+proc writeValue*(writer: var CborWriter, value: Port) {.raises: [IOError].} =
   mixin writeValue
   writeValue(writer, uint16 value)
 
-proc read*(reader: var CborReader, value: var Port) =
+proc readValue*(reader: var CborReader, value: var Port) =
   mixin readValue
   value = Port reader.readValue(uint16)
 
-proc write*(writer: var CborWriter, value: AddressFamily) {.raises: [IOError].} =
+proc writeValue*(writer: var CborWriter, value: AddressFamily) {.raises: [IOError].} =
   mixin writeValue
   writeValue(writer, $value)
 
-proc read*(reader: var CborReader, value: var AddressFamily) =
+proc readValue*(reader: var CborReader, value: var AddressFamily) =
   mixin readValue
   value = parseEnum[AddressFamily](reader.readValue(string))
+
+template write*(writer: var CborWriter, value: IpAddress) =
+  writeValue(writer, value)
+
+template read*(reader: var CborReader, value: var IpAddress) =
+  readValue(reader, value)
+
+template write*(writer: var CborWriter, value: Port) =
+  writeValue(writer, value)
+
+template read*(reader: var CborReader, value: var Port) =
+  readValue(reader, value)
+
+template write*(writer: var CborWriter, value: AddressFamily) =
+  writeValue(writer, value)
+
+template read*(reader: var CborReader, value: var AddressFamily) =
+  readValue(reader, value)

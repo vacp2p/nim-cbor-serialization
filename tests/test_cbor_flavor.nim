@@ -63,8 +63,8 @@ type
 StringyCbor.defaultSerialization Container
 
 createCborFlavor OptCbor
-OptCbor.defaultSerialization Result
-OptCbor.defaultSerialization Option
+#OptCbor.defaultSerialization Result
+#OptCbor.defaultSerialization Option
 OptCbor.defaultSerialization OptionalFields
 
 #{
