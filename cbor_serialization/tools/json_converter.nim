@@ -15,6 +15,8 @@ import
   json_serialization,
   ../../cbor_serialization/[reader, writer]
 
+export JsonString
+
 # https://www.rfc-editor.org/rfc/rfc8949.html#section-6.1
 proc writeToJson*(
     reader: var CborReader, writer: var JsonWriter, substitute = true
@@ -96,3 +98,52 @@ proc toJson*(
   except IOError:
     raiseAssert "memoryOutput is exception-free"
   jsonStream.getOutput(string)
+
+# https://www.rfc-editor.org/rfc/rfc8949.html#section-6.2
+proc writeToCbor*(
+    reader: var JsonReader, writer: var CborWriter
+) {.raises: [IOError, SerializationError].} =
+  mixin writeValue, readValue
+
+  case reader.tokKind
+  of JsonValueKind.String:
+    writer.writeValue(reader.readValue(string))
+  of JsonValueKind.Number:
+    let num = reader.readValue(JsonNumber[uint64])
+    if num.isFloat():
+      writer.writeValue(reader.toFloat(num, float64))
+    elif num.sign == JsonSign.Neg:
+      writer.writeValue(reader.toInt(num, int64, portable = false))
+    else:
+      writer.writeValue(reader.toInt(num, uint64, portable = false))
+  of JsonValueKind.Object:
+    writeObject(writer):
+      parseObjectWithoutSkip(reader, key):
+        writer.writeName(key)
+        writeToCbor(reader, writer)
+  of JsonValueKind.Array:
+    writeArray(writer):
+      parseArray(reader):
+        writeToCbor(reader, writer)
+  of JsonValueKind.Bool:
+    writer.writeValue(reader.readValue(bool))
+  of JsonValueKind.Null:
+    reader.parseNull()
+    writer.writeValue(cborNull)
+
+proc toCbor*(
+    json: JsonString, definiteLen = true
+): seq[byte] {.raises: [SerializationError].} =
+  var jsonStream = unsafeMemoryInput(string(json))
+  var reader = JsonReader[DefaultFlavor].init(jsonStream)
+  var cborStream = memoryOutput()
+  var writer = CborWriter[DefaultFlavor].init(cborStream)
+  try:
+    reader.writeToCbor(writer)
+  except IOError:
+    raiseAssert "memoryOutput is exception-free"
+  if definiteLen:
+    # XXX add definiteLen mode to writeObject/Array to avoid this
+    Cbor.encode(Cbor.decode(cborStream.getOutput(seq[byte]), CborValueRef))
+  else:
+    cborStream.getOutput(seq[byte])
