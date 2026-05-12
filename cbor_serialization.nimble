@@ -46,6 +46,10 @@ task test, "Run all tests":
   for threads in ["--threads:off", "--threads:on"]:
     run threads, "tests/test_all"
 
+task test_dev, "Run all dev tests":
+  for threads in ["--threads:off", "--threads:on"]:
+    run threads, "tests/test_all_dev"
+
 task examples, "Run examples":
   # Run book examples
   for file in listFiles("docs/examples"):

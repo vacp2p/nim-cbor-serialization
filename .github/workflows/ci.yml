@@ -17,7 +17,9 @@ jobs:
       test-command: |
         nimble dump --solve
         nimble list --installed --version
-        env nimble --features:dev install --depsonly
         env NIMLANG=c nimble test
         env NIMLANG=cpp nimble test
         env nimble examples
+        env nimble --features:dev install --depsonly
+        env NIMLANG=c nimble test_dev
+        env NIMLANG=cpp nimble test_dev
