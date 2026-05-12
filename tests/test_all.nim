@@ -16,11 +16,11 @@ import
 template importBigints() =
   import bigints
 
-when compiles(importBigints):
-  import test_bigints
+#when compiles(importBigints):
+import test_bigints
 
 template importjson() =
   import json_serialization
 
-when compiles(importjson):
-  import test_tools
+#when compiles(importjson):
+import test_tools
