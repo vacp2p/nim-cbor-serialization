@@ -62,20 +62,15 @@ proc writeToJson*(
   of CborValueKind.Tag:
     var tag: uint64
     parseTag(reader, tag):
-      if tag in {2, 3, 21, 22, 23}:
-        if p.cborKind() != CborValueKind.Bytes:
-          p.raiseUnexpectedValue("bytes", $p.cborKind())
-        case tag
-        of 2, 21:
-          writer.writeValue(Base64Url.encode(reader.readValue(seq[byte])))
-        of 3:
-          writer.writeValue("~" & Base64Url.encode(reader.readValue(seq[byte])))
-        of 22:
-          writer.writeValue(Base64.encode(reader.readValue(seq[byte])))
-        of 23:
-          writer.writeValue("0x" & toUpperAscii(toHex(reader.readValue(seq[byte]))))
-        else:
-          raiseAssert "unhandled case"
+      case tag
+      of 2, 21:
+        writer.writeValue(Base64Url.encode(reader.readValue(seq[byte])))
+      of 3:
+        writer.writeValue("~" & Base64Url.encode(reader.readValue(seq[byte])))
+      of 22:
+        writer.writeValue(Base64.encode(reader.readValue(seq[byte])))
+      of 23:
+        writer.writeValue("0x" & toUpperAscii(toHex(reader.readValue(seq[byte]))))
       else:
         writeToJson(reader, writer)
   of CborValueKind.Simple:
