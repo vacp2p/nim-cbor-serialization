@@ -18,11 +18,8 @@ skipDirs = @["tests", "fuzzer"]
 
 requires "nim >= 2.0.0", "serialization >= 0.4.9", "stew >= 0.4.1", "results"
 
-feature "json":
-  require "json_serialization"
-
-feature "bigints":
-  require "bigints"
+feature "dev":
+  requires "json_serialization", "bigints"
 
 let nimc = getEnv("NIMC", "nim") # Which nim compiler to use
 let lang = getEnv("NIMLANG", "c") # Which backend (c/cpp/js)
