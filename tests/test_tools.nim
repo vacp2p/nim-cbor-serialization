@@ -84,8 +84,7 @@ suite "Test CBOR to JSON":
         "\"2013-03-21T20:04:00Z\""
       toJson(enc(CborTag[int](tag: 1, val: 1363896240))) == "1363896240"
       toJson(enc(CborTag[float](tag: 1, val: 1363896240.5))) == "1363896240.5"
-      toJson(enc(CborTag[seq[byte]](tag: 23, val: @[1, 2, 3, 4]))) ==
-        "\"0x01020304\""
+      toJson(enc(CborTag[seq[byte]](tag: 23, val: @[1, 2, 3, 4]))) == "\"0x01020304\""
       toJson(enc(CborTag[seq[byte]](tag: 24, val: @[100, 73, 69, 84, 70]))) ==
         "\"ZElFVEY\""
       toJson(enc(CborTag[string](tag: 32, val: "http://www.example.com"))) ==
