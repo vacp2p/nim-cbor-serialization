@@ -18,3 +18,9 @@ template importBigints() =
 
 when compiles(importBigints):
   import test_bigints
+
+template importjson() =
+  import json_serialization
+
+when compiles(importjson):
+  import test_tools

@@ -463,7 +463,7 @@ template parseObject*(r: var CborReader, key: untyped, body: untyped) =
 template parseObjectWithoutSkip*(r: var CborReader, key: untyped, body: untyped) =
   parseObject(r.parser, false, key, body)
 
-template parseTag*(p: var CborReader, tag: untyped, body: untyped) =
+template parseTag*(r: var CborReader, tag: untyped, body: untyped) =
   parseTag(r.parser, tag, body)
 
 proc parseNumber*(
