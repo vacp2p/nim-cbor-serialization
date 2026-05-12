@@ -112,4 +112,4 @@ suite "Test CBOR to JSON":
       cborToJson(enc(Obj3(a: "A", b: "B", c: "C", d: "D", e: "E"))) ==
         """{"a":"A","b":"B","c":"C","d":"D","e":"E"}"""
       cborToJson(enc(Obj5(a: Obj2(b: "c")))) == """{"a":{"b":"c"}}"""
-      cborToJson(enc([[1,2], [3,4]])) == "[[1,2],[3,4]]"
+      cborToJson(enc([[1, 2], [3, 4]])) == "[[1,2],[3,4]]"

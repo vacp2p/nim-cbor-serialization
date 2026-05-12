@@ -17,10 +17,13 @@ import
 
 # https://www.rfc-editor.org/rfc/rfc8949.html#section-6.1
 
-proc writeToJson*(reader: var CborReader, writer: var JsonWriter) {.raises: [IOError, SerializationError].} =
+proc writeToJson*(
+    reader: var CborReader, writer: var JsonWriter
+) {.raises: [IOError, SerializationError].} =
   mixin writeValue, readValue
   template p(): untyped =
     reader.parser
+
   case p.cborKind()
   of CborValueKind.Bytes:
     writer.writeValue(Base64Url.encode(reader.readValue(seq[byte])))
