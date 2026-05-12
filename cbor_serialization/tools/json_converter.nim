@@ -11,12 +11,11 @@
 
 import
   std/[math, strutils],
-  pkg/json_serialization,
   stew/[base64, byteutils],
+  json_serialization,
   ../../cbor_serialization/[reader, writer]
 
 # https://www.rfc-editor.org/rfc/rfc8949.html#section-6.1
-
 proc writeToJson*(
     reader: var CborReader, writer: var JsonWriter, substitute = true
 ) {.raises: [IOError, SerializationError].} =
@@ -85,12 +84,15 @@ proc writeToJson*(
     let _ = reader.readValue(CborSimpleValue)
     substituteOrRaise("undefined")
 
-proc cborToJson*(
-    cbor: seq[byte], substitute = true
-): string {.raises: [IOError, SerializationError].} =
-  var cborStream = unsafeMemoryInput(cbor)
+proc toJson*(
+    cbor: CborBytes, substitute = true, pretty = false
+): string {.raises: [SerializationError].} =
+  var cborStream = unsafeMemoryInput(seq[byte](cbor))
   var reader = CborReader[DefaultFlavor].init(cborStream)
   var jsonStream = memoryOutput()
-  var writer = JsonWriter[DefaultFlavor].init(jsonStream)
-  reader.writeToJson(writer, substitute)
+  var writer = JsonWriter[DefaultFlavor].init(jsonStream, pretty)
+  try:
+    reader.writeToJson(writer, substitute)
+  except IOError:
+    raiseAssert "memoryOutput is exception-free"
   jsonStream.getOutput(string)
