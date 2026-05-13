@@ -12,7 +12,7 @@ The `toEdn` API will decode CBOR bytes into a string in diagnostic notation form
 {{#include ../examples/debugging0.nim:Edn}}
 ```
 
-Notation summary:
+Deviation from JSON includes:
 
 - Non-finite floating-point: `Infinity`, `-Infinity`, `NaN`
 - Tags: `tagNumer(tagValue)`, ex: `0("2013-03-21T20:04:00Z")`
@@ -20,4 +20,3 @@ Notation summary:
 - Simple: `simple(simpleValue)`, ex: `simple(42)`
 - Non-string map keys: `{key: value}`, ex: `{1: 2}`, `{[1]: 2}`, `{{1: 2}: 3}`
 - Indefinite length: Undercore + space after `{`, `[`; ex: `{_ "a": "b"}`, `[_ 1, 2]`
-- Other values borrow the notation from JSON.
