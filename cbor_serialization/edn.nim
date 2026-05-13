@@ -131,20 +131,24 @@ proc toEdnImpl(
       CborValueKind.Undefined:
     result.add $reader.readValue(CborSimpleValue)
 
+# CBOR Sequence: https://datatracker.ietf.org/doc/html/rfc8742#section-4.2
+proc toEdnSeqImpl(
+    reader: var CborReader
+): string {.raises: [IOError, SerializationError].} =
+  result = reader.toEdnImpl()
+  var i = 0
+  while reader.parser.stream.readable():
+    result.add ", "
+    result.add reader.toEdnImpl()
+    inc i
+
 proc toEdn*(
     cbor: CborBytes, Flavor = DefaultFlavor
 ): string {.raises: [SerializationError].} =
   ## Converts `cbor` content into Diagnostic Notation
-  result = ""
   var stream = unsafeMemoryInput(seq[byte](cbor))
   var reader = CborReader[Flavor].init(stream)
   try:
-    # Handle CBOR Sequences https://datatracker.ietf.org/doc/html/rfc8742#section-4.2
-    var i = 0
-    while reader.parser.stream.readable():
-      if i > 0:
-        result.add ", "
-      result.add reader.toEdnImpl()
-      inc i
+    reader.toEdnSeqImpl()
   except IOError:
     raiseAssert "memoryOutput is exception-free"
