@@ -135,9 +135,16 @@ proc toEdn*(
     cbor: CborBytes, Flavor = DefaultFlavor
 ): string {.raises: [SerializationError].} =
   ## Converts `cbor` content into Diagnostic Notation
+  result = ""
   var stream = unsafeMemoryInput(seq[byte](cbor))
   var reader = CborReader[Flavor].init(stream)
   try:
-    reader.toEdnImpl()
+    # Handle CBOR Sequences https://datatracker.ietf.org/doc/html/rfc8742#section-4.2
+    var i = 0
+    while reader.parser.stream.readable():
+      if i > 0:
+        result.add ", "
+      result.add reader.toEdnImpl()
+      inc i
   except IOError:
     raiseAssert "memoryOutput is exception-free"

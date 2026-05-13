@@ -112,3 +112,17 @@ suite "Test Diagnostic Notation":
   test "spec test cases":
     for (cbor, diagnostic) in items(testCases):
       check toEdn(CborBytes(cbor.unhex)) == diagnostic
+
+  test "CBOR Sequence simple":
+    let cbor = "0x1818".unhex & "0x1819".unhex
+    check toEdn(CborBytes(cbor)) == "24, 25"
+
+  test "CBOR Sequence":
+    var cborSeq = default(seq[byte])
+    var expected = ""
+    for (cbor, diagnostic) in items(testCases):
+      cborSeq.add cbor.unhex
+      if expected.len > 0:
+        expected.add ", "
+      expected.add diagnostic
+    check toEdn(CborBytes(cborSeq)) == expected
