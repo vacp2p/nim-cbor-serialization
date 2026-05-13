@@ -4,6 +4,7 @@
 
 - [Getting started](./getting_started.md)
 - [Streaming](./streaming.md)
+- [Debugging](./debugging.md)
 - [Reference](./reference.md)
 
 # Developer guide
