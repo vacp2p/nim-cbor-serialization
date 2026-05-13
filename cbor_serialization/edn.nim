@@ -47,6 +47,11 @@ proc addEscaped(res: var string, value: string) =
     else:
       res.add c
 
+proc hasIndefLen(reader: var CborReader): bool {.raises: [IOError].} =
+  doAssert reader.parser.stream.readable
+  let x = reader.parser.stream.peek()
+  (x and 0b0001_1111) == cborMinorIndef
+
 # TODO: chunks show as concatenated string/bytes;
 #       PR https://github.com/vacp2p/nim-cbor-serialization/pull/17
 #       gives access to "prelude" which can be used to anotate the chunk split
@@ -92,6 +97,8 @@ proc toEdnImpl(
       result.addFloatRoundtrip f
   of CborValueKind.Object:
     result.add '{'
+    if reader.hasIndefLen():
+      result.add "_ "
     var i = 0
     parseObjectCustomKey(reader):
       if i > 0:
@@ -104,6 +111,8 @@ proc toEdnImpl(
     result.add '}'
   of CborValueKind.Array:
     result.add '['
+    if reader.hasIndefLen():
+      result.add "_ "
     var i = 0
     parseArray(reader):
       if i > 0:
