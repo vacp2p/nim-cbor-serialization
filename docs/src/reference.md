@@ -171,17 +171,6 @@ proc readValue*(r: var Cbor.Reader, value: var Welder) =
     value.flags.incl r.parseInt(int).WelderFlag
 ```
 
-## Custom Iterators
-
-Custom iterators provide access to sub-token elements:
-
-```nim
-customIntValueIt(r: var CborReader; body: untyped)
-customNumberValueIt(r: var CborReader; body: untyped)
-customStringValueIt(r: var CborReader; limit: untyped; body: untyped)
-customStringValueIt(r: var CborReader; body: untyped)
-```
-
 ## Convenience Iterators
 
 ```nim
