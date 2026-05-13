@@ -9,7 +9,7 @@
 
 {.push raises: [], gcsafe.}
 
-import std/math, stew/byteutils, serialization, ./reader
+import std/[formatfloat, math], stew/byteutils, serialization, ./reader
 
 export serialization, reader
 
@@ -81,17 +81,15 @@ proc toEdnImpl(
       result.add $(val.integer + 1)
   of CborValueKind.Float:
     let f = reader.readValue(float64)
-    let val =
-      case f.classify
-      of fcNan:
-        "NaN"
-      of fcInf:
-        "Infinity"
-      of fcNegInf:
-        "-Infinity"
-      else:
-        $f
-    result.add val
+    case f.classify
+    of fcNan:
+      result.add "NaN"
+    of fcInf:
+      result.add "Infinity"
+    of fcNegInf:
+      result.add "-Infinity"
+    else:
+      result.addFloatRoundtrip f
   of CborValueKind.Object:
     result.add '{'
     var i = 0
@@ -122,8 +120,7 @@ proc toEdnImpl(
       result.add ')'
   of CborValueKind.Simple, CborValueKind.Bool, CborValueKind.Null,
       CborValueKind.Undefined:
-    let val = reader.readValue(CborSimpleValue)
-    result.add $val
+    result.add $reader.readValue(CborSimpleValue)
 
 proc toEdn*(
     cbor: CborBytes, Flavor = DefaultFlavor
