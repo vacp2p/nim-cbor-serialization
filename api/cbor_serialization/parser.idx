@@ -13,7 +13,7 @@ nim	parseArray	cbor_serialization/parser.html#parseArray.t,CborReader,untyped	te
 nim	parseArray	cbor_serialization/parser.html#parseArray.t,CborReader,untyped,untyped	template parseArray(r: var CborReader; idx, body: untyped)		450
 nim	parseObject	cbor_serialization/parser.html#parseObject.t,CborReader,untyped,untyped	template parseObject(r: var CborReader; key: untyped; body: untyped)		460
 nim	parseObjectWithoutSkip	cbor_serialization/parser.html#parseObjectWithoutSkip.t,CborReader,untyped,untyped	template parseObjectWithoutSkip(r: var CborReader; key: untyped; body: untyped)		463
-nim	parseTag	cbor_serialization/parser.html#parseTag.t,CborReader,untyped,untyped	template parseTag(p: var CborReader; tag: untyped; body: untyped)		466
+nim	parseTag	cbor_serialization/parser.html#parseTag.t,CborReader,untyped,untyped	template parseTag(r: var CborReader; tag: untyped; body: untyped)		466
 nim	parseNumber	cbor_serialization/parser.html#parseNumber,CborReader,CborNumber	proc parseNumber(r: var CborReader; val: var CborNumber)		469
 nim	parseNumber	cbor_serialization/parser.html#parseNumber,CborReader	proc parseNumber(r: var CborReader): CborNumber		474
 nim	parseFloat	cbor_serialization/parser.html#parseFloat,CborReader,typeSomeFloat	proc parseFloat(r: var CborReader; T: type SomeFloat): T:type		479

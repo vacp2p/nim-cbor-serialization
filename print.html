@@ -415,7 +415,26 @@ echo output.getOutput(seq[byte]).to0xHex()
 <p>This produces the following output when the resulting CBOR blob is decoded:</p>
 <pre><code class="language-nim">(status: "ok", data: @[(id: 0, name: "item0"), (id: 1, name: "item1")])
 </code></pre>
-<footer id="open-on-gh">Found a bug? <a href="https://github.com/vacp2p/nim-cbor-serialization//edit/master/docs/src/streaming.md">Edit this page on GitHub.</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="reference"><a class="header" href="#reference">Reference</a></h1>
+<footer id="open-on-gh">Found a bug? <a href="https://github.com/vacp2p/nim-cbor-serialization//edit/master/docs/src/streaming.md">Edit this page on GitHub.</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="debugging"><a class="header" href="#debugging">Debugging</a></h1>
+<p>This section provides an overview of the <code>cbor_serialization</code> debugging tools.</p>
+<h2 id="diagnostic-notation"><a class="header" href="#diagnostic-notation">Diagnostic Notation</a></h2>
+<p>The CBOR diagnostic notation is a human-readable format defined in <a href="https://www.rfc-editor.org/rfc/rfc8949.html#section-8">RFC8949</a>, <a href="https://www.rfc-editor.org/rfc/rfc8610#appendix-G">RFC8610</a> and <a href="https://datatracker.ietf.org/doc/html/rfc8742#section-4.2">RFC8742</a>. It's based on JSON, but it's not compatible with it.</p>
+<p>The <code>toEdn</code> API will decode CBOR bytes (including CBOR Sequences) into a string in diagnostic notation format:</p>
+<pre><code class="language-nim"># Decode the CBOR blob into Diagnostic Notation
+doAssert CborBytes(encoded).toEdn() ==
+  """{"cborrpc": "2.0", "method": "subtract", "params": [42, 3], "id": 1}"""
+</code></pre>
+<p>Deviation from JSON includes:</p>
+<ul>
+<li>Non-finite floating-point: <code>Infinity</code>, <code>-Infinity</code>, <code>NaN</code></li>
+<li>Tags: <code>tagNumer(tagValue)</code>, ex: <code>0("2013-03-21T20:04:00Z")</code></li>
+<li>Byte strings: <code>h'base16Value'</code>, ex: <code>h'01020304'</code></li>
+<li>Simple: <code>simple(simpleValue)</code>, ex: <code>simple(42)</code></li>
+<li>Non-string map keys: <code>{key: value}</code>, ex: <code>{1: 2}</code>, <code>{[1]: 2}</code>, <code>{{1: 2}: 3}</code></li>
+<li>Indefinite length: Undercore + space after <code>{</code>, <code>[</code>; ex: <code>{_ "a": "b"}</code>, <code>[_ 1, 2]</code></li>
+<li>Sequences: Each CBOR is separated by <code>,</code>; ex: <code>1, "a", [2, 3]</code></li>
+</ul>
+<footer id="open-on-gh">Found a bug? <a href="https://github.com/vacp2p/nim-cbor-serialization//edit/master/docs/src/debugging.md">Edit this page on GitHub.</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="reference"><a class="header" href="#reference">Reference</a></h1>
 <ul>
 <li><a href="reference.html#parsing">Parsing</a>
 <ul>
@@ -438,7 +457,6 @@ echo output.getOutput(seq[byte]).to0xHex()
 <li><a href="reference.html#sets-and-list-like-types">Sets and List-like Types</a></li>
 </ul>
 </li>
-<li><a href="reference.html#custom-iterators">Custom Iterators</a></li>
 <li><a href="reference.html#convenience-iterators">Convenience Iterators</a></li>
 <li><a href="reference.html#cborreader-helper-procedures">CborReader Helper Procedures</a></li>
 <li><a href="reference.html#cborwriter-helper-procedures">CborWriter Helper Procedures</a></li>
@@ -608,13 +626,6 @@ proc readValue*(r: var Cbor.Reader, value: var Welder) =
   # populating set also okay
   r.parseArray:
     value.flags.incl r.parseInt(int).WelderFlag
-</code></pre>
-<h2 id="custom-iterators"><a class="header" href="#custom-iterators">Custom Iterators</a></h2>
-<p>Custom iterators provide access to sub-token elements:</p>
-<pre><code class="language-nim">customIntValueIt(r: var CborReader; body: untyped)
-customNumberValueIt(r: var CborReader; body: untyped)
-customStringValueIt(r: var CborReader; limit: untyped; body: untyped)
-customStringValueIt(r: var CborReader; body: untyped)
 </code></pre>
 <h2 id="convenience-iterators"><a class="header" href="#convenience-iterators">Convenience Iterators</a></h2>
 <pre><code class="language-nim">readArray(r: var CborReader, ElemType: typedesc): ElemType

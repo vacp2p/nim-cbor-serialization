@@ -194,7 +194,6 @@
 <li><a href="#sets-and-list-like-types">Sets and List-like Types</a></li>
 </ul>
 </li>
-<li><a href="#custom-iterators">Custom Iterators</a></li>
 <li><a href="#convenience-iterators">Convenience Iterators</a></li>
 <li><a href="#cborreader-helper-procedures">CborReader Helper Procedures</a></li>
 <li><a href="#cborwriter-helper-procedures">CborWriter Helper Procedures</a></li>
@@ -365,13 +364,6 @@ proc readValue*(r: var Cbor.Reader, value: var Welder) =
   r.parseArray:
     value.flags.incl r.parseInt(int).WelderFlag
 </code></pre>
-<h2 id="custom-iterators"><a class="header" href="#custom-iterators">Custom Iterators</a></h2>
-<p>Custom iterators provide access to sub-token elements:</p>
-<pre><code class="language-nim">customIntValueIt(r: var CborReader; body: untyped)
-customNumberValueIt(r: var CborReader; body: untyped)
-customStringValueIt(r: var CborReader; limit: untyped; body: untyped)
-customStringValueIt(r: var CborReader; body: untyped)
-</code></pre>
 <h2 id="convenience-iterators"><a class="header" href="#convenience-iterators">Convenience Iterators</a></h2>
 <pre><code class="language-nim">readArray(r: var CborReader, ElemType: typedesc): ElemType
 readObjectFields(r: var CborReader, KeyType: type): KeyType
@@ -431,7 +423,7 @@ MyCbor.enumRep(Drawer, EnumAsString) # Only at top level
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="streaming.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="debugging.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
@@ -445,7 +437,7 @@ MyCbor.enumRep(Drawer, EnumAsString) # Only at top level
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="streaming.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="debugging.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
