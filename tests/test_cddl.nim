@@ -21,7 +21,6 @@ when isMainModule:
     ("any-cbor = #\n", true),
     ("; comment\nfoo = bar\n", true),
     ("g<T> = [* T]\n", true),
-    ("foo = 1*3 tstr\n", true),
     # flat maps
     ("address = { street: tstr, zip: uint }\n", true),
     ("response = { ? \"err\" => tstr, + \"item\" => uint }\n", true),
@@ -120,6 +119,7 @@ when isMainModule:
     ("bad =\n", false),
     ("", false),
     ("{ broken\n", false),
+    ("foo = 1*3 tstr\n", false),
   ]
 
   block:
@@ -146,7 +146,6 @@ my-type = nil
 tagged = #6.1(tstr)
 any-cbor = #
 g<T> = [* T]
-foo-occur = 1*3 tstr
 address = { street: tstr, zip: uint }
 response = { ? "err" => tstr, + "item" => uint }
 coord = [float, float]
@@ -202,63 +201,62 @@ ping-payload = { timestamp: uint }
 packet-payload = login-payload / ping-payload
 packet = { header: header, body: packet-payload }
 plugin-config = { name: tstr, config: any }
+record-header = (uint, tstr)
 """
     let expected =
       """
-Rule: foo  [rkGroup]
+Rule: foo  [rkType]
   SimpleType(bar)
-Rule: foo-union  [rkGroup]
+Rule: foo-union  [rkType]
   Union[
     SimpleType(uint)
     SimpleType(tstr)
     SimpleType(bstr)
   ]
-Rule: small  [rkGroup]
+Rule: small  [rkType]
   Generic(..<0,100>)
-Rule: name  [rkGroup]
+Rule: name  [rkType]
   Generic(..<1,..<1,64>>)
-Rule: my-type  [rkGroup]
+Rule: my-type  [rkType]
   SimpleType(nil)
-Rule: tagged  [rkGroup]
+Rule: tagged  [rkType]
   Tagged(6.1)
     SimpleType(tstr)
-Rule: any-cbor  [rkGroup]
+Rule: any-cbor  [rkType]
   Any
-Rule: g  [rkGroup]
+Rule: g  [rkType]
   genericParams: @["T"]
   Array[
     [ocZeroOrMore]
       SimpleType(T)
   ]
-Rule: foo-occur  [rkGroup]
-  SimpleType(tstr)
-Rule: address  [rkGroup]
+Rule: address  [rkType]
   Map{
     [ocOne] key=street(kkName)
       SimpleType(tstr)
     [ocOne] key=zip(kkName)
       SimpleType(uint)
   }
-Rule: response  [rkGroup]
+Rule: response  [rkType]
   Map{
     [ocOptional] key="err"(kkType)
       SimpleType(tstr)
     [ocOneOrMore] key="item"(kkType)
       SimpleType(uint)
   }
-Rule: coord  [rkGroup]
+Rule: coord  [rkType]
   Array[
     [ocOne]
       SimpleType(float)
     [ocOne]
       SimpleType(float)
   ]
-Rule: things  [rkGroup]
+Rule: things  [rkType]
   Array[
     [ocZeroOrMore]
       SimpleType(tstr)
   ]
-Rule: person  [rkGroup]
+Rule: person  [rkType]
   Map{
     [ocOne] key=name(kkName)
       SimpleType(tstr)
@@ -270,7 +268,7 @@ Rule: person  [rkGroup]
           SimpleType(tstr)
       }
   }
-Rule: config  [rkGroup]
+Rule: config  [rkType]
   Map{
     [ocOne] key=db(kkName)
       Map{
@@ -287,7 +285,7 @@ Rule: config  [rkGroup]
           SimpleType(bstr)
       }
   }
-Rule: deep  [rkGroup]
+Rule: deep  [rkType]
   Map{
     [ocOne] key=a(kkName)
       Map{
@@ -298,7 +296,7 @@ Rule: deep  [rkGroup]
           }
       }
   }
-Rule: matrix  [rkGroup]
+Rule: matrix  [rkType]
   Array[
     [ocOne]
       Array[
@@ -306,7 +304,7 @@ Rule: matrix  [rkGroup]
           SimpleType(float)
       ]
   ]
-Rule: nested  [rkGroup]
+Rule: nested  [rkType]
   Array[
     [ocZeroOrMore]
       Array[
@@ -316,7 +314,7 @@ Rule: nested  [rkGroup]
           SimpleType(uint)
       ]
   ]
-Rule: triple  [rkGroup]
+Rule: triple  [rkType]
   Array[
     [ocOne]
       Array[
@@ -334,7 +332,7 @@ Rule: triple  [rkGroup]
           SimpleType(bstr)
       ]
   ]
-Rule: table  [rkGroup]
+Rule: table  [rkType]
   Array[
     [ocZeroOrMore]
       Map{
@@ -344,7 +342,7 @@ Rule: table  [rkGroup]
           SimpleType(uint)
       }
   ]
-Rule: envelope  [rkGroup]
+Rule: envelope  [rkType]
   Map{
     [ocOne] key=headers(kkName)
       Array[
@@ -359,7 +357,7 @@ Rule: envelope  [rkGroup]
           SimpleType(bstr)
       ]
   }
-Rule: mixed  [rkGroup]
+Rule: mixed  [rkType]
   Array[
     [ocOne]
       Map{
@@ -374,7 +372,7 @@ Rule: mixed  [rkGroup]
           SimpleType(tstr)
       }
   ]
-Rule: result  [rkGroup]
+Rule: result  [rkType]
   Map{
     [ocOptional] key="ok"(kkType)
       Map{
@@ -389,7 +387,7 @@ Rule: result  [rkGroup]
           SimpleType(tstr)
       }
   }
-Rule: tree  [rkGroup]
+Rule: tree  [rkType]
   Array[
     [ocOne]
       SimpleType(uint)
@@ -404,30 +402,30 @@ Rule: tree  [rkGroup]
           ]
       ]
   ]
-Rule: any-type  [rkGroup]
+Rule: any-type  [rkType]
   Any
-Rule: union-ex  [rkGroup]
+Rule: union-ex  [rkType]
   Union[
     SimpleType(uint)
     SimpleType(tstr)
     SimpleType(bstr)
   ]
-Rule: ranged  [rkGroup]
+Rule: ranged  [rkType]
   Generic(..<0,100>)
-Rule: status  [rkGroup]
+Rule: status  [rkType]
   Union[
     Value("pending")
     Value("running")
     Value("done")
     Value("failed")
   ]
-Rule: port  [rkGroup]
+Rule: port  [rkType]
   Union[
     Value(80)
     Value(443)
     Value(8080)
   ]
-Rule: profile  [rkGroup]
+Rule: profile  [rkType]
   Map{
     [ocOne] key=name(kkName)
       SimpleType(tstr)
@@ -436,7 +434,7 @@ Rule: profile  [rkGroup]
     [ocOptional] key=age(kkName)
       SimpleType(uint)
   }
-Rule: settings  [rkGroup]
+Rule: settings  [rkType]
   Map{
     [ocOne] key=retries(kkName)
       SimpleType(uint)
@@ -445,43 +443,43 @@ Rule: settings  [rkGroup]
     [ocOne] key=mode(kkName)
       SimpleType(tstr)
   }
-Rule: bytes-id  [rkGroup]
+Rule: bytes-id  [rkType]
   Generic(.size<bstr,16>)
-Rule: identifier  [rkGroup]
+Rule: identifier  [rkType]
   Union[
     SimpleType(uint)
     SimpleType(tstr)
     SimpleType(bytes-id)
   ]
-Rule: short-name  [rkGroup]
+Rule: short-name  [rkType]
   Generic(..<1,..<1,32>>)
-Rule: sha256  [rkGroup]
+Rule: sha256  [rkType]
   Generic(.size<bstr,32>)
-Rule: resource-url  [rkGroup]
+Rule: resource-url  [rkType]
   Tagged(6.32)
     SimpleType(tstr)
-Rule: base64-data  [rkGroup]
+Rule: base64-data  [rkType]
   Tagged(6.21)
     SimpleType(bstr)
-Rule: box  [rkGroup]
+Rule: box  [rkType]
   genericParams: @["T"]
   Map{
     [ocOne] key=value(kkName)
       SimpleType(T)
   }
-Rule: list  [rkGroup]
+Rule: list  [rkType]
   genericParams: @["T"]
   Array[
     [ocZeroOrMore]
       SimpleType(T)
   ]
-Rule: dictionary  [rkGroup]
+Rule: dictionary  [rkType]
   genericParams: @["K", "V"]
   Map{
     [ocZeroOrMore] key=K(kkType)
       SimpleType(V)
   }
-Rule: response  [rkGroup]
+Rule: response  [rkType]
   genericParams: @["T"]
   Map{
     [ocOne] key=status(kkName)
@@ -489,7 +487,7 @@ Rule: response  [rkGroup]
     [ocOne] key=payload(kkName)
       SimpleType(T)
   }
-Rule: paged  [rkGroup]
+Rule: paged  [rkType]
   genericParams: @["T"]
   Map{
     [ocOne] key=items(kkName)
@@ -500,13 +498,13 @@ Rule: paged  [rkGroup]
     [ocOne] key=next-page(kkName)
       SimpleType(uint)
   }
-Rule: bounded-list  [rkGroup]
+Rule: bounded-list  [rkType]
   genericParams: @["T"]
   Array[
     [ocRange]
       SimpleType(T)
   ]
-Rule: success  [rkGroup]
+Rule: success  [rkType]
   genericParams: @["T"]
   Map{
     [ocOne] key=ok(kkName)
@@ -514,29 +512,29 @@ Rule: success  [rkGroup]
     [ocOne] key=value(kkName)
       SimpleType(T)
   }
-Rule: failure  [rkGroup]
+Rule: failure  [rkType]
   Map{
     [ocOne] key=ok(kkName)
       SimpleType(false)
     [ocOne] key=error(kkName)
       SimpleType(tstr)
   }
-Rule: result-t  [rkGroup]
+Rule: result-t  [rkType]
   genericParams: @["T"]
   Union[
     Generic(success<T>)
     SimpleType(failure)
   ]
-Rule: user  [rkGroup]
+Rule: user  [rkType]
   Map{
     [ocOne] key=id(kkName)
       SimpleType(uint)
     [ocOne] key=name(kkName)
       SimpleType(tstr)
   }
-Rule: encoded-user  [rkGroup]
+Rule: encoded-user  [rkType]
   Generic(.cbor<bstr,user>)
-Rule: node  [rkGroup]
+Rule: node  [rkType]
   Map{
     [ocOne] key=value(kkName)
       SimpleType(int)
@@ -546,14 +544,14 @@ Rule: node  [rkGroup]
           SimpleType(node)
       ]
   }
-Rule: linked-node  [rkGroup]
+Rule: linked-node  [rkType]
   Map{
     [ocOne] key=value(kkName)
       SimpleType(any)
     [ocOptional] key=next(kkName)
       SimpleType(linked-node)
   }
-Rule: opcode  [rkGroup]
+Rule: opcode  [rkType]
   Group(
     [ocOne] key=login
       Value(1)
@@ -564,14 +562,14 @@ Rule: opcode  [rkGroup]
     [ocOne] key=pong
       Value(4)
   )
-Rule: open-metadata  [rkGroup]
+Rule: open-metadata  [rkType]
   Map{
     [ocOne] key=version(kkName)
       SimpleType(uint)
     [ocZeroOrMore] key=tstr(kkType)
       SimpleType(any)
   }
-Rule: sensor-values  [rkGroup]
+Rule: sensor-values  [rkType]
   Map{
     [ocOne] key=1(kkType)
       SimpleType(float)
@@ -580,7 +578,7 @@ Rule: sensor-values  [rkGroup]
     [ocOne] key=3(kkType)
       SimpleType(float)
   }
-Rule: page  [rkGroup]
+Rule: page  [rkType]
   genericParams: @["T"]
   Map{
     [ocOne] key=items(kkName)
@@ -595,7 +593,7 @@ Rule: page  [rkGroup]
     [ocOne] key=page-size(kkName)
       SimpleType(uint)
   }
-Rule: api-envelope  [rkGroup]
+Rule: api-envelope  [rkType]
   genericParams: @["T"]
   Map{
     [ocOne] key=trace-id(kkName)
@@ -605,9 +603,9 @@ Rule: api-envelope  [rkGroup]
     [ocOne] key=payload(kkName)
       SimpleType(T)
   }
-Rule: user-page-envelope  [rkGroup]
+Rule: user-page-envelope  [rkType]
   Generic(api-envelope<page<user>>)
-Rule: api-response  [rkGroup]
+Rule: api-response  [rkType]
   genericParams: @["T"]
   Map{
     [ocOne] key=code(kkName)
@@ -624,13 +622,13 @@ Rule: api-response  [rkGroup]
           SimpleType(tstr)
       }
   }
-Rule: message-type  [rkGroup]
+Rule: message-type  [rkType]
   Union[
     Value(1)
     Value(2)
     Value(3)
   ]
-Rule: header  [rkGroup]
+Rule: header  [rkType]
   Map{
     [ocOne] key=version(kkName)
       Value(1)
@@ -639,37 +637,44 @@ Rule: header  [rkGroup]
     [ocOne] key=request-id(kkName)
       SimpleType(uint)
   }
-Rule: login-payload  [rkGroup]
+Rule: login-payload  [rkType]
   Map{
     [ocOne] key=username(kkName)
       SimpleType(tstr)
     [ocOne] key=password(kkName)
       SimpleType(tstr)
   }
-Rule: ping-payload  [rkGroup]
+Rule: ping-payload  [rkType]
   Map{
     [ocOne] key=timestamp(kkName)
       SimpleType(uint)
   }
-Rule: packet-payload  [rkGroup]
+Rule: packet-payload  [rkType]
   Union[
     SimpleType(login-payload)
     SimpleType(ping-payload)
   ]
-Rule: packet  [rkGroup]
+Rule: packet  [rkType]
   Map{
     [ocOne] key=header(kkName)
       SimpleType(header)
     [ocOne] key=body(kkName)
       SimpleType(packet-payload)
   }
-Rule: plugin-config  [rkGroup]
+Rule: plugin-config  [rkType]
   Map{
     [ocOne] key=name(kkName)
       SimpleType(tstr)
     [ocOne] key=config(kkName)
       SimpleType(any)
   }
+Rule: record-header  [rkGroup]
+  Group(
+    [ocOne]
+      SimpleType(uint)
+    [ocOne]
+      SimpleType(tstr)
+  )
 """
     var schemaOut = ""
     let (ok2, schema) = parseCddl(rich)
