@@ -96,8 +96,10 @@ let cddlParser* = peg("cddl", userdata: ParseState):
 
   #rule <- (typename * ?genericparm * S * assignt * S * typ) |
   #        (groupname * ?genericparm * S * assigng * S * grpent)
-  rule <- (ruleTypename * ?genericparm * S * ruleAssignt * S * typ) |
-    (ruleTypename * ?genericparm * S * ruleAssigng * S * grpent) do:
+  rule <- (
+    (ruleTypename * ?genericparm * S * ruleAssignt * S * typ) |
+    (ruleTypename * ?genericparm * S * ruleAssigng * S * grpent)
+  ) do:
     let top =
       if userdata.nested.len > 0:
         userdata.nested.pop()
@@ -169,13 +171,11 @@ let cddlParser* = peg("cddl", userdata: ParseState):
     userdata.wip.keyText = $1
     userdata.wip.isCut = ($2).len > 0
 
-  # bareword ":"
-  memberkeyName <- >id * S * ':' do:
+  memberkeyName <- >bareword * S * ':' do:
     reset(userdata.wip.typ)
     userdata.wip.keyKind = kkName
     userdata.wip.keyText = $1
 
-  # value ":"
   memberkeyValue <- >value * S * ':' do:
     reset(userdata.wip.typ)
     userdata.wip.keyKind = kkValue
