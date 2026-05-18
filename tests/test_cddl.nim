@@ -136,7 +136,8 @@ when isMainModule:
     echo ""
 
   block:
-    let rich = """
+    let rich =
+      """
 foo = bar
 foo-union = uint / tstr / bstr
 small = 0..100
@@ -202,7 +203,8 @@ packet-payload = login-payload / ping-payload
 packet = { header: header, body: packet-payload }
 plugin-config = { name: tstr, config: any }
 """
-    let expected = """
+    let expected =
+      """
 Rule: foo  [rkGroup]
   SimpleType(bar)
 Rule: foo-union  [rkGroup]
