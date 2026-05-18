@@ -86,7 +86,6 @@ type ParseState* = object
 
   # Aux fields
   variants: seq[FieldType]
-  tagNum: string
   opLhs: FieldType
   opText: string
 
@@ -97,8 +96,8 @@ let cddlParser* = peg("cddl", userdata: ParseState):
 
   #rule <- (typename * ?genericparm * S * assignt * S * typ) |
   #        (groupname * ?genericparm * S * assigng * S * grpent)
-  rule <- (ruleTypename * ?genericparm * S * ruleAssignT * S * typ) |
-    (ruleTypename * ?genericparm * S * ruleAssignG * S * grpent) do:
+  rule <- (ruleTypename * ?genericparm * S * ruleAssignt * S * typ) |
+    (ruleTypename * ?genericparm * S * ruleAssigng * S * grpent) do:
     let top =
       if userdata.nested.len > 0:
         userdata.nested.pop()
@@ -122,23 +121,23 @@ let cddlParser* = peg("cddl", userdata: ParseState):
   ruleTypename <- >id do:
     userdata.ruleName = $1
 
-  # assigng = "=" / "//="  -- group assignment
-  ruleAssignG <- ("//=" | "=") do:
+  # assigng <- '=' | "//="
+  ruleAssigng <- '=' | "//=" do:
     userdata.ruleKind = rkGroup
 
-  # assignt = "=" / "/="   -- type assignment (adds "/=")
-  ruleAssignT <- ("/=" | "=") do:
+  # assignt <- '=' | "/="
+  ruleAssignt <- '=' | "/=" do:
     userdata.ruleKind = rkType
 
-  # group = grpchoice *(S "//" S grpchoice)
   group <- grpchoice * *(S * "//" * S * grpchoice)
 
   grpchoice <- *(grpent * optcom)
 
   optcom <- S * ?(',' * S)
 
-  # grpent = [occur S] [memberkey S] type
-  #        / [occur S] "(" S group S ")"
+  # grpent <- (?(occur * S) * ?(memberkey * S) * typ) |
+  #           (?(occur * S) * groupname * ?genericarg) |  ; preempted by above
+  #           (?(occur * S) * '(' * S * group * S * ')')
   grpent <-
     grpentReset *
     ((?(occur * S) * ?(memberkey * S) * typ) | (?(occur * S) * grpentInlineGroup)) *
@@ -159,15 +158,16 @@ let cddlParser* = peg("cddl", userdata: ParseState):
     reset(userdata.wip.typ)
     userdata.nested.add userdata.wip
 
-  # memberkey = type1 S ["^" S] "=>" / bareword S ":" / value S ":"
+  # memberkey <- (type1 * S * ?('^' * S) * "=>") |
+  #              (bareword * S * ':') |
+  #              (value * S * ':')
   memberkey <- memberkeyType | memberkeyName | memberkeyValue
 
-  # type1 S ["^" S] "=>"
-  memberkeyType <- >type1 * S * >?('^') * S * "=>" do:
+  memberkeyType <- >type1 * S * >?('^' * S) * "=>" do:
     reset(userdata.wip.typ)
     userdata.wip.keyKind = kkType
     userdata.wip.keyText = $1
-    userdata.wip.isCut = $2 == "^"
+    userdata.wip.isCut = ($2).len > 0
 
   # bareword ":"
   memberkeyName <- >id * S * ':' do:
@@ -219,28 +219,11 @@ let cddlParser* = peg("cddl", userdata: ParseState):
     type2Value | type2TypeName | type2Paren | type2Map | type2Array | type2Unwrap |
     type2GroupEnum | type2GroupName | type2Tag | type2Major | type2Any
 
-  type2Map <- type2MapPush * group * S * '}' do:
-    userdata.wip = userdata.nested.pop()
-    userdata.wip.typ.kind = fkMap
-
-  # { S group S }
-  type2MapPush <- '{' * S do:
-    reset(userdata.wip.typ)
-    userdata.nested.add userdata.wip
-
-  type2Array <- type2ArrayPush * group * S * ']' do:
-    userdata.wip = userdata.nested.pop()
-    userdata.wip.typ.kind = fkArray
-
-  # [ S group S ]
-  type2ArrayPush <- '[' * S do:
-    reset(userdata.wip.typ)
-    userdata.nested.add userdata.wip
-
   type2Value <- >value do:
     userdata.wip.typ = FieldType(kind: fkValue, valueText: $1)
 
-  type2TypeName <- >typename * ?genericarg do:
+  # (typename * ?genericarg)
+  type2TypeName <- >type2TypeNameBase * ?genericarg do:
     userdata.wip.typ =
       if userdata.wip.typ.genericArgs.len > 0:
         FieldType(
@@ -249,30 +232,10 @@ let cddlParser* = peg("cddl", userdata: ParseState):
       else:
         FieldType(kind: fkSimpleType, name: $1)
 
-  typename <- id do:
+  type2TypeNameBase <- typename do:
     reset(userdata.wip.typ)
 
-  type2Tag <- '#' * '6' * (type2TagWithNum | type2TagNoNum) * '(' * S * typ * S * ')' do:
-    let inner = new FieldType
-    inner[] = userdata.wip.typ
-    userdata.wip.typ =
-      FieldType(kind: fkTagged, tagNumber: userdata.tagNum, inner: inner)
-
-  # #6 [.uint] (type)
-  type2TagWithNum <- '.' * >uint do:
-    userdata.tagNum = "6." & $1
-
-  type2TagNoNum <- 0 do:
-    userdata.tagNum = "6"
-
-  # #N [.uint]  (major type, N != 6 handled by ordering)
-  type2Major <- '#' * >(DIGIT * ?('.' * uint)) do:
-    userdata.wip.typ = FieldType(kind: fkSimpleType, name: "#" & $1)
-
-  # bare #
-  type2Any <- '#' do:
-    userdata.wip.typ = FieldType(kind: fkAny)
-
+  # ('(' * S * typ * S * ')')
   type2Paren <- type2ParenPush * typ * S * ')' do:
     let ft = userdata.wip.typ
     userdata.wip = userdata.nested.pop()
@@ -281,11 +244,29 @@ let cddlParser* = peg("cddl", userdata: ParseState):
     #else:
     userdata.wip.typ = ft
 
-  # ( S typ S )
   type2ParenPush <- '(' * S do:
     reset(userdata.wip.typ)
     userdata.nested.add userdata.wip
 
+  # ('{' * S * group * S * '}')
+  type2Map <- type2MapPush * group * S * '}' do:
+    userdata.wip = userdata.nested.pop()
+    userdata.wip.typ.kind = fkMap
+
+  type2MapPush <- '{' * S do:
+    reset(userdata.wip.typ)
+    userdata.nested.add userdata.wip
+
+  # ('[' * S * group * S * ']')
+  type2Array <- type2ArrayPush * group * S * ']' do:
+    userdata.wip = userdata.nested.pop()
+    userdata.wip.typ.kind = fkArray
+
+  type2ArrayPush <- '[' * S do:
+    reset(userdata.wip.typ)
+    userdata.nested.add userdata.wip
+
+  # ('~' * S * typename * ?genericarg)
   type2Unwrap <- type2UnwrapBase * ?genericarg do:
     userdata.wip.typ = FieldType(
       kind: fkGeneric,
@@ -293,20 +274,20 @@ let cddlParser* = peg("cddl", userdata: ParseState):
       genericArgs: userdata.wip.typ.genericArgs,
     )
 
-  # ~id [genericarg]
-  type2UnwrapBase <- '~' * S * >id do:
+  type2UnwrapBase <- '~' * S * >typename do:
     reset(userdata.wip.typ)
     userdata.wip.typ.genericBase = $1
 
+  # ('&' * S * '(' * S * group * S * ')')
   type2GroupEnum <- type2GroupEnumPush * group * S * ')' do:
     userdata.wip = userdata.nested.pop()
     userdata.wip.typ.kind = fkGroup
 
-  # &(group)
   type2GroupEnumPush <- '&' * S * '(' * S do:
     reset(userdata.wip.typ)
     userdata.nested.add userdata.wip
 
+  # ('&' * S * groupname * ?genericarg)
   type2GroupName <- type2GroupNameBase * ?genericarg do:
     userdata.wip.typ = FieldType(
       kind: fkGeneric,
@@ -314,10 +295,23 @@ let cddlParser* = peg("cddl", userdata: ParseState):
       genericArgs: userdata.wip.typ.genericArgs,
     )
 
-  # &id [genericarg]
-  type2GroupNameBase <- '&' * S * >id do:
+  type2GroupNameBase <- '&' * S * >groupname do:
     reset(userdata.wip.typ)
     userdata.wip.typ.genericBase = $1
+
+  # ('#' * '6' * ?('.' * uint) * '(' * S * typ * S * ')')
+  type2Tag <- '#' * >('6' * ?('.' * uint)) * '(' * S * typ * S * ')' do:
+    let inner = new FieldType
+    inner[] = userdata.wip.typ
+    userdata.wip.typ = FieldType(kind: fkTagged, tagNumber: $1, inner: inner)
+
+  # ('#' * DIGIT * ?('.' * uintx))
+  type2Major <- '#' * >(DIGIT * ?('.' * uint)) do:
+    userdata.wip.typ = FieldType(kind: fkSimpleType, name: $1)
+
+  # (#)
+  type2Any <- '#' do:
+    userdata.wip.typ = FieldType(kind: fkAny)
 
   # genericarg <- '<' * S * type1 * S * *(',' * S * type1 * S) * '>'
   genericarg <-
@@ -353,30 +347,36 @@ let cddlParser* = peg("cddl", userdata: ParseState):
   occurOptional <- '?' do:
     userdata.wip.occur.kind = ocOptional
 
+  bareword <- id
+  typename <- id
+  groupname <- id
+
   value <- number | text | bytes
   text <- '"' * *SCHAR * '"'
   bytes <- ?bsqual * '\'' * *BCHAR * '\''
-  bsqual <- "b64" | 'h'
+  bsqual <- 'h' | "b64"
   rangeop <- "..." | ".."
   ctlop <- '.' * id
   id <- EALPHA * *(*('-' | '.') * (EALPHA | DIGIT))
-  number <- hexfloat | (int_v * ?('.' * fraction) * ?('e' * exponent))
+  number <- hexfloat | (int * ?('.' * fraction) * ?('e' * exponent))
   hexfloat <- ?'-' * "0x" * +HEXDIG * ?('.' * +HEXDIG) * 'p' * exponent
-  int_v <- ?'-' * uint
-  uint <- ("0x" * +HEXDIG) | ("0b" * +BINDIG) | (DIGIT1 * *DIGIT) | '0'
+  int <- ?'-' * uint
+  uint <- (DIGIT1 * *DIGIT) | ("0x" * +HEXDIG) | ("0b" * +BINDIG) | "0"
   fraction <- +DIGIT
   exponent <- ?('+' | '-') * +DIGIT
   SCHAR <-
-    {'\x20' .. '\x21'} | {'\x23' .. '\x5B'} | {'\x5D' .. '\x7E'} | {'\x80' .. '\xFF'} |
-    SESC
-  BCHAR <- {'\x20' .. '\x26'} | {'\x28' .. '\x5B'} | {'\x5D' .. '\xFF'} | SESC | CRLF
-  SESC <- '\\' * ({'\x20' .. '\x7E'} | {'\x80' .. '\xFF'})
+    {'\x20' .. '\x21', '\x23' .. '\x5B', '\x5D' .. '\x7E', '\x80' .. '\xFF'} | SESC
+  BCHAR <-
+    {'\x20' .. '\x26', '\x28' .. '\x5B', '\x5D' .. '\x7E', '\x80' .. '\xFF'} | SESC |
+    CRLF
+  SESC <- '\\' * {'\x20' .. '\x7E', '\x80' .. '\xFF'}
 
   S <- *WS
-  WS <- ' ' | NL
+  WS <- SP | NL
+  SP <- ' '
   NL <- COMMENT | CRLF
   COMMENT <- ';' * *PCHAR * CRLF
-  PCHAR <- {'\x20' .. '\x7E'} | {'\x80' .. '\xFF'}
+  PCHAR <- {'\x20' .. '\x7E', '\x80' .. '\xFF'}
   CRLF <- ('\x0D' * '\x0A') | '\x0A'
 
   BINDIG <- '0' | '1'
