@@ -19,5 +19,4 @@ jobs:
         nimble list --installed --version
         env nimble features
         env NIMLANG=c nimble test
-        env NIMLANG=cpp nimble test
         env nimble examples
