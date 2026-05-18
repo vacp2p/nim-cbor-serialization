@@ -9,7 +9,7 @@
 
 import unittest2, ./utils, ../cbor_serialization/tools/cddl
 
-when isMainModule:
+proc main() =
   let cases = [
     # basic
     ("foo = bar\n", true),
@@ -693,3 +693,7 @@ Rule: record-header  [rkGroup]
         echo "PASS: schema validation"
     else:
       doAssert false, "ERROR: rich example failed to parse"
+
+when isMainModule:
+  static:
+    main()
