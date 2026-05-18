@@ -463,4 +463,3 @@ proc showType*(ft: FieldType, indent = 0): string =
       if f.typ.kind != fkUnset:
         s &= showType(f.typ, indent + 2) & "\n"
     s & pad & ")"
-
