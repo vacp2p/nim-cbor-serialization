@@ -7,7 +7,7 @@
 # This file may not be copied, modified, or distributed except according to
 # those terms.
 
-import std/[os], unittest2, ./utils, ../cbor_serialization/tools/cddl
+import std/[os, strutils], unittest2, ./utils, ../cbor_serialization/tools/cddl
 
 const testSpecCases = [
   """
@@ -485,13 +485,8 @@ const testCases = [
   "plugin-config = { name: tstr, config: any }",
 ]
 
-const invalidTestCases = [
-  "bad =",
-  "",
-  "{ broken",
-  "foo = 1*3 tstr",
-  "name = tstr .size 1..",
-]
+const invalidTestCases =
+  ["bad =", "", "{ broken", "foo = 1*3 tstr", "name = tstr .size 1.."]
 
 # https://cborbook.com/part_1/cbor_schemas_with_cddl.html
 const testBookCases = [
@@ -579,6 +574,9 @@ response = {
   "message-stream = bstr .cborseq log-entry",
 ]
 
+proc normalizeText(s: string): string =
+  s.replace("\r\n", "\n").strip()
+
 suite "Test CDDL parser":
   staticTest "parse spec test cases":
     for t in testSpecCases:
@@ -632,6 +630,6 @@ suite "Test CDDL parser":
             dump.add "  groupEntries: " & $r.groupEntries.len & " field(s)\n"
       const dumpFile = currentSourcePath.parentDir() / "test_cddl_dump.txt"
       const dumpContent = staticRead(dumpFile)
-      if dump != dumpContent:
+      if dump.normalizeText() != dumpContent.normalizeText():
         checkpoint(dump)
         fail()
