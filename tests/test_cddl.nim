@@ -580,35 +580,35 @@ response = {
 ]
 
 suite "Test CDDL parser":
-  test "parse spec test cases":
+  staticTest "parse spec test cases":
     for t in testSpecCases:
       let (ok, _) = parseCddl(t)
       if not ok:
         checkpoint("FAILED (spec): " & t)
         fail()
 
-  test "parse valid test cases":
+  staticTest "parse valid test cases":
     for t in testCases:
       let (ok, _) = parseCddl(t)
       if not ok:
         checkpoint("FAILED (valid): " & t)
         fail()
 
-  test "parse invalid test cases":
+  staticTest "parse invalid test cases":
     for t in invalidTestCases:
       let (ok, _) = parseCddl(t)
       if ok:
         checkpoint("FAILED (invalid): " & t)
         fail()
 
-  test "parse cbor book test cases":
+  staticTest "parse cbor book test cases":
     for t in testBookCases:
       let (ok, _) = parseCddl(t)
       if not ok:
         checkpoint("FAILED (book): " & t)
         fail()
 
-  test "schema dump":
+  staticTest "schema dump":
     var schemas = default(seq[CddlSchema])
     var passed = true
     for t in testCases:
