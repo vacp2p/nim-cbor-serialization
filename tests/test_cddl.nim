@@ -606,7 +606,7 @@ suite "Test CDDL parser":
         checkpoint("FAILED (book): " & t)
         fail()
 
-  dualTest "schema dump":
+  staticTest "schema dump":
     var schemas = default(seq[CddlSchema])
     var passed = true
     for t in testCases:
