@@ -7,7 +7,7 @@
 # This file may not be copied, modified, or distributed except according to
 # those terms.
 
-import std/[os, strutils], unittest2, ./utils, ../cbor_serialization/tools/cddl
+import std/[os, strutils], unittest2, ./utils, ../cbor_serialization/tools/cddl/parser
 
 const testSpecCases = [
   """
@@ -580,29 +580,25 @@ proc normalizeText(s: string): string =
 suite "Test CDDL parser":
   staticTest "parse spec test cases":
     for t in testSpecCases:
-      let (ok, _) = parseCddl(t)
-      if not ok:
+      if not parseCddl(t).isOk:
         checkpoint("FAILED (spec): " & t)
         fail()
 
   staticTest "parse valid test cases":
     for t in testCases:
-      let (ok, _) = parseCddl(t)
-      if not ok:
+      if not parseCddl(t).isOk:
         checkpoint("FAILED (valid): " & t)
         fail()
 
   staticTest "parse invalid test cases":
     for t in invalidTestCases:
-      let (ok, _) = parseCddl(t)
-      if ok:
+      if parseCddl(t).isOk:
         checkpoint("FAILED (invalid): " & t)
         fail()
 
   staticTest "parse cbor book test cases":
     for t in testBookCases:
-      let (ok, _) = parseCddl(t)
-      if not ok:
+      if not parseCddl(t).isOk:
         checkpoint("FAILED (book): " & t)
         fail()
 
@@ -610,13 +606,12 @@ suite "Test CDDL parser":
     var schemas = default(seq[CddlSchema])
     var passed = true
     for t in testCases:
-      let (ok, schema) = parseCddl(t)
-      schemas.add schema
-      if not ok:
+      let schema = parseCddl(t).valueOr:
         checkpoint("failed: " & t)
         fail()
         passed = false
         break
+      schemas.add schema
     if passed:
       var dump = ""
       for schema in schemas:
