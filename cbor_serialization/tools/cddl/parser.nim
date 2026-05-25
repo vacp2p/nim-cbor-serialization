@@ -108,10 +108,11 @@ proc newCddlError(s: string, matchLen, matchMax: int): ref CborCddlError =
   let posB = max(-1, min(s.high, matchMax))
   let lineA = s[0 ..< posA].count('\n') + 1
   let lineB = s[0 ..< max(0, posB)].count('\n') + 1
-  let line = if lineA != lineB:
-    $lineA & "-" & $lineB
-  else:
-    $lineA
+  let line =
+    if lineA != lineB:
+      $lineA & "-" & $lineB
+    else:
+      $lineA
   (ref CborCddlError)(
     msg: "CBOR CDDL failed to parse line " & line & ": " & s[posA .. posB]
   )
@@ -415,17 +416,18 @@ proc parseCddl*(source: string): CddlSchema {.raises: [CborCddlError].} =
     ALPHA <- {'A' .. 'Z'} | {'a' .. 'z'}
 
   var state = ParseState()
-  let r = try:
-    parser.match(source, state)
-  except NPegException as exc:
-    raise newCddlError(source, exc.matchLen, exc.matchMax)
-  # match throws Exception error...
-  except CatchableError as exc:
-    raise (ref CborCddlError)(msg: "CBOR CDDL parser error: " & exc.msg, parent: exc)
-  except Defect:
-    raise
-  except Exception:
-    raiseAssert "Unexpected Exception"
+  let r =
+    try:
+      parser.match(source, state)
+    except NPegException as exc:
+      raise newCddlError(source, exc.matchLen, exc.matchMax)
+    # match throws Exception error...
+    except CatchableError as exc:
+      raise (ref CborCddlError)(msg: "CBOR CDDL parser error: " & exc.msg, parent: exc)
+    except Defect:
+      raise
+    except Exception:
+      raiseAssert "Unexpected Exception"
   if r.ok:
     doAssert r.matchLen == source.len
     state.schema

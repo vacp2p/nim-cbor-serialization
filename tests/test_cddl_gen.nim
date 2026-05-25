@@ -7,11 +7,12 @@
 # This file may not be copied, modified, or distributed except according to
 # those terms.
 
-import std/[macros, strutils], unittest2, ../cbor_serialization/tools/cddl/type_generator
+import
+  std/[macros, strutils], unittest2, ../cbor_serialization/tools/cddl/type_generator
 
 proc removeSyms(ast: NimNode): NimNode =
   proc inspect(node: NimNode): NimNode =
-    case node.kind:
+    case node.kind
     of {nnkIdent, nnkSym}:
       # remove `gensymX
       return ident(split($node, '`')[0])
@@ -26,6 +27,7 @@ proc removeSyms(ast: NimNode): NimNode =
       for child in node:
         rTree.add inspect(child)
       return rTree
+
   result = inspect(ast)
 
 suite "Test CDDL type generator":
@@ -38,12 +40,12 @@ Person = {
 }
     """
     let gened = fromCddlImpl(cddlDef)
-    let expected = quote do:
-      type
-        Person* = object
-          age*: int
-          name*: string
-          employer*: string
+    let expected = quote:
+      type Person* = object
+        age*: int
+        name*: string
+        employer*: string
+
     if gened != expected.removeSyms:
       checkpoint("FAILED: " & repr(gened))
       fail()
