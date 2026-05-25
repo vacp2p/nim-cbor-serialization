@@ -56,6 +56,38 @@ suite "Test CDDL type generator":
 
     checkCddl(cddl, expected)
 
+  staticTest "map => should generate an object":
+    const cddl =
+      """
+      Person = {
+        age => int,
+        name => tstr,
+        employer => tstr,
+      }"""
+    let expected = quote:
+      type Person* = object
+        age*: int
+        name*: string
+        employer*: string
+
+    checkCddl(cddl, expected)
+
+  staticTest "map of string keys should generate an object":
+    const cddl =
+      """
+      Person = {
+        "age" => int,
+        "name" => tstr,
+        "employer" => tstr,
+      }"""
+    let expected = quote:
+      type Person* = object
+        age*: int
+        name*: string
+        employer*: string
+
+    checkCddl(cddl, expected)
+
   staticTest "literal variant should generate an enum":
     const cddl =
       """

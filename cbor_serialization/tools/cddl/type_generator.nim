@@ -11,6 +11,8 @@ import std/[macros, tables, strutils], stew/shims/macros as stewmacros, ./parser
 
 export CborCddlError
 
+const repeatedMap = {OccurKind.ocOneOrMore, OccurKind.ocZeroOrMore, OccurKind.ocRange}
+
 proc newCborCddlError(msg: string): ref CborCddlError =
   (ref CborCddlError)(msg: msg)
 
@@ -52,6 +54,8 @@ proc toNimTyp(ft: FieldType, isOptional = false): NimNode =
     of fkMap:
       if ft.fields.len != 1:
         raise newCborCddlError("unsupported map of len: " & $ft.fields.len)
+      if ft.fields[0].occur.kind notin repeatedMap:
+        raise newCborCddlError("unsupported single key map")
       let key = toSimpleNimTyp(ft.fields[0].keyText)
       let val = toNimTyp(ft.fields[0].typ)
       newNimNode(nnkBracketExpr).add(ident("Table"), key, val)
@@ -80,6 +84,18 @@ proc toLitNode(ft: FieldType): NimNode =
         raise newCborCddlError("unsupported value " & s)
     newLitFixed(val)
 
+proc toKeyNode(ft: Field): NimNode =
+  template s(): untyped =
+    ft.keyText
+
+  doAssert s.len > 0
+  if s[0] == '"':
+    doAssert s.len >= 2
+    doAssert s[^1] == '"'
+    ident(s[1 ..< s.high])
+  else:
+    ident(s)
+
 proc toEnumFieldName(s: string, i: int): NimNode =
   if s.len >= 2 and s[0].isAlphaAscii and s[1].isAlphaAscii:
     ident(toLowerAscii(s[0 .. 1] & $i))
@@ -95,8 +111,6 @@ proc literalsMap(cddl: CddlSchema): TableRef[string, FieldType] =
 
 proc isOptional(f: Field): bool =
   f.occur.kind == OccurKind.ocOptional
-
-const repeatedMap = {OccurKind.ocOneOrMore, OccurKind.ocZeroOrMore, OccurKind.ocRange}
 
 proc fromCddlImpl*(s: string): NimNode {.raises: [CborCddlError].} =
   result = newNimNode(nnkTypeSection)
@@ -114,7 +128,7 @@ proc fromCddlImpl*(s: string): NimNode {.raises: [CborCddlError].} =
           let fields = newNimNode(nnkRecList)
           for f in rule.typeExpr.fields:
             fields.add newNimNode(nnkIdentDefs).add(
-              newNimNode(nnkPostfix).add(ident("*"), ident(f.keyText)),
+              newNimNode(nnkPostfix).add(ident("*"), toKeyNode(f)),
               toNimTyp(f.typ, f.isOptional),
               newEmptyNode(),
             )
