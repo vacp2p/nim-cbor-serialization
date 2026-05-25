@@ -86,26 +86,39 @@ type
 
   CborCddlError* = object of CatchableError
 
-type ParseState* = object
-  schema*: CddlSchema
+  ParseState* = object
+    schema*: CddlSchema
 
-  ruleName: string
-  ruleGenParams: seq[string]
-  ruleKind: RuleKind
+    ruleName: string
+    ruleGenParams: seq[string]
+    ruleKind: RuleKind
 
-  wip: Field
+    wip: Field
 
-  # Push on '{' '[' '(' '<' entry, pop on closing delimiter
-  nested: seq[Field]
+    # Push on '{' '[' '(' '<' entry, pop on closing delimiter
+    nested: seq[Field]
 
-  # Aux fields
-  variants: seq[FieldType]
-  opLhs: FieldType
-  opText: string
+    # Aux fields
+    variants: seq[FieldType]
+    opLhs: FieldType
+    opText: string
+
+proc newCddlError(s: string, matchLen, matchMax: int): ref CborCddlError =
+  let posA = max(0, min(s.high, matchLen))
+  let posB = max(-1, min(s.high, matchMax))
+  let lineA = s[0 ..< posA].count('\n') + 1
+  let lineB = s[0 ..< max(0, posB)].count('\n') + 1
+  let line = if lineA != lineB:
+    $lineA & "-" & $lineB
+  else:
+    $lineA
+  (ref CborCddlError)(
+    msg: "CBOR CDDL failed to parse line " & line & ": " & s[posA .. posB]
+  )
 
 # Rules ordered as in https://github.com/zevv/npeg#ordering-of-rules-in-a-grammar
 
-proc parseCddl*(source: string): Opt[CddlSchema] {.raises: [CborCddlError].} =
+proc parseCddl*(source: string): CddlSchema {.raises: [CborCddlError].} =
   let parser = peg("cddl", userdata: ParseState):
     cddl <- S * +(rule * S) * !1
 
@@ -405,17 +418,7 @@ proc parseCddl*(source: string): Opt[CddlSchema] {.raises: [CborCddlError].} =
   let r = try:
     parser.match(source, state)
   except NPegException as exc:
-    let posA = max(0, min(source.high, exc.matchLen))
-    let posB = max(-1, min(source.high, exc.matchMax))
-    let lineA = source[0 ..< posA].count('\n') + 1
-    let lineB = source[0 ..< max(0, posB)].count('\n') + 1
-    let line = if lineA != lineB:
-      $lineA & "-" & $lineB
-    else:
-      $lineA
-    raise (ref CborCddlError)(
-      msg: "CBOR CDDL failed to parse line " & line & ": " & source[posA .. posB], parent: exc
-    )
+    raise newCddlError(source, exc.matchLen, exc.matchMax)
   # match throws Exception error...
   except CatchableError as exc:
     raise (ref CborCddlError)(msg: "CBOR CDDL parser error: " & exc.msg, parent: exc)
@@ -424,9 +427,10 @@ proc parseCddl*(source: string): Opt[CddlSchema] {.raises: [CborCddlError].} =
   except Exception:
     raiseAssert "Unexpected Exception"
   if r.ok:
-    Opt.some(state.schema)
+    doAssert r.matchLen == source.len
+    state.schema
   else:
-    Opt.none(CddlSchema)
+    raise newCddlError(source, r.matchLen, r.matchMax)
 
 proc showTypeInline*(ft: FieldType): string =
   ## Compact single-line rendering used for Generic<...> arg lists.

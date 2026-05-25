@@ -580,39 +580,47 @@ proc normalizeText(s: string): string =
 suite "Test CDDL parser":
   staticTest "parse spec test cases":
     for t in testSpecCases:
-      if not parseCddl(t).isOk:
+      try:
+        discard parseCddl(t)
+      except CborCddlError:
         checkpoint("FAILED (spec): " & t)
         fail()
 
   staticTest "parse valid test cases":
     for t in testCases:
-      if not parseCddl(t).isOk:
+      try:
+        discard parseCddl(t)
+      except CborCddlError:
         checkpoint("FAILED (valid): " & t)
         fail()
 
   staticTest "parse invalid test cases":
     for t in invalidTestCases:
-      if parseCddl(t).isOk:
+      try:
+        discard parseCddl(t)
         checkpoint("FAILED (invalid): " & t)
         fail()
+      except CborCddlError:
+        discard
 
   staticTest "parse cbor book test cases":
     for t in testBookCases:
-      if not parseCddl(t).isOk:
+      try:
+        discard parseCddl(t)
+      except CborCddlError:
         checkpoint("FAILED (book): " & t)
         fail()
 
   staticTest "schema dump":
     var schemas = default(seq[CddlSchema])
-    var passed = true
     for t in testCases:
-      let schema = parseCddl(t).valueOr:
-        checkpoint("failed: " & t)
+      try:
+        let schema = parseCddl(t)
+        schemas.add schema
+      except CborCddlError:
+        checkpoint("failed (dump): " & t)
         fail()
-        passed = false
-        break
-      schemas.add schema
-    if passed:
+    if schemas.len == testCases.len:
       var dump = ""
       for schema in schemas:
         for r in schema:
