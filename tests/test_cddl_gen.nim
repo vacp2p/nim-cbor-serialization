@@ -81,3 +81,31 @@ suite "Test CDDL type generator":
         ch2 = 2
 
     checkCddl(cddl, expected)
+
+  staticTest "literal variant of strings should generate an enum":
+    const cddl =
+      """
+      Choices = "foo" / "bar" / "baz"
+      """
+    let expected = quote:
+      type Choices* {.pure.} = enum
+        ch0 = "foo"
+        ch1 = "bar"
+        ch2 = "baz"
+
+    checkCddl(cddl, expected)
+
+  staticTest "simple type should generate an alias":
+    const cddl =
+      """
+      Foo = tstr
+      Bar = int
+      Baz = Bar
+      """
+    let expected = quote:
+      type
+        Foo* = string
+        Bar* = int
+        Baz* = Bar
+
+    checkCddl(cddl, expected)

@@ -15,14 +15,14 @@ proc newCborCddlError(msg: string): ref CborCddlError =
   (ref CborCddlError)(msg: msg)
 
 # https://datatracker.ietf.org/doc/html/rfc8610#appendix-D
-proc toNimTyp(t: FieldType): NimNode =
-  case t.kind
+proc toNimTyp(ft: FieldType): NimNode =
+  case ft.kind
   of fkSimpleType:
-    case t.name
+    case ft.name
     of "any":
       ident"CborValueRef"
     of "uint", "int", "float32", "float64", "float", "bool":
-      ident(t.name)
+      ident(ft.name)
     of "nint":
       ident"int"
     of "float16", "float16-32":
@@ -37,13 +37,17 @@ proc toNimTyp(t: FieldType): NimNode =
         "decfrac", "bigfloat", "eb64url", "eb64legacy", "eb16", "encoded-cbor", "uri",
         "b64url", "b64legacy", "regexp", "mime-message", "cbor-any", "number", "false",
         "true", "nil", "null", "undefined":
-      raise newCborCddlError("unsupported type " & $t.name)
+      raise newCborCddlError("unsupported type " & $ft.name)
     else:
-      ident(t.name)
+      ident(ft.name)
   else:
-    raise newCborCddlError("unsupported type " & $t.kind)
+    raise newCborCddlError("unsupported type " & $ft.kind)
 
-proc toLitNode(s: string): NimNode =
+proc toLitNode(ft: FieldType): NimNode =
+  template s(): untyped =
+    ft.valueText
+
+  doAssert ft.kind == fkValue
   doAssert s.len > 0
   if s[0] == '"':
     doAssert s.len >= 2
@@ -96,15 +100,17 @@ proc fromCddlImpl*(s: string): NimNode {.raises: [CborCddlError].} =
             if v.kind == fkUnset:
               raise newCborCddlError("union variant not found: " & $variant.name)
             fields.add newNimNode(nnkEnumFieldDef).add(
-              ident(variant.name), toLitNode(v.valueText)
+              ident(variant.name), toLitNode(v)
             )
           of fkValue:
             fields.add newNimNode(nnkEnumFieldDef).add(
-              toEnumFieldName(rule.name, i), toLitNode(variant.valueText)
+              toEnumFieldName(rule.name, i), toLitNode(variant)
             )
           else:
             raise newCborCddlError("unsupported type " & $variant.kind)
         newNimNode(nnkEnumTy).add(newEmptyNode()).add(fields)
+      of fkSimpleType:
+        toNimTyp(rule.typeExpr)
       of fkValue:
         default(NimNode) # lits map contains this field
       else:
