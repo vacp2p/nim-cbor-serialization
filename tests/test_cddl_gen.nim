@@ -32,13 +32,13 @@ proc removeSyms(ast: NimNode): NimNode =
 
 suite "Test CDDL type generator":
   staticTest "test map":
-    const cddlDef = """
-Person = {
-  age: int,
-  name: tstr,
-  employer: tstr,
-}
-    """
+    const cddlDef =
+      """
+      Person = {
+        age: int,
+        name: tstr,
+        employer: tstr,
+      }""".unindent
     let gened = fromCddlImpl(cddlDef)
     let expected = quote:
       type Person* = object
