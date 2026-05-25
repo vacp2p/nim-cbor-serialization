@@ -226,3 +226,18 @@ suite "Test CDDL type generator":
           x18*: Opt[int]
 
     checkCddl(cddl, expected)
+
+fromCddl(
+  """
+  ok = "ok"
+  error = "error"
+  Status = ok / error
+  Response = {status: Status, message: text}
+  """
+)
+
+suite "Test CDDL generated types":
+  test "response object":
+    check $Status.ok == "ok"
+    check $Status.error == "error"
+    discard Response(status: Status.ok, message: "foo")
