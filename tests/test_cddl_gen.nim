@@ -10,29 +10,32 @@
 import
   std/[macros, strutils], unittest2, ../cbor_serialization/tools/cddl/type_generator
 
-proc removeSyms(ast: NimNode): NimNode =
+proc fixAst(ast: NimNode): NimNode =
   proc inspect(node: NimNode): NimNode =
     case node.kind
     of {nnkIdent, nnkSym}:
       # remove `gensymX
-      return ident(split($node, '`')[0])
+      ident(split($node, '`')[0])
     of nnkEmpty:
-      return node
+      node
     of nnkLiterals:
-      return node
-    of nnkOpenSymChoice:
-      return inspect(node[0])
+      node
+    of nnkCall:
+      newNimNode(nnkBracketExpr).add(
+        inspect(node[1]),
+        inspect(node[2])
+      )
     else:
       var rTree = node.kind.newTree()
       for child in node:
         rTree.add inspect(child)
-      return rTree
+      rTree
 
-  result = inspect(ast)
+  inspect(ast)
 
 proc checkCddl(cddl: string, expected: NimNode) =
   let gened = fromCddlImpl(cddl.unindent)
-  if gened != expected.removeSyms:
+  if gened != expected.fixAst:
     checkpoint("FAILED: " & repr(gened))
     fail()
 
@@ -107,5 +110,16 @@ suite "Test CDDL type generator":
         Foo* = string
         Bar* = int
         Baz* = Bar
+
+    checkCddl(cddl, expected)
+
+  staticTest "array should generate a seq":
+    const cddl =
+      """
+      IntSeq = [* int]
+      """
+    let expected = quote:
+      type
+        IntSeq* = seq[int]
 
     checkCddl(cddl, expected)

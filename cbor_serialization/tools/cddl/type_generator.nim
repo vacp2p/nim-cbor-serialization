@@ -40,6 +40,11 @@ proc toNimTyp(ft: FieldType): NimNode =
       raise newCborCddlError("unsupported type " & $ft.name)
     else:
       ident(ft.name)
+  of fkArray:
+    if ft.fields.len != 1:
+      raise newCborCddlError("unsupported array of len: " & $ft.fields.len)
+    let inner = toNimTyp(ft.fields[0].typ)
+    newNimNode(nnkBracketExpr).add(ident("seq"), inner)
   else:
     raise newCborCddlError("unsupported type " & $ft.kind)
 
@@ -109,7 +114,7 @@ proc fromCddlImpl*(s: string): NimNode {.raises: [CborCddlError].} =
           else:
             raise newCborCddlError("unsupported type " & $variant.kind)
         newNimNode(nnkEnumTy).add(newEmptyNode()).add(fields)
-      of fkSimpleType:
+      of fkSimpleType, fkArray:
         toNimTyp(rule.typeExpr)
       of fkValue:
         default(NimNode) # lits map contains this field
