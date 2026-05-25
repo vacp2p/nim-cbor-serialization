@@ -12,7 +12,7 @@ jobs:
     with:
       nim-versions: '["version-2-0", "version-2-2", "devel"]'
       # TODO: switch to "nimble install nimble" after nimble v1 release
-      nimble-version: 1b4deb9be9fca7b8a21576a6c0de85f1ae7c30de
+      nimble-version: 42ef70c2102a942c46f13eb76872326edd525cec # v0.22.3
       test-command: |
         nimble dump --solve
         nimble list --installed --version
