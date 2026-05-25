@@ -631,7 +631,7 @@ suite "Test CDDL parser":
             dump.add showType(r.typeExpr, 1) & "\n"
           elif r.groupEntries.len > 0:
             dump.add "  groupEntries: " & $r.groupEntries.len & " field(s)\n"
-      const dumpFile = currentSourcePath.parentDir() / "test_cddl_dump.txt"
+      const dumpFile = currentSourcePath.parentDir() / "test_cddl_parser_dump.txt"
       const dumpContent = staticRead(dumpFile)
       if dump.normalizeText() != dumpContent.normalizeText():
         checkpoint(dump)
