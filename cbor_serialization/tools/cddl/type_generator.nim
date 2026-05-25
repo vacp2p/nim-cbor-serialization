@@ -15,36 +15,45 @@ proc newCborCddlError(msg: string): ref CborCddlError =
   (ref CborCddlError)(msg: msg)
 
 # https://datatracker.ietf.org/doc/html/rfc8610#appendix-D
+proc toSimpleNimTyp(s: string): NimNode =
+  case s
+  of "any":
+    ident"CborValueRef"
+  of "uint", "int", "float32", "float64", "float", "bool":
+    ident(s)
+  of "nint":
+    ident"int"
+  of "float16", "float16-32":
+    ident"float32"
+  of "float32-64":
+    ident"float"
+  of "bstr", "bytes":
+    newNimNode(nnkBracketExpr).add(ident("seq"), ident("byte"))
+  of "tstr", "text":
+    ident"string"
+  of "tdate", "time", "biguint", "bignint", "bigint", "integer", "unsigned", "decfrac",
+      "bigfloat", "eb64url", "eb64legacy", "eb16", "encoded-cbor", "uri", "b64url",
+      "b64legacy", "regexp", "mime-message", "cbor-any", "number", "false", "true",
+      "nil", "null", "undefined":
+    raise newCborCddlError("unsupported type " & $s)
+  else:
+    ident(s)
+
 proc toNimTyp(ft: FieldType): NimNode =
   case ft.kind
   of fkSimpleType:
-    case ft.name
-    of "any":
-      ident"CborValueRef"
-    of "uint", "int", "float32", "float64", "float", "bool":
-      ident(ft.name)
-    of "nint":
-      ident"int"
-    of "float16", "float16-32":
-      ident"float32"
-    of "float32-64":
-      ident"float"
-    of "bstr", "bytes":
-      newNimNode(nnkBracketExpr).add(ident("seq"), ident("byte"))
-    of "tstr", "text":
-      ident"string"
-    of "tdate", "time", "biguint", "bignint", "bigint", "integer", "unsigned",
-        "decfrac", "bigfloat", "eb64url", "eb64legacy", "eb16", "encoded-cbor", "uri",
-        "b64url", "b64legacy", "regexp", "mime-message", "cbor-any", "number", "false",
-        "true", "nil", "null", "undefined":
-      raise newCborCddlError("unsupported type " & $ft.name)
-    else:
-      ident(ft.name)
+    toSimpleNimTyp(ft.name)
   of fkArray:
     if ft.fields.len != 1:
       raise newCborCddlError("unsupported array of len: " & $ft.fields.len)
     let inner = toNimTyp(ft.fields[0].typ)
     newNimNode(nnkBracketExpr).add(ident("seq"), inner)
+  of fkMap:
+    if ft.fields.len != 1:
+      raise newCborCddlError("unsupported map of len: " & $ft.fields.len)
+    let key = toSimpleNimTyp(ft.fields[0].keyText)
+    let val = toNimTyp(ft.fields[0].typ)
+    newNimNode(nnkBracketExpr).add(ident("Table"), key, val)
   else:
     raise newCborCddlError("unsupported type " & $ft.kind)
 
@@ -79,6 +88,8 @@ proc literalsMap(cddl: CddlSchema): TableRef[string, FieldType] =
     if rule.kind == rkType and rule.typeExpr.kind == fkValue:
       result[rule.name] = rule.typeExpr
 
+const repeatedMap = {OccurKind.ocOneOrMore, OccurKind.ocZeroOrMore, OccurKind.ocRange}
+
 proc fromCddlImpl*(s: string): NimNode {.raises: [CborCddlError].} =
   result = newNimNode(nnkTypeSection)
   let cddl = parseCddl(s)
@@ -88,14 +99,18 @@ proc fromCddlImpl*(s: string): NimNode {.raises: [CborCddlError].} =
     let value =
       case rule.typeExpr.kind
       of fkMap:
-        let fields = newNimNode(nnkRecList)
-        for f in rule.typeExpr.fields:
-          fields.add newNimNode(nnkIdentDefs).add(
-            newNimNode(nnkPostfix).add(ident("*"), ident(f.keyText)),
-            toNimTyp(f.typ),
-            newEmptyNode(),
-          )
-        newNimNode(nnkObjectTy).add(newEmptyNode(), newEmptyNode(), fields)
+        if rule.typeExpr.fields.len == 1 and
+            rule.typeExpr.fields[0].occur.kind in repeatedMap:
+          toNimTyp(rule.typeExpr)
+        else:
+          let fields = newNimNode(nnkRecList)
+          for f in rule.typeExpr.fields:
+            fields.add newNimNode(nnkIdentDefs).add(
+              newNimNode(nnkPostfix).add(ident("*"), ident(f.keyText)),
+              toNimTyp(f.typ),
+              newEmptyNode(),
+            )
+          newNimNode(nnkObjectTy).add(newEmptyNode(), newEmptyNode(), fields)
       of fkUnion:
         var fields = default(seq[NimNode])
         for i, variant in rule.typeExpr.variants.pairs():

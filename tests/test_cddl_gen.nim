@@ -21,10 +21,10 @@ proc fixAst(ast: NimNode): NimNode =
     of nnkLiterals:
       node
     of nnkCall:
-      newNimNode(nnkBracketExpr).add(
-        inspect(node[1]),
-        inspect(node[2])
-      )
+      var ret = newNimNode(nnkBracketExpr)
+      for i in 1 ..< node.len:
+        ret.add inspect(node[i])
+      ret
     else:
       var rTree = node.kind.newTree()
       for child in node:
@@ -36,7 +36,7 @@ proc fixAst(ast: NimNode): NimNode =
 proc checkCddl(cddl: string, expected: NimNode) =
   let gened = fromCddlImpl(cddl.unindent)
   if gened != expected.fixAst:
-    checkpoint("FAILED: " & repr(gened))
+    checkpoint("FAILED: Got: " & repr(gened) & "\nExpected: " & repr(expected.fixAst))
     fail()
 
 suite "Test CDDL type generator":
@@ -119,7 +119,16 @@ suite "Test CDDL type generator":
       IntSeq = [* int]
       """
     let expected = quote:
-      type
-        IntSeq* = seq[int]
+      type IntSeq* = seq[int]
+
+    checkCddl(cddl, expected)
+
+  staticTest "map should generate a Table":
+    const cddl =
+      """
+      IntMap = { * tstr => int }
+      """
+    let expected = quote:
+      type IntMap* = Table[string, int]
 
     checkCddl(cddl, expected)
