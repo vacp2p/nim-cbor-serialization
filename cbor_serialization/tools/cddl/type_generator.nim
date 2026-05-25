@@ -174,7 +174,7 @@ proc fromCddlImpl*(s: string): NimNode {.raises: [CborCddlError].} =
         newNimNode(nnkPostfix).add(ident("*"), ident(rule.name)), newEmptyNode(), value
       )
   when defined(CborLogGeneratedTypes):
-    result.storeMacroResult(true)
+    debugEcho repr(result)
 
 macro fromCddl*(s: static[string]): untyped =
   fromCddlImpl(s)
