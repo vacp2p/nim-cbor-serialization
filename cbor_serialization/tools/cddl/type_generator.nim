@@ -7,9 +7,12 @@
 # This file may not be copied, modified, or distributed except according to
 # those terms.
 
-import std/[macros], stew/shims/macros as stewmacros, ./parser
+import std/[macros, tables, strutils], stew/shims/macros as stewmacros, ./parser
 
 export CborCddlError
+
+proc newCborCddlError(msg: string): ref CborCddlError =
+  (ref CborCddlError)(msg: msg)
 
 # https://datatracker.ietf.org/doc/html/rfc8610#appendix-D
 proc toNimTyp(t: FieldType): NimNode =
@@ -34,33 +37,94 @@ proc toNimTyp(t: FieldType): NimNode =
         "decfrac", "bigfloat", "eb64url", "eb64legacy", "eb16", "encoded-cbor", "uri",
         "b64url", "b64legacy", "regexp", "mime-message", "cbor-any", "number", "false",
         "true", "nil", "null", "undefined":
-      raiseAssert("unsupported type " & $t.name)
+      raise newCborCddlError("unsupported type " & $t.name)
     else:
       ident(t.name)
   else:
-    raiseAssert("unsupported type " & $t.kind)
+    raise newCborCddlError("unsupported type " & $t.kind)
+
+proc toLitNode(s: string): NimNode =
+  doAssert s.len > 0
+  if s[0] == '"':
+    doAssert s.len >= 2
+    doAssert s[^1] == '"'
+    newLitFixed(s[1 ..< s.high])
+  else:
+    let val =
+      try:
+        parseInt(s)
+      except ValueError:
+        raise newCborCddlError("unsupported value " & s)
+    newLitFixed(val)
+
+proc toEnumFieldName(s: string, i: int): NimNode =
+  if s.len >= 2 and s[0].isAlphaAscii and s[1].isAlphaAscii:
+    ident(toLowerAscii(s[0 .. 1] & $i))
+  else:
+    ident("e" & $i)
+
+proc literalsMap(cddl: CddlSchema): TableRef[string, FieldType] =
+  ## map of rule_name -> literal_val
+  result = newTable[string, FieldType]()
+  for rule in cddl:
+    if rule.kind == rkType and rule.typeExpr.kind == fkValue:
+      result[rule.name] = rule.typeExpr
 
 proc fromCddlImpl*(s: string): NimNode {.raises: [CborCddlError].} =
   result = newNimNode(nnkTypeSection)
-  let schema = parseCddl(s)
-  for rule in schema:
+  let cddl = parseCddl(s)
+  let lits = literalsMap(cddl)
+  for rule in cddl:
     doAssert rule.kind == rkType
+    let value =
+      case rule.typeExpr.kind
+      of fkMap:
+        let fields = newNimNode(nnkRecList)
+        for f in rule.typeExpr.fields:
+          fields.add newNimNode(nnkIdentDefs).add(
+            newNimNode(nnkPostfix).add(ident("*"), ident(f.keyText)),
+            toNimTyp(f.typ),
+            newEmptyNode(),
+          )
+        newNimNode(nnkObjectTy).add(newEmptyNode(), newEmptyNode(), fields)
+      of fkUnion:
+        var fields = default(seq[NimNode])
+        for i, variant in rule.typeExpr.variants.pairs():
+          case variant.kind
+          of fkSimpleType:
+            let v = lits.getOrDefault(variant.name, default(FieldType))
+            if v.kind == fkUnset:
+              raise newCborCddlError("union variant not found: " & $variant.name)
+            fields.add newNimNode(nnkEnumFieldDef).add(
+              ident(variant.name), toLitNode(v.valueText)
+            )
+          of fkValue:
+            fields.add newNimNode(nnkEnumFieldDef).add(
+              toEnumFieldName(rule.name, i), toLitNode(variant.valueText)
+            )
+          else:
+            raise newCborCddlError("unsupported type " & $variant.kind)
+        newNimNode(nnkEnumTy).add(newEmptyNode()).add(fields)
+      of fkValue:
+        default(NimNode) # lits map contains this field
+      else:
+        raise newCborCddlError("unsupported type " & $rule.typeExpr.kind)
     case rule.typeExpr.kind
-    of fkMap:
-      let fields = newNimNode(nnkRecList)
-      for f in rule.typeExpr.fields:
-        fields.add newNimNode(nnkIdentDefs).add(
-          newNimNode(nnkPostfix).add(ident("*"), ident(f.keyText)),
-          toNimTyp(f.typ),
-          newEmptyNode(),
-        )
+    of fkValue:
+      discard
+    of fkUnion:
       result.add newNimNode(nnkTypeDef).add(
-        newNimNode(nnkPostfix).add(ident("*"), ident(rule.name)),
+        newNimNode(nnkPragmaExpr).add(
+          newNimNode(nnkPostfix).add(ident("*"), ident(rule.name)),
+          newNimNode(nnkPragma).add(ident("pure")),
+        ),
         newEmptyNode(),
-        newNimNode(nnkObjectTy).add(newEmptyNode(), newEmptyNode(), fields),
+        value,
       )
     else:
-      raiseAssert("unsupported type " & $rule.typeExpr.kind)
+      result.add newNimNode(nnkTypeDef).add(
+        newNimNode(nnkPostfix).add(ident("*"), ident(rule.name)), newEmptyNode(), value
+      )
   when defined(CborLogGeneratedTypes):
     result.storeMacroResult(true)
 

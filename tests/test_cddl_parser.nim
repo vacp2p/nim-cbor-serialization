@@ -578,38 +578,22 @@ proc normalizeText(s: string): string =
   s.replace("\r\n", "\n").strip()
 
 suite "Test CDDL parser":
-  staticTest "parse spec test cases":
-    for t in testSpecCases:
-      try:
-        discard parseCddl(t)
-      except CborCddlError:
-        checkpoint("FAILED (spec): " & t)
-        fail()
-
   staticTest "parse valid test cases":
-    for t in testCases:
+    for t in @testSpecCases & @testCases & @testBookCases:
       try:
         discard parseCddl(t)
       except CborCddlError:
-        checkpoint("FAILED (valid): " & t)
+        checkpoint("FAILED: " & t)
         fail()
 
   staticTest "parse invalid test cases":
     for t in invalidTestCases:
       try:
         discard parseCddl(t)
-        checkpoint("FAILED (invalid): " & t)
+        checkpoint("FAILED: " & t)
         fail()
       except CborCddlError:
         discard
-
-  staticTest "parse cbor book test cases":
-    for t in testBookCases:
-      try:
-        discard parseCddl(t)
-      except CborCddlError:
-        checkpoint("FAILED (book): " & t)
-        fail()
 
   staticTest "schema dump":
     var schemas = default(seq[CddlSchema])
@@ -618,7 +602,7 @@ suite "Test CDDL parser":
         let schema = parseCddl(t)
         schemas.add schema
       except CborCddlError:
-        checkpoint("failed (dump): " & t)
+        checkpoint("FAILED (dump): " & t)
         fail()
     if schemas.len == testCases.len:
       var dump = ""

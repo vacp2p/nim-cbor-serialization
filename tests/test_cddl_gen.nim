@@ -30,22 +30,54 @@ proc removeSyms(ast: NimNode): NimNode =
 
   result = inspect(ast)
 
+proc checkCddl(cddl: string, expected: NimNode) =
+  let gened = fromCddlImpl(cddl.unindent)
+  if gened != expected.removeSyms:
+    checkpoint("FAILED: " & repr(gened))
+    fail()
+
 suite "Test CDDL type generator":
-  staticTest "test map":
-    const cddlDef =
+  staticTest "map should generate an object":
+    const cddl =
       """
       Person = {
         age: int,
         name: tstr,
         employer: tstr,
-      }""".unindent
-    let gened = fromCddlImpl(cddlDef)
+      }"""
     let expected = quote:
       type Person* = object
         age*: int
         name*: string
         employer*: string
 
-    if gened != expected.removeSyms:
-      checkpoint("FAILED: " & repr(gened))
-      fail()
+    checkCddl(cddl, expected)
+
+  staticTest "literal variant should generate an enum":
+    const cddl =
+      """
+      ca = 0
+      cb = 1
+      cc = 2
+      Choices = ca / cb / cc
+      """
+    let expected = quote:
+      type Choices* {.pure.} = enum
+        ca = 0
+        cb = 1
+        cc = 2
+
+    checkCddl(cddl, expected)
+
+  staticTest "literal variant of numbers should generate an enum":
+    const cddl =
+      """
+      Choices = 0 / 1 / 2
+      """
+    let expected = quote:
+      type Choices* {.pure.} = enum
+        ch0 = 0
+        ch1 = 1
+        ch2 = 2
+
+    checkCddl(cddl, expected)
