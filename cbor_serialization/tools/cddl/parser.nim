@@ -424,8 +424,8 @@ proc parseCddl*(source: string): CddlSchema {.raises: [CborCddlError].} =
     # match throws Exception error...
     except CatchableError as exc:
       raise (ref CborCddlError)(msg: "CBOR CDDL parser error: " & exc.msg, parent: exc)
-    except Defect:
-      raise
+    except Defect as exc:
+      raise exc
     except Exception:
       raiseAssert "Unexpected Exception"
   if r.ok:
