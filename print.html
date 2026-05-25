@@ -415,7 +415,48 @@ echo output.getOutput(seq[byte]).to0xHex()
 <p>This produces the following output when the resulting CBOR blob is decoded:</p>
 <pre><code class="language-nim">(status: "ok", data: @[(id: 0, name: "item0"), (id: 1, name: "item1")])
 </code></pre>
-<footer id="open-on-gh">Found a bug? <a href="https://github.com/vacp2p/nim-cbor-serialization//edit/master/docs/src/streaming.md">Edit this page on GitHub.</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="debugging"><a class="header" href="#debugging">Debugging</a></h1>
+<footer id="open-on-gh">Found a bug? <a href="https://github.com/vacp2p/nim-cbor-serialization//edit/master/docs/src/streaming.md">Edit this page on GitHub.</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="cddl"><a class="header" href="#cddl">CDDL</a></h1>
+<p>This section provides an overview of the <code>cbor_serialization</code> CDDL tools.</p>
+<h2 id="parsing"><a class="header" href="#parsing">Parsing</a></h2>
+<p>Concise Data Definition Language (CDDL) is a notation to describe CBOR and JSON. It is defined in <a href="https://datatracker.ietf.org/doc/html/rfc8610">RFC8610</a>.</p>
+<p>The <code>fromCddl</code> API will parse a CDDL and generate Nim types out of it. It can be imported from the <code>type_generator</code> module:</p>
+<pre><code class="language-nim">import cbor_serialization, cbor_serialization/tools/cddl/type_generator
+</code></pre>
+<p>It accepts the CDDL as a string, which can be hardcoded or read from a file using <code>staticRead</code>:</p>
+<pre><code class="language-nim">fromCddl """
+Request = {
+  cborrpc: text     ; CBOR RPC version
+  method: text      ; API method name
+  params: [* int]   ; API parameters
+  id: int
+}
+"""
+</code></pre>
+<p>The <code>Request</code> object defined in the CDDL is generated and exported so it can be used from other modules:</p>
+<pre><code class="language-nim">let encoded =
+  Cbor.encode(Request(cborrpc: "2.0", `method`: "subtract", params: @[42, 3], id: 1))
+</code></pre>
+<h3 id="supported-constructs"><a class="header" href="#supported-constructs">Supported constructs</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>CDDL construct</th><th>Nim output</th></tr></thead><tbody>
+<tr><td>Map types <code>{ key: type, ... }</code></td><td><code>object</code></td></tr>
+<tr><td>Type choices <code>a / b / c</code></td><td><code>enum</code></td></tr>
+<tr><td>Simple type references <code>foo = tstr</code></td><td><code>type</code> alias</td></tr>
+<tr><td>Array types <code>[* T]</code></td><td><code>seq[T]</code></td></tr>
+<tr><td>Table types <code>{ * tstr =&gt; T }</code></td><td><code>Table[string, T]</code></td></tr>
+<tr><td>Optional fields <code>? key: type</code></td><td><code>Opt[T]</code></td></tr>
+</tbody></table>
+</div>
+<h3 id="supported-types"><a class="header" href="#supported-types">Supported types</a></h3>
+<div class="table-wrapper"><table><thead><tr><th>CDDL type</th><th>Nim output</th></tr></thead><tbody>
+<tr><td><code>any</code></td><td><code>CborValueRef</code></td></tr>
+<tr><td><code>uint</code>, <code>int</code>, <code>float32</code>, <code>float64</code>, <code>float</code>, <code>bool</code></td><td>same</td></tr>
+<tr><td>negative int <code>nint</code></td><td><code>int</code></td></tr>
+<tr><td><code>float16</code>, <code>float16-32</code></td><td><code>float32</code></td></tr>
+<tr><td><code>float32-64</code></td><td><code>float</code></td></tr>
+<tr><td><code>bstr</code>, <code>bytes</code></td><td><code>seq[byte]</code></td></tr>
+<tr><td><code>tstr</code>, <code>text</code></td><td><code>string</code></td></tr>
+</tbody></table>
+</div><footer id="open-on-gh">Found a bug? <a href="https://github.com/vacp2p/nim-cbor-serialization//edit/master/docs/src/cddl.md">Edit this page on GitHub.</a></footer><div style="break-before: page; page-break-before: always;"></div><h1 id="debugging"><a class="header" href="#debugging">Debugging</a></h1>
 <p>This section provides an overview of the <code>cbor_serialization</code> debugging tools.</p>
 <h2 id="diagnostic-notation"><a class="header" href="#diagnostic-notation">Diagnostic Notation</a></h2>
 <p>The CBOR diagnostic notation is a human-readable format defined in <a href="https://www.rfc-editor.org/rfc/rfc8949.html#section-8">RFC8949</a>, <a href="https://www.rfc-editor.org/rfc/rfc8610#appendix-G">RFC8610</a> and <a href="https://datatracker.ietf.org/doc/html/rfc8742#section-4.2">RFC8742</a>. It's based on JSON, but it's not compatible with it.</p>
@@ -464,7 +505,7 @@ doAssert CborBytes(encoded).toEdn() ==
 </ul>
 <p>This page provides an overview of the <code>cbor_serialization</code> API - for details, see the
 <a href="./api/cbor_serialization.html">API reference</a>.</p>
-<h2 id="parsing"><a class="header" href="#parsing">Parsing</a></h2>
+<h2 id="parsing-1"><a class="header" href="#parsing-1">Parsing</a></h2>
 <h3 id="common-api"><a class="header" href="#common-api">Common API</a></h3>
 <p>CBOR parsing uses the <a href="https://github.com/status-im/nim-serialization?tab=readme-ov-file#common-api">common serialization API</a>, supporting both object-based and dynamic CBOR data item:</p>
 <pre><code class="language-nim">type
