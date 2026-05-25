@@ -175,3 +175,54 @@ suite "Test CDDL type generator":
         opt*: Opt[int]
 
     checkCddl(cddl, expected)
+
+  staticTest "all type fields object":
+    const cddl =
+      """
+      Bar = int
+      Foo = {
+        x01: any,
+        x02: int,
+        x03: uint,
+        x04: float32,
+        x05: float64,
+        x06: float,
+        x07: bool,
+        x08: nint,
+        x09: float16,
+        x10: float16-32,
+        x11: float32-64,
+        x12: bstr,
+        x13: bytes,
+        x14: tstr,
+        x15: text,
+        x16: Bar,
+        x16: { * tstr => int },
+        x17: [* int],
+        ? x18: int
+      }"""
+    let expected = quote:
+      type
+        Bar* = int
+        Foo* = object
+          x01*: CborValueRef
+          x02*: int
+          x03*: uint
+          x04*: float32
+          x05*: float64
+          x06*: float
+          x07*: bool
+          x08*: int
+          x09*: float32
+          x10*: float32
+          x11*: float
+          x12*: seq[byte]
+          x13*: seq[byte]
+          x14*: string
+          x15*: string
+          x16*: Bar
+          x16*: Table[string, int]
+          x17*: seq[int]
+          x18*: Opt[int]
+
+    checkCddl(cddl, expected)
