@@ -132,3 +132,14 @@ suite "Test CDDL type generator":
       type IntMap* = Table[string, int]
 
     checkCddl(cddl, expected)
+
+  staticTest "optional should generate an Opt[T]":
+    const cddl =
+      """
+      Foo = { ? opt: int }
+      """
+    let expected = quote:
+      type Foo* = object
+        opt*: Opt[int]
+
+    checkCddl(cddl, expected)

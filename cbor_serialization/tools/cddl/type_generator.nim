@@ -39,8 +39,8 @@ proc toSimpleNimTyp(s: string): NimNode =
   else:
     ident(s)
 
-proc toNimTyp(ft: FieldType): NimNode =
-  case ft.kind
+proc toNimTyp(ft: FieldType, isOptional = false): NimNode =
+  let typ = case ft.kind
   of fkSimpleType:
     toSimpleNimTyp(ft.name)
   of fkArray:
@@ -56,6 +56,10 @@ proc toNimTyp(ft: FieldType): NimNode =
     newNimNode(nnkBracketExpr).add(ident("Table"), key, val)
   else:
     raise newCborCddlError("unsupported type " & $ft.kind)
+  if isOptional:
+    newNimNode(nnkBracketExpr).add(ident("Opt"), typ)
+  else:
+    typ
 
 proc toLitNode(ft: FieldType): NimNode =
   template s(): untyped =
@@ -88,6 +92,9 @@ proc literalsMap(cddl: CddlSchema): TableRef[string, FieldType] =
     if rule.kind == rkType and rule.typeExpr.kind == fkValue:
       result[rule.name] = rule.typeExpr
 
+proc isOptional(f: Field): bool =
+  f.occur.kind == OccurKind.ocOptional
+
 const repeatedMap = {OccurKind.ocOneOrMore, OccurKind.ocZeroOrMore, OccurKind.ocRange}
 
 proc fromCddlImpl*(s: string): NimNode {.raises: [CborCddlError].} =
@@ -107,7 +114,7 @@ proc fromCddlImpl*(s: string): NimNode {.raises: [CborCddlError].} =
           for f in rule.typeExpr.fields:
             fields.add newNimNode(nnkIdentDefs).add(
               newNimNode(nnkPostfix).add(ident("*"), ident(f.keyText)),
-              toNimTyp(f.typ),
+              toNimTyp(f.typ, f.isOptional),
               newEmptyNode(),
             )
           newNimNode(nnkObjectTy).add(newEmptyNode(), newEmptyNode(), fields)
