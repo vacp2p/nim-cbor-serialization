@@ -40,22 +40,23 @@ proc toSimpleNimTyp(s: string): NimNode =
     ident(s)
 
 proc toNimTyp(ft: FieldType, isOptional = false): NimNode =
-  let typ = case ft.kind
-  of fkSimpleType:
-    toSimpleNimTyp(ft.name)
-  of fkArray:
-    if ft.fields.len != 1:
-      raise newCborCddlError("unsupported array of len: " & $ft.fields.len)
-    let inner = toNimTyp(ft.fields[0].typ)
-    newNimNode(nnkBracketExpr).add(ident("seq"), inner)
-  of fkMap:
-    if ft.fields.len != 1:
-      raise newCborCddlError("unsupported map of len: " & $ft.fields.len)
-    let key = toSimpleNimTyp(ft.fields[0].keyText)
-    let val = toNimTyp(ft.fields[0].typ)
-    newNimNode(nnkBracketExpr).add(ident("Table"), key, val)
-  else:
-    raise newCborCddlError("unsupported type " & $ft.kind)
+  let typ =
+    case ft.kind
+    of fkSimpleType:
+      toSimpleNimTyp(ft.name)
+    of fkArray:
+      if ft.fields.len != 1:
+        raise newCborCddlError("unsupported array of len: " & $ft.fields.len)
+      let inner = toNimTyp(ft.fields[0].typ)
+      newNimNode(nnkBracketExpr).add(ident("seq"), inner)
+    of fkMap:
+      if ft.fields.len != 1:
+        raise newCborCddlError("unsupported map of len: " & $ft.fields.len)
+      let key = toSimpleNimTyp(ft.fields[0].keyText)
+      let val = toNimTyp(ft.fields[0].typ)
+      newNimNode(nnkBracketExpr).add(ident("Table"), key, val)
+    else:
+      raise newCborCddlError("unsupported type " & $ft.kind)
   if isOptional:
     newNimNode(nnkBracketExpr).add(ident("Opt"), typ)
   else:
