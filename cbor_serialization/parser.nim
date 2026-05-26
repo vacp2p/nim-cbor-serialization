@@ -66,7 +66,7 @@ func `$`(major: CborMajor): string =
   of CborMajor.Tag: "tag"
   of CborMajor.SimpleOrFloat: "simple/float/break"
 
-proc lenMaybe(p: var CborParser): int {.raises: [IOError].} =
+proc lenMaybe*(p: var CborParser): int {.raises: [IOError].} =
   ## Return -1 if cannot calculate the len
   let L = p.stream.len()
   if L.isSome():
@@ -131,12 +131,17 @@ proc parseStringLike[T: string or seq[byte]](
 ) {.raises: [IOError, CborReaderError].} =
   type ElmType = typeof val[0]
   val.setLen 0
+  var L = p.lenMaybe()
   var i = 0
   parseStringLikeImpl(p, majorExpected, limit, strLen):
-    val.setLen val.len.uint64 + strLen
+    if L > -1:  # can prealloc safely
+      val.setLen val.len.uint64 + strLen
   do:
-    val[i] = p.read ElmType
-    inc i
+    if L > -1:
+      val[i] = p.read ElmType
+      inc i
+    else:
+      val.add p.read ElmType
 
 proc parseStringLike(
     p: var CborParser, majorExpected: CborMajor, limit: int, val: var CborVoid
