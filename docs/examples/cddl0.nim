@@ -1,7 +1,7 @@
 {.push gcsafe, raises: [].}
 
 # ANCHOR: Import
-import cbor_serialization, cbor_serialization/tools/cddl/type_generator
+import cbor_serialization, cbor_serialization/cddl/type_generator
 # ANCHOR_END: Import
 
 # ANCHOR: Request
