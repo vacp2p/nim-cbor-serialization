@@ -8,7 +8,7 @@
 # those terms.
 
 import
-  std/[macros, strutils], unittest2, ../cbor_serialization/tools/cddl/type_generator
+  std/[macros, strutils], unittest2, ../cbor_serialization/cddl/type_generator
 
 proc fixAst(ast: NimNode): NimNode =
   proc inspect(node: NimNode): NimNode =
