@@ -205,7 +205,7 @@ suite "Test CDDL type generator":
       type
         Bar* = int
         Foo* = object
-          x01*: CborValueRef
+          x01*: CborBytes
           x02*: int
           x03*: uint
           x04*: float32
