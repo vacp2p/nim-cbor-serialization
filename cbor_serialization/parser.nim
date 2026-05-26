@@ -352,7 +352,9 @@ proc parseRawHead(
   val.add c
   discard readMinorValue(p, val, c.minor)
 
-template parseRawArrayLikeImpl(p: var CborParser, val: var CborBytes, rawLen, prelude, body: untyped) =
+template parseRawArrayLikeImpl(
+    p: var CborParser, val: var CborBytes, rawLen, prelude, body: untyped
+) =
   assert p.peek().major in {CborMajor.Array, CborMajor.Map}
   let c = p.read()
   val.add c
@@ -387,7 +389,9 @@ template parseRawArrayLike(
     body
   exitNestedStructure(p)
 
-template parseRawStringLikeImpl(p: var CborParser, val: var CborBytes, rawLen, prelude, body: untyped) =
+template parseRawStringLikeImpl(
+    p: var CborParser, val: var CborBytes, rawLen, prelude, body: untyped
+) =
   assert p.peek().major in {CborMajor.Bytes, CborMajor.Text}
   let c = p.read()
   val.add c
