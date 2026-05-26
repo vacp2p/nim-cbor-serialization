@@ -244,7 +244,9 @@ template streamElement*(w: var CborWriter, streamVar: untyped, body: untyped) =
   ## high-level helpers as these already perform the element tracking done in
   ## `streamElement`.
   w.beginElement()
-  template streamVar: untyped = w.stream
+  template streamVar(): untyped =
+    w.stream
+
   body
   w.endElement()
 
