@@ -134,7 +134,7 @@ proc parseStringLike[T: string or seq[byte]](
   var L = p.lenMaybe()
   var i = 0
   parseStringLikeImpl(p, majorExpected, limit, strLen):
-    if L > -1:  # can prealloc safely
+    if L > -1: # can prealloc safely
       val.setLen val.len.uint64 + strLen
   do:
     if L > -1:

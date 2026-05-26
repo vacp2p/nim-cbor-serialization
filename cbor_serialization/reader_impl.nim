@@ -362,7 +362,7 @@ proc read*[T](
   var L = r.parser.lenMaybe()
   var i = 0
   r.parseArray(arrLen):
-    if L > -1:  # can prealloc safely
+    if L > -1: # can prealloc safely
       value.setLen value.len.uint64 + arrLen
   do:
     if L > -1:
