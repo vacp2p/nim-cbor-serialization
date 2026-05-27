@@ -23,6 +23,9 @@ template read(p: CborParser): byte =
     p.raiseUnexpectedValue("unexpected eof")
   inputs.read(p.stream)
 
+template read(p: CborParser, T: type): untyped =
+  read(p).T
+
 func minorLen(minor: uint8): int =
   assert minor in cborMinorLens
   if minor < cborMinorLen1:
@@ -63,54 +66,83 @@ func `$`(major: CborMajor): string =
   of CborMajor.Tag: "tag"
   of CborMajor.SimpleOrFloat: "simple/float/break"
 
+proc lenMaybe*(p: var CborParser): int {.raises: [IOError].} =
+  ## Return -1 if cannot calculate the len
+  let L = p.stream.len()
+  if L.isSome():
+    L.get().int
+  else:
+    -1
+
 template parseStringLikeImpl(
-    p: var CborParser, majorExpected: CborMajor, body: untyped
+    p: var CborParser, majorExpected: CborMajor, strLen, body: untyped
 ) =
   let c = p.read()
   if c.major != majorExpected:
     p.raiseUnexpectedValue($majorExpected, $c.major)
+  var strLen = 0'u64
   if c.minor == cborMinorIndef:
     # https://www.rfc-editor.org/rfc/rfc8949#section-3.2.3
     while p.peek() != cborBreakStopCode:
       let c2 = p.read()
       if c2.major != majorExpected:
         p.raiseUnexpectedValue($majorExpected, $c2.major)
-      for _ in 0 ..< readMinorValue(p, c2.minor):
-        body
+      strLen = readMinorValue(p, c2.minor)
+      body
     discard p.read() # stop code
   else:
     # https://www.rfc-editor.org/rfc/rfc8949#section-3-3.2
-    for _ in 0 ..< readMinorValue(p, c.minor):
-      body
+    strLen = readMinorValue(p, c.minor)
+    body
+
+template parseStringLikeImpl(
+    p: var CborParser, majorExpected: CborMajor, limit: int, strLen, body: untyped
+) =
+  let L = lenMaybe(p)
+  var i = 0'u64
+  parseStringLikeImpl(p, majorExpected, strLen):
+    i += strLen
+    if L > -1 and i > L.uint64:
+      p.raiseNotEnoughBytes("not enough bytes to read")
+    if limit > 0 and i > limit.uint64:
+      p.raiseUnexpectedValue($majorExpected & " length limit reached")
+    body
 
 iterator parseStringLikeIt(
     p: var CborParser, majorExpected: CborMajor, limit: int
 ): byte {.inline, raises: [IOError, CborReaderError].} =
-  var strLen = 0
-  parseStringLikeImpl(p, majorExpected):
-    inc strLen
-    if limit > 0 and strLen > limit:
-      p.raiseUnexpectedValue($majorExpected & " length limit reached")
-    yield p.read()
+  parseStringLikeImpl(p, majorExpected, limit, strLen):
+    for _ in 0 ..< strLen:
+      yield p.read()
 
-proc parseStringLike[T](
+proc parseStringLike[T: string or seq[byte]](
     p: var CborParser, majorExpected: CborMajor, limit: int, val: var T
 ) {.raises: [IOError, CborReaderError].} =
-  when T isnot (string or seq[byte] or CborVoid):
-    {.fatal: "`parseStringLike` only accepts string or `seq[byte]` or `CborVoid`".}
-  for v in parseStringLikeIt(p, majorExpected, limit):
-    when T is CborVoid:
-      discard v
-    elif T is string:
-      val.add v.char
+  type ElmType = typeof val[0]
+  val.setLen 0
+  var L = p.lenMaybe()
+  var i = 0
+  parseStringLikeImpl(p, majorExpected, limit, strLen):
+    if L > -1: # can prealloc safely
+      val.setLen val.len.uint64 + strLen
+      for _ in 0 ..< strLen:
+        val[i] = p.read ElmType
+        inc i
     else:
-      val.add v
+      for _ in 0 ..< strLen:
+        val.add p.read ElmType
+
+proc parseStringLike(
+    p: var CborParser, majorExpected: CborMajor, limit: int, val: var CborVoid
+) {.raises: [IOError, CborReaderError].} =
+  for _ in parseStringLikeIt(p, majorExpected, limit):
+    discard val
 
 # https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.6
 proc parseByteString[T](
     p: var CborParser, limit: int, val: var T
 ) {.raises: [IOError, CborReaderError].} =
-  parseStringLike[T](p, CborMajor.Bytes, limit, val)
+  parseStringLike(p, CborMajor.Bytes, limit, val)
 
 proc parseByteString[T](
     p: var CborParser, val: var T
@@ -121,7 +153,7 @@ proc parseByteString[T](
 proc parseString[T](
     p: var CborParser, limit: int, val: var T
 ) {.raises: [IOError, CborReaderError].} =
-  parseStringLike[T](p, CborMajor.Text, limit, val)
+  parseStringLike(p, CborMajor.Text, limit, val)
 
 proc parseString[T](
     p: var CborParser, val: var T
@@ -136,38 +168,60 @@ template enterNestedStructure(p: CborParser) =
 template exitNestedStructure(p: CborParser) =
   dec p.currDepth
 
-template parseArrayLike(p: var CborParser, majorExpected: CborMajor, body: untyped) =
+template parseArrayLikeImpl(
+    p: var CborParser, majorExpected: CborMajor, arrLen, body: untyped
+) =
   enterNestedStructure(p)
   let c = p.read()
   if c.major != majorExpected:
     p.raiseUnexpectedValue($majorExpected, $c.major)
+  var arrLen = 0'u64
   if c.minor == cborMinorIndef:
     # https://www.rfc-editor.org/rfc/rfc8949#section-3.2.2
     while p.peek() != cborBreakStopCode:
+      arrLen = 1'u64
       body
     discard p.read() # stop code
   else:
     # https://www.rfc-editor.org/rfc/rfc8949#section-3-3.2
-    for _ in 0 ..< readMinorValue(p, c.minor):
-      body
+    arrLen = readMinorValue(p, c.minor)
+    body
   exitNestedStructure(p)
 
-# https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.10
-template parseArray(p: var CborParser, idx, body: untyped) =
-  var idx {.inject.} = 0
-  parseArrayLike(p, CborMajor.Array):
-    if p.conf.arrayElementsLimit > 0 and idx + 1 > p.conf.arrayElementsLimit:
-      p.raiseUnexpectedValue("`arrayElementsLimit` reached")
+template parseArrayLikeImpl(
+    p: var CborParser, majorExpected: CborMajor, limit: int, arrLen, body: untyped
+) =
+  let L = p.lenMaybe()
+  var i = 0'u64
+  parseArrayLikeImpl(p, majorExpected, arrLen):
+    i += arrLen
+    if L > -1 and i > L.uint64:
+      p.raiseNotEnoughBytes("not enough bytes to read")
+    if limit > 0 and i > limit.uint64:
+      p.raiseUnexpectedValue($majorExpected & " length limit reached")
     body
-    inc idx
+
+template parseArrayLike(
+    p: var CborParser, majorExpected: CborMajor, limit: int, body: untyped
+) =
+  parseArrayLikeImpl(p, majorExpected, limit, arrLen):
+    for _ in 0 ..< arrLen:
+      body
+
+# https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.10
+template parseArrayImpl(p: var CborParser, arrLen, body: untyped) =
+  parseArrayLikeImpl(p, CborMajor.Array, p.conf.arrayElementsLimit, arrLen, body)
+
+template parseArray(p: var CborParser, idx, body: untyped) =
+  var idx = 0
+  parseArrayImpl(p, arrLen):
+    for _ in 0 ..< arrLen:
+      body
+      inc idx
 
 # https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.12
 template parseObjectImpl(p: var CborParser, skipNullFields, keyAction, body: untyped) =
-  var numElem = 0
-  parseArrayLike(p, CborMajor.Map):
-    inc numElem
-    if p.conf.objectFieldsLimit > 0 and numElem > p.conf.objectFieldsLimit:
-      p.raiseUnexpectedValue("`objectFieldsLimit` reached")
+  parseArrayLike(p, CborMajor.Map, p.conf.objectFieldsLimit):
     keyAction
     when skipNullFields:
       if r.parser.cborKind() in {CborValueKind.Null, CborValueKind.Undefined}:
@@ -179,7 +233,7 @@ template parseObjectImpl(p: var CborParser, skipNullFields, keyAction, body: unt
 
 template parseObject(p: var CborParser, skipNullFields, key, body: untyped) =
   parseObjectImpl(p, skipNullFields):
-    var key {.inject.} = ""
+    var key = ""
     p.parseString(key)
   do:
     body
@@ -281,17 +335,21 @@ proc parseRawHead(
   val.add c
   discard readMinorValue(p, val, c.minor)
 
-template parseRawArrayLikeImpl(p: var CborParser, val: var CborBytes, body: untyped) =
+template parseRawArrayLikeImpl(
+    p: var CborParser, val: var CborBytes, rawLen, body: untyped
+) =
   assert p.peek().major in {CborMajor.Array, CborMajor.Map}
   let c = p.read()
   val.add c
+  var rawLen = 0'u64
   if c.minor == cborMinorIndef:
     while p.peek() != cborBreakStopCode:
+      rawLen = 1'u64
       body
     val.add p.read() # stop code
   else:
-    for _ in 0 ..< readMinorValue(p, val, c.minor):
-      body
+    rawLen = readMinorValue(p, val, c.minor)
+    body
 
 template parseRawArrayLike(
     p: var CborParser, val: var CborBytes, limit: int, body: untyped
@@ -299,42 +357,54 @@ template parseRawArrayLike(
   assert p.peek().major in {CborMajor.Array, CborMajor.Map}
   enterNestedStructure(p)
   let c = p.peek()
-  var rawLen = 0
-  parseRawArrayLikeImpl(p, val):
-    inc rawLen
-    if limit > 0 and rawLen > limit:
+  let L = p.lenMaybe()
+  var i = 0'u64
+  parseRawArrayLikeImpl(p, val, rawLen):
+    i += rawLen
+    if L > -1 and i > L.uint64:
+      p.raiseNotEnoughBytes("not enough bytes to read")
+    if limit > 0 and i > limit.uint64:
       p.raiseUnexpectedValue($c.major & " length reached")
-    body
+    for _ in 0 ..< rawLen:
+      body
   exitNestedStructure(p)
 
-template parseRawStringLikeImpl(p: var CborParser, val: var CborBytes, body: untyped) =
+template parseRawStringLikeImpl(
+    p: var CborParser, val: var CborBytes, rawLen, body: untyped
+) =
   assert p.peek().major in {CborMajor.Bytes, CborMajor.Text}
   let c = p.read()
   val.add c
+  var rawLen = 0'u64
   if c.minor == cborMinorIndef:
     while p.peek() != cborBreakStopCode:
       let c2 = p.read()
       val.add c2
       if c2.major != c.major:
         p.raiseUnexpectedValue($c.major, $c2.major)
-      for _ in 0 ..< readMinorValue(p, val, c2.minor):
-        body
+      rawLen = readMinorValue(p, val, c2.minor)
+      body
     val.add p.read() # stop code
   else:
-    for _ in 0 ..< readMinorValue(p, val, c.minor):
-      body
+    rawLen = readMinorValue(p, val, c.minor)
+    body
 
 proc parseRawStringLike(
     p: var CborParser, val: var CborBytes, limit: int
 ) {.raises: [IOError, CborReaderError].} =
   assert p.peek().major in {CborMajor.Bytes, CborMajor.Text}
   let c = p.peek()
-  var rawLen = 0
-  parseRawStringLikeImpl(p, val):
-    inc rawLen
-    if limit > 0 and rawLen > limit:
+  let L = p.lenMaybe()
+  var i = 0'u64
+  parseRawStringLikeImpl(p, val, rawLen):
+    i += rawLen
+    if L > -1 and i > L.uint64:
+      p.raiseNotEnoughBytes("not enough bytes to read")
+    if limit > 0 and i > limit.uint64:
       p.raiseUnexpectedValue($c.major & " length reached")
-    val.add p.read()
+    # XXX prealloc
+    for _ in 0 ..< rawLen:
+      val.add p.read()
 
 # https://www.rfc-editor.org/rfc/rfc8949#section-3.1
 proc cborKind*(p: CborParser): CborValueKind {.raises: [IOError, CborReaderError].} =
@@ -449,6 +519,9 @@ template parseArray*(r: var CborReader, body: untyped) =
 
 template parseArray*(r: var CborReader, idx, body: untyped) =
   parseArray(r.parser, idx, body)
+
+template parseArray2*(r: var CborReader, arrLen, body: untyped) =
+  parseArrayImpl(r.parser, arrLen, body)
 
 template skipNullFields(r: CborReader): untyped =
   mixin skipsNullFields

@@ -35,6 +35,8 @@ type
 
   CborUnexpectedValueError* = object of CborReaderError
 
+  CborNotEnoughBytesError* = object of CborUnexpectedValueError
+
   CborIncompleteObjectError* = object of CborReaderError
     objectType: cstring
 
@@ -59,6 +61,9 @@ method formatMsg*(err: ref CborIntOverflowError, filename: string): string =
 method formatMsg*(err: ref CborUnexpectedValueError, filename: string): string =
   fmt"{filename}({err.pos}) {err.msg}"
 
+method formatMsg*(err: ref CborNotEnoughBytesError, filename: string): string =
+  fmt"{filename}({err.pos}) {err.msg}"
+
 method formatMsg*(err: ref CborIncompleteObjectError, filename: string): string =
   fmt"{filename}({err.pos}) Not all required fields were specified when reading '{err.objectType}'"
 
@@ -77,6 +82,14 @@ func raiseUnexpectedValue*(
 
 template raiseUnexpectedValue*(r: CborReader, msg: string) =
   raiseUnexpectedValue(r.parser, msg)
+
+func raiseNotEnoughBytes*(
+    p: CborParser, msg: string
+) {.noreturn, raises: [CborReaderError].} =
+  var ex = new CborNotEnoughBytesError
+  ex.pos = p.stream.pos
+  ex.msg = msg
+  raise ex
 
 func raiseIntOverflow*(
     p: CborParser, absIntVal: BiggestUInt, isNegative: bool
