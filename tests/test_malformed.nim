@@ -41,9 +41,14 @@ suite "Malformed data tests":
       discard Cbor.decode(cbor, CborBytes)
 
   test "Map of len int64.high div 2":
+    type Obj = object
+      a: int
+
     # map of len (int64.high / 2) and content "01020304"
     let cbor = "bb3fffffffffffffff01020304".unhex
     expect CborNotEnoughBytesError:
       discard Cbor.decode(cbor, CborValueRef)
+    expect CborNotEnoughBytesError:
+      discard Cbor.decode(cbor, Obj)
     expect CborNotEnoughBytesError:
       discard Cbor.decode(cbor, CborBytes)
