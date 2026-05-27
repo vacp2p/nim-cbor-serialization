@@ -7,8 +7,7 @@
 # This file may not be copied, modified, or distributed except according to
 # those terms.
 
-import
-  std/[macros, strutils], unittest2, ../cbor_serialization/tools/cddl/type_generator
+import std/[macros, strutils], unittest2, ../cbor_serialization/cddl/type_generator
 
 proc fixAst(ast: NimNode): NimNode =
   proc inspect(node: NimNode): NimNode =
@@ -205,7 +204,7 @@ suite "Test CDDL type generator":
       type
         Bar* = int
         Foo* = object
-          x01*: CborValueRef
+          x01*: CborBytes
           x02*: int
           x03*: uint
           x04*: float32

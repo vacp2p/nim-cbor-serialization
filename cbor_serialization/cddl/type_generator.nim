@@ -20,7 +20,7 @@ proc newCborCddlError(msg: string): ref CborCddlError =
 proc toSimpleNimTyp(s: string): NimNode =
   case s
   of "any":
-    ident"CborValueRef"
+    ident"CborBytes"
   of "uint", "int", "float32", "float64", "float", "bool":
     ident(s)
   of "nint":

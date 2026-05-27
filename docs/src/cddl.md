@@ -6,7 +6,7 @@ This section provides an overview of the `cbor_serialization` CDDL tools.
 
 Concise Data Definition Language (CDDL) is a notation to describe CBOR and JSON. It is defined in [RFC8610](https://datatracker.ietf.org/doc/html/rfc8610).
 
-The `fromCddl` API will parse a CDDL and generate Nim types out of it. It can be imported from the `type_generator` module:
+The `fromCddl` API will parse a CDDL and generate Nim types out of it. It can be imported from the `cbor_serialization/cddl/type_generator` module:
 
 ```nim
 {{#include ../examples/cddl0.nim:Import}}
@@ -39,7 +39,7 @@ The `Request` object defined in the CDDL is generated and exported so it can be 
 
 | CDDL type | Nim output |
 | --- | --- |
-| `any` | `CborValueRef` |
+| `any` | `CborBytes` |
 | `uint`, `int`, `float32`, `float64`, `float`, `bool` | same |
 | negative int `nint` | `int` |
 | `float16`, `float16-32` | `float32` |

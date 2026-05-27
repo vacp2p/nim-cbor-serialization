@@ -7,7 +7,7 @@
 # This file may not be copied, modified, or distributed except according to
 # those terms.
 
-import std/[os, strutils], unittest2, ./utils, ../cbor_serialization/tools/cddl/parser
+import std/[os, strutils], unittest2, ./utils, ../cbor_serialization/cddl/parser
 
 const testSpecCases = [
   """
