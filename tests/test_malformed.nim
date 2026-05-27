@@ -17,7 +17,7 @@ proc checkTruncatedAny(cbor: seq[byte]) =
   expect CborNotEnoughBytesError:
     discard Cbor.decode(cbor, CborVoid)
 
-suite "Malformed data tests":
+suite "Malformed truncated data":
   test "Byte array of len int64.high div 2":
     # byte string of len (int64.high / 2) and content "01020304"
     let cbor = "0x5b3fffffffffffffff01020304".unhex
