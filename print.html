@@ -419,8 +419,8 @@ echo output.getOutput(seq[byte]).to0xHex()
 <p>This section provides an overview of the <code>cbor_serialization</code> CDDL tools.</p>
 <h2 id="parsing"><a class="header" href="#parsing">Parsing</a></h2>
 <p>Concise Data Definition Language (CDDL) is a notation to describe CBOR and JSON. It is defined in <a href="https://datatracker.ietf.org/doc/html/rfc8610">RFC8610</a>.</p>
-<p>The <code>fromCddl</code> API will parse a CDDL and generate Nim types out of it. It can be imported from the <code>type_generator</code> module:</p>
-<pre><code class="language-nim">import cbor_serialization, cbor_serialization/tools/cddl/type_generator
+<p>The <code>fromCddl</code> API will parse a CDDL and generate Nim types out of it. It can be imported from the <code>cbor_serialization/cddl/type_generator</code> module:</p>
+<pre><code class="language-nim">import cbor_serialization, cbor_serialization/cddl/type_generator
 </code></pre>
 <p>It accepts the CDDL as a string, which can be hardcoded or read from a file using <code>staticRead</code>:</p>
 <pre><code class="language-nim">fromCddl """
@@ -448,7 +448,7 @@ Request = {
 </div>
 <h3 id="supported-types"><a class="header" href="#supported-types">Supported types</a></h3>
 <div class="table-wrapper"><table><thead><tr><th>CDDL type</th><th>Nim output</th></tr></thead><tbody>
-<tr><td><code>any</code></td><td><code>CborValueRef</code></td></tr>
+<tr><td><code>any</code></td><td><code>CborBytes</code></td></tr>
 <tr><td><code>uint</code>, <code>int</code>, <code>float32</code>, <code>float64</code>, <code>float</code>, <code>bool</code></td><td>same</td></tr>
 <tr><td>negative int <code>nint</code></td><td><code>int</code></td></tr>
 <tr><td><code>float16</code>, <code>float16-32</code></td><td><code>float32</code></td></tr>
