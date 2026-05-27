@@ -361,16 +361,17 @@ proc read*[T](
   value.setLen 0
   var L = r.parser.lenMaybe()
   var i = 0
-  r.parseArray(arrLen):
+  r.parseArray2(arrLen):
     if L > -1: # can prealloc safely
       value.setLen value.len.uint64 + arrLen
-  do:
-    if L > -1:
-      readValue(r, value[i])
+      for _ in 0 ..< arrLen:
+        readValue(r, value[i])
+        inc i
     else:
-      value.setLen value.len + 1
-      readValue(r, value[i])
-    inc i
+      for _ in 0 ..< arrLen:
+        value.setLen value.len + 1
+        readValue(r, value[i])
+        inc i
 
 proc read*[T: array](
     r: var CborReader, value: var T
