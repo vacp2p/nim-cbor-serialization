@@ -4,8 +4,9 @@ nim	CborReader	cbor_serialization/reader_desc.html#CborReader	object CborReader	
 nim	CborReaderError	cbor_serialization/reader_desc.html#CborReaderError	object CborReaderError		29
 nim	CborUnexpectedFieldError	cbor_serialization/reader_desc.html#CborUnexpectedFieldError	object CborUnexpectedFieldError		32
 nim	CborUnexpectedValueError	cbor_serialization/reader_desc.html#CborUnexpectedValueError	object CborUnexpectedValueError		36
-nim	CborIncompleteObjectError	cbor_serialization/reader_desc.html#CborIncompleteObjectError	object CborIncompleteObjectError		38
-nim	CborIntOverflowError	cbor_serialization/reader_desc.html#CborIntOverflowError	object CborIntOverflowError		41
+nim	CborNotEnoughBytesError	cbor_serialization/reader_desc.html#CborNotEnoughBytesError	object CborNotEnoughBytesError		38
+nim	CborIncompleteObjectError	cbor_serialization/reader_desc.html#CborIncompleteObjectError	object CborIncompleteObjectError		40
+nim	CborIntOverflowError	cbor_serialization/reader_desc.html#CborIntOverflowError	object CborIntOverflowError		43
 nim	ReaderType	cbor_serialization/reader_desc.html#ReaderType.t,typeCbor	template ReaderType(T`gensym0: type Cbor; F`gensym0: distinct type = DefaultFlavor): type		30
 nim	Reader	cbor_serialization/reader_desc.html#Reader.t,typeCbor	template Reader(T`gensym0: type Cbor; F`gensym0: distinct type = DefaultFlavor): type		31
 nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W	template readValue[U: Reader(Cbor); W: string](r`gensym5: var U; value`gensym5: var W)		43
@@ -28,20 +29,22 @@ nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_17	template re
 nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_18	template readValue[U: Reader(Cbor); W: CborBytes](r`gensym89: var U;\n    value`gensym89: var W)		43
 nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_19	template readValue[U: Reader(Cbor); W: object](r`gensym95: var U; value`gensym95: var W)		43
 nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_20	template readValue[U: Reader(Cbor); W: tuple](r`gensym100: var U; value`gensym100: var W)		43
-nim	formatMsg	cbor_serialization/reader_desc.html#formatMsg.e,ref.CborReaderError,string	method formatMsg(err: ref CborReaderError; filename: string): string		53
-nim	formatMsg	cbor_serialization/reader_desc.html#formatMsg.e,ref.CborIntOverflowError,string	method formatMsg(err: ref CborIntOverflowError; filename: string): string		56
-nim	formatMsg	cbor_serialization/reader_desc.html#formatMsg.e,ref.CborUnexpectedValueError,string	method formatMsg(err: ref CborUnexpectedValueError; filename: string): string		59
-nim	formatMsg	cbor_serialization/reader_desc.html#formatMsg.e,ref.CborIncompleteObjectError,string	method formatMsg(err: ref CborIncompleteObjectError; filename: string): string		62
-nim	raiseUnexpectedValue	cbor_serialization/reader_desc.html#raiseUnexpectedValue,CborParser,string	proc raiseUnexpectedValue(p: CborParser; msg: string)		65
-nim	raiseUnexpectedValue	cbor_serialization/reader_desc.html#raiseUnexpectedValue,CborParser,string,string	proc raiseUnexpectedValue(p: CborParser; expected, found: string)		73
-nim	raiseUnexpectedValue	cbor_serialization/reader_desc.html#raiseUnexpectedValue.t,CborReader,string	template raiseUnexpectedValue(r: CborReader; msg: string)		78
-nim	raiseIntOverflow	cbor_serialization/reader_desc.html#raiseIntOverflow,CborParser,BiggestUInt,bool	proc raiseIntOverflow(p: CborParser; absIntVal: BiggestUInt; isNegative: bool)		81
-nim	raiseUnexpectedField	cbor_serialization/reader_desc.html#raiseUnexpectedField,CborParser,string,cstring	proc raiseUnexpectedField(p: CborParser; fieldName: string; deserializedType: cstring)		90
-nim	raiseIncompleteObject	cbor_serialization/reader_desc.html#raiseIncompleteObject,CborParser,cstring	proc raiseIncompleteObject(p: CborParser; objectType: cstring)		99
-nim	raiseIncompleteObject	cbor_serialization/reader_desc.html#raiseIncompleteObject.t,CborReader,cstring	template raiseIncompleteObject(r: CborReader; objectType: cstring)		107
-nim	init	cbor_serialization/reader_desc.html#init,typeCborParser,InputStream,CborReaderConf	proc init(T: type CborParser; stream: InputStream;\n     conf: CborReaderConf = defaultCborReaderConf): T:type		110
-nim	init	cbor_serialization/reader_desc.html#init,typeCborReader,InputStream,CborReaderConf	proc init(T: type CborReader; stream: InputStream;\n     conf: CborReaderConf = defaultCborReaderConf): T:type		117
-nimgrp	raiseunexpectedvalue	cbor_serialization/reader_desc.html#raiseUnexpectedValue-procs-all	proc		65
-nimgrp	init	cbor_serialization/reader_desc.html#init-procs-all	proc		110
-nimgrp	formatmsg	cbor_serialization/reader_desc.html#formatMsg-methods-all	method		53
+nim	formatMsg	cbor_serialization/reader_desc.html#formatMsg.e,ref.CborReaderError,string	method formatMsg(err: ref CborReaderError; filename: string): string		55
+nim	formatMsg	cbor_serialization/reader_desc.html#formatMsg.e,ref.CborIntOverflowError,string	method formatMsg(err: ref CborIntOverflowError; filename: string): string		58
+nim	formatMsg	cbor_serialization/reader_desc.html#formatMsg.e,ref.CborUnexpectedValueError,string	method formatMsg(err: ref CborUnexpectedValueError; filename: string): string		61
+nim	formatMsg	cbor_serialization/reader_desc.html#formatMsg.e,ref.CborNotEnoughBytesError,string	method formatMsg(err: ref CborNotEnoughBytesError; filename: string): string		64
+nim	formatMsg	cbor_serialization/reader_desc.html#formatMsg.e,ref.CborIncompleteObjectError,string	method formatMsg(err: ref CborIncompleteObjectError; filename: string): string		67
+nim	raiseUnexpectedValue	cbor_serialization/reader_desc.html#raiseUnexpectedValue,CborParser,string	proc raiseUnexpectedValue(p: CborParser; msg: string)		70
+nim	raiseUnexpectedValue	cbor_serialization/reader_desc.html#raiseUnexpectedValue,CborParser,string,string	proc raiseUnexpectedValue(p: CborParser; expected, found: string)		78
+nim	raiseUnexpectedValue	cbor_serialization/reader_desc.html#raiseUnexpectedValue.t,CborReader,string	template raiseUnexpectedValue(r: CborReader; msg: string)		83
+nim	raiseNotEnoughBytes	cbor_serialization/reader_desc.html#raiseNotEnoughBytes,CborParser,string	proc raiseNotEnoughBytes(p: CborParser; msg: string)		86
+nim	raiseIntOverflow	cbor_serialization/reader_desc.html#raiseIntOverflow,CborParser,BiggestUInt,bool	proc raiseIntOverflow(p: CborParser; absIntVal: BiggestUInt; isNegative: bool)		94
+nim	raiseUnexpectedField	cbor_serialization/reader_desc.html#raiseUnexpectedField,CborParser,string,cstring	proc raiseUnexpectedField(p: CborParser; fieldName: string; deserializedType: cstring)		103
+nim	raiseIncompleteObject	cbor_serialization/reader_desc.html#raiseIncompleteObject,CborParser,cstring	proc raiseIncompleteObject(p: CborParser; objectType: cstring)		112
+nim	raiseIncompleteObject	cbor_serialization/reader_desc.html#raiseIncompleteObject.t,CborReader,cstring	template raiseIncompleteObject(r: CborReader; objectType: cstring)		120
+nim	init	cbor_serialization/reader_desc.html#init,typeCborParser,InputStream,CborReaderConf	proc init(T: type CborParser; stream: InputStream;\n     conf: CborReaderConf = defaultCborReaderConf): T:type		123
+nim	init	cbor_serialization/reader_desc.html#init,typeCborReader,InputStream,CborReaderConf	proc init(T: type CborReader; stream: InputStream;\n     conf: CborReaderConf = defaultCborReaderConf): T:type		130
+nimgrp	raiseunexpectedvalue	cbor_serialization/reader_desc.html#raiseUnexpectedValue-procs-all	proc		70
+nimgrp	init	cbor_serialization/reader_desc.html#init-procs-all	proc		123
+nimgrp	formatmsg	cbor_serialization/reader_desc.html#formatMsg-methods-all	method		55
 nimgrp	readvalue	cbor_serialization/reader_desc.html#readValue-templates-all	template		38

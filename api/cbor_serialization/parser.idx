@@ -1,33 +1,35 @@
 nimTitle	parser	cbor_serialization/parser.html	module cbor_serialization/parser		0
-nim	cborKind	cbor_serialization/parser.html#cborKind,CborParser	proc cborKind(p: CborParser): CborValueKind		340
-nim	parseInt	cbor_serialization/parser.html#parseInt,CborReader,typeSomeInteger	proc parseInt(r: var CborReader; T: type SomeInteger): T:type		367
-nim	parseByteString	cbor_serialization/parser.html#parseByteString,CborReader,int	proc parseByteString(r: var CborReader; limit: int): seq[byte]		397
-nim	parseByteString	cbor_serialization/parser.html#parseByteString,CborReader	proc parseByteString(r: var CborReader): seq[byte]		402
-nim	parseByteStringIt	cbor_serialization/parser.html#parseByteStringIt.i,CborReader,int,static[bool]	iterator parseByteStringIt(r: var CborReader; limit: int; safeBreak: static[bool] = true): byte		407
-nim	parseByteStringIt	cbor_serialization/parser.html#parseByteStringIt.i,CborReader,static[bool]	iterator parseByteStringIt(r: var CborReader; safeBreak: static[bool] = true): byte		417
-nim	parseString	cbor_serialization/parser.html#parseString,CborReader,int	proc parseString(r: var CborReader; limit: int): string		423
-nim	parseString	cbor_serialization/parser.html#parseString,CborReader	proc parseString(r: var CborReader): string		428
-nim	parseStringIt	cbor_serialization/parser.html#parseStringIt.i,CborReader,int,static[bool]	iterator parseStringIt(r: var CborReader; limit: int; safeBreak: static[bool] = true): char		431
-nim	parseStringIt	cbor_serialization/parser.html#parseStringIt.i,CborReader,static[bool]	iterator parseStringIt(r: var CborReader; safeBreak: static[bool] = true): char		441
-nim	parseArray	cbor_serialization/parser.html#parseArray.t,CborReader,untyped	template parseArray(r: var CborReader; body: untyped)		447
-nim	parseArray	cbor_serialization/parser.html#parseArray.t,CborReader,untyped,untyped	template parseArray(r: var CborReader; idx, body: untyped)		450
-nim	parseObject	cbor_serialization/parser.html#parseObject.t,CborReader,untyped,untyped	template parseObject(r: var CborReader; key: untyped; body: untyped)		460
-nim	parseObjectWithoutSkip	cbor_serialization/parser.html#parseObjectWithoutSkip.t,CborReader,untyped,untyped	template parseObjectWithoutSkip(r: var CborReader; key: untyped; body: untyped)		463
-nim	parseTag	cbor_serialization/parser.html#parseTag.t,CborReader,untyped,untyped	template parseTag(r: var CborReader; tag: untyped; body: untyped)		466
-nim	parseNumber	cbor_serialization/parser.html#parseNumber,CborReader,CborNumber	proc parseNumber(r: var CborReader; val: var CborNumber)		469
-nim	parseNumber	cbor_serialization/parser.html#parseNumber,CborReader	proc parseNumber(r: var CborReader): CborNumber		474
-nim	parseFloat	cbor_serialization/parser.html#parseFloat,CborReader,typeSomeFloat	proc parseFloat(r: var CborReader; T: type SomeFloat): T:type		479
-nim	parseSimpleValue	cbor_serialization/parser.html#parseSimpleValue,CborReader	proc parseSimpleValue(r: var CborReader): CborSimpleValue		484
-nim	parseBool	cbor_serialization/parser.html#parseBool,CborReader	proc parseBool(r: var CborReader): bool		489
-nim	parseValue	cbor_serialization/parser.html#parseValue,CborReader,CborValueRef	proc parseValue(r: var CborReader; val: var CborValueRef)		565
-nim	parseValue	cbor_serialization/parser.html#parseValue,CborReader	proc parseValue(r: var CborReader): CborValueRef		570
-nim	parseValue	cbor_serialization/parser.html#parseValue,CborReader,CborBytes	proc parseValue(r: var CborReader; val: var CborBytes)		575
-nim	parseObjectCustomKey	cbor_serialization/parser.html#parseObjectCustomKey.t,CborReader,untyped,untyped	template parseObjectCustomKey(r: var CborReader; keyAction, body: untyped)		604
-nim	skipSingleValue	cbor_serialization/parser.html#skipSingleValue,CborReader	proc skipSingleValue(r: var CborReader)		607
-nimgrp	parsenumber	cbor_serialization/parser.html#parseNumber-procs-all	proc		469
-nimgrp	parsevalue	cbor_serialization/parser.html#parseValue-procs-all	proc		565
-nimgrp	parsestring	cbor_serialization/parser.html#parseString-procs-all	proc		423
-nimgrp	parsebytestring	cbor_serialization/parser.html#parseByteString-procs-all	proc		397
-nimgrp	parsestringit	cbor_serialization/parser.html#parseStringIt-iterators-all	iterator		431
-nimgrp	parsebytestringit	cbor_serialization/parser.html#parseByteStringIt-iterators-all	iterator		407
-nimgrp	parsearray	cbor_serialization/parser.html#parseArray-templates-all	template		447
+nim	lenMaybe	cbor_serialization/parser.html#lenMaybe,CborParser	proc lenMaybe(p: var CborParser): int		69
+nim	cborKind	cbor_serialization/parser.html#cborKind,CborParser	proc cborKind(p: CborParser): CborValueKind		410
+nim	parseInt	cbor_serialization/parser.html#parseInt,CborReader,typeSomeInteger	proc parseInt(r: var CborReader; T: type SomeInteger): T:type		437
+nim	parseByteString	cbor_serialization/parser.html#parseByteString,CborReader,int	proc parseByteString(r: var CborReader; limit: int): seq[byte]		467
+nim	parseByteString	cbor_serialization/parser.html#parseByteString,CborReader	proc parseByteString(r: var CborReader): seq[byte]		472
+nim	parseByteStringIt	cbor_serialization/parser.html#parseByteStringIt.i,CborReader,int,static[bool]	iterator parseByteStringIt(r: var CborReader; limit: int; safeBreak: static[bool] = true): byte		477
+nim	parseByteStringIt	cbor_serialization/parser.html#parseByteStringIt.i,CborReader,static[bool]	iterator parseByteStringIt(r: var CborReader; safeBreak: static[bool] = true): byte		487
+nim	parseString	cbor_serialization/parser.html#parseString,CborReader,int	proc parseString(r: var CborReader; limit: int): string		493
+nim	parseString	cbor_serialization/parser.html#parseString,CborReader	proc parseString(r: var CborReader): string		498
+nim	parseStringIt	cbor_serialization/parser.html#parseStringIt.i,CborReader,int,static[bool]	iterator parseStringIt(r: var CborReader; limit: int; safeBreak: static[bool] = true): char		501
+nim	parseStringIt	cbor_serialization/parser.html#parseStringIt.i,CborReader,static[bool]	iterator parseStringIt(r: var CborReader; safeBreak: static[bool] = true): char		511
+nim	parseArray	cbor_serialization/parser.html#parseArray.t,CborReader,untyped	template parseArray(r: var CborReader; body: untyped)		517
+nim	parseArray	cbor_serialization/parser.html#parseArray.t,CborReader,untyped,untyped	template parseArray(r: var CborReader; idx, body: untyped)		520
+nim	parseArray2	cbor_serialization/parser.html#parseArray2.t,CborReader,untyped,untyped	template parseArray2(r: var CborReader; arrLen, body: untyped)		523
+nim	parseObject	cbor_serialization/parser.html#parseObject.t,CborReader,untyped,untyped	template parseObject(r: var CborReader; key: untyped; body: untyped)		533
+nim	parseObjectWithoutSkip	cbor_serialization/parser.html#parseObjectWithoutSkip.t,CborReader,untyped,untyped	template parseObjectWithoutSkip(r: var CborReader; key: untyped; body: untyped)		536
+nim	parseTag	cbor_serialization/parser.html#parseTag.t,CborReader,untyped,untyped	template parseTag(r: var CborReader; tag: untyped; body: untyped)		539
+nim	parseNumber	cbor_serialization/parser.html#parseNumber,CborReader,CborNumber	proc parseNumber(r: var CborReader; val: var CborNumber)		542
+nim	parseNumber	cbor_serialization/parser.html#parseNumber,CborReader	proc parseNumber(r: var CborReader): CborNumber		547
+nim	parseFloat	cbor_serialization/parser.html#parseFloat,CborReader,typeSomeFloat	proc parseFloat(r: var CborReader; T: type SomeFloat): T:type		552
+nim	parseSimpleValue	cbor_serialization/parser.html#parseSimpleValue,CborReader	proc parseSimpleValue(r: var CborReader): CborSimpleValue		557
+nim	parseBool	cbor_serialization/parser.html#parseBool,CborReader	proc parseBool(r: var CborReader): bool		562
+nim	parseValue	cbor_serialization/parser.html#parseValue,CborReader,CborValueRef	proc parseValue(r: var CborReader; val: var CborValueRef)		638
+nim	parseValue	cbor_serialization/parser.html#parseValue,CborReader	proc parseValue(r: var CborReader): CborValueRef		643
+nim	parseValue	cbor_serialization/parser.html#parseValue,CborReader,CborBytes	proc parseValue(r: var CborReader; val: var CborBytes)		648
+nim	parseObjectCustomKey	cbor_serialization/parser.html#parseObjectCustomKey.t,CborReader,untyped,untyped	template parseObjectCustomKey(r: var CborReader; keyAction, body: untyped)		677
+nim	skipSingleValue	cbor_serialization/parser.html#skipSingleValue,CborReader	proc skipSingleValue(r: var CborReader)		680
+nimgrp	parsenumber	cbor_serialization/parser.html#parseNumber-procs-all	proc		542
+nimgrp	parsevalue	cbor_serialization/parser.html#parseValue-procs-all	proc		638
+nimgrp	parsestring	cbor_serialization/parser.html#parseString-procs-all	proc		493
+nimgrp	parsebytestring	cbor_serialization/parser.html#parseByteString-procs-all	proc		467
+nimgrp	parsestringit	cbor_serialization/parser.html#parseStringIt-iterators-all	iterator		501
+nimgrp	parsebytestringit	cbor_serialization/parser.html#parseByteStringIt-iterators-all	iterator		477
+nimgrp	parsearray	cbor_serialization/parser.html#parseArray-templates-all	template		517

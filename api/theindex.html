@@ -130,6 +130,10 @@
 <li><a class="reference external"
           data-doc-search-tag="types: const cborMinorLens" href="cbor_serialization/types.html#cborMinorLens">types: const cborMinorLens</a></li>
           </ul></dd>
+<dt><a name="CborNotEnoughBytesError" href="#CborNotEnoughBytesError"><span>CborNotEnoughBytesError:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="reader_desc: object CborNotEnoughBytesError" href="cbor_serialization/reader_desc.html#CborNotEnoughBytesError">reader_desc: object CborNotEnoughBytesError</a></li>
+          </ul></dd>
 <dt><a name="cborNull" href="#cborNull"><span>cborNull:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="types: const cborNull" href="cbor_serialization/types.html#cborNull">types: const cborNull</a></li>
@@ -362,6 +366,8 @@
           <li><a class="reference external"
           data-doc-search-tag="reader_desc: method formatMsg(err: ref CborIntOverflowError; filename: string): string" href="cbor_serialization/reader_desc.html#formatMsg.e%2Cref.CborIntOverflowError%2Cstring">reader_desc: method formatMsg(err: ref CborIntOverflowError; filename: string): string</a></li>
           <li><a class="reference external"
+          data-doc-search-tag="reader_desc: method formatMsg(err: ref CborNotEnoughBytesError; filename: string): string" href="cbor_serialization/reader_desc.html#formatMsg.e%2Cref.CborNotEnoughBytesError%2Cstring">reader_desc: method formatMsg(err: ref CborNotEnoughBytesError; filename: string): string</a></li>
+          <li><a class="reference external"
           data-doc-search-tag="reader_desc: method formatMsg(err: ref CborReaderError; filename: string): string" href="cbor_serialization/reader_desc.html#formatMsg.e%2Cref.CborReaderError%2Cstring">reader_desc: method formatMsg(err: ref CborReaderError; filename: string): string</a></li>
           <li><a class="reference external"
           data-doc-search-tag="reader_desc: method formatMsg(err: ref CborUnexpectedValueError; filename: string): string" href="cbor_serialization/reader_desc.html#formatMsg.e%2Cref.CborUnexpectedValueError%2Cstring">reader_desc: method formatMsg(err: ref CborUnexpectedValueError; filename: string): string</a></li>
@@ -406,6 +412,10 @@
 <li><a class="reference external"
           data-doc-search-tag="types: proc isUndefined(v: CborSimpleValue): bool" href="cbor_serialization/types.html#isUndefined%2CCborSimpleValue">types: proc isUndefined(v: CborSimpleValue): bool</a></li>
           </ul></dd>
+<dt><a name="lenMaybe" href="#lenMaybe"><span>lenMaybe:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="parser: proc lenMaybe(p: var CborParser): int" href="cbor_serialization/parser.html#lenMaybe%2CCborParser">parser: proc lenMaybe(p: var CborParser): int</a></li>
+          </ul></dd>
 <dt><a name="mimeType" href="#mimeType"><span>mimeType:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="format: template mimeType(T: type Cbor): string" href="cbor_serialization/format.html#mimeType.t%2CtypeCbor">format: template mimeType(T: type Cbor): string</a></li>
@@ -419,6 +429,10 @@
           data-doc-search-tag="parser: template parseArray(r: var CborReader; body: untyped)" href="cbor_serialization/parser.html#parseArray.t%2CCborReader%2Cuntyped">parser: template parseArray(r: var CborReader; body: untyped)</a></li>
           <li><a class="reference external"
           data-doc-search-tag="parser: template parseArray(r: var CborReader; idx, body: untyped)" href="cbor_serialization/parser.html#parseArray.t%2CCborReader%2Cuntyped%2Cuntyped">parser: template parseArray(r: var CborReader; idx, body: untyped)</a></li>
+          </ul></dd>
+<dt><a name="parseArray2" href="#parseArray2"><span>parseArray2:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="parser: template parseArray2(r: var CborReader; arrLen, body: untyped)" href="cbor_serialization/parser.html#parseArray2.t%2CCborReader%2Cuntyped%2Cuntyped">parser: template parseArray2(r: var CborReader; arrLen, body: untyped)</a></li>
           </ul></dd>
 <dt><a name="parseBool" href="#parseBool"><span>parseBool:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -503,6 +517,10 @@
 <dt><a name="raiseIntOverflow" href="#raiseIntOverflow"><span>raiseIntOverflow:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
           data-doc-search-tag="reader_desc: proc raiseIntOverflow(p: CborParser; absIntVal: BiggestUInt; isNegative: bool)" href="cbor_serialization/reader_desc.html#raiseIntOverflow%2CCborParser%2CBiggestUInt%2Cbool">reader_desc: proc raiseIntOverflow(p: CborParser; absIntVal: BiggestUInt; isNegative: bool)</a></li>
+          </ul></dd>
+<dt><a name="raiseNotEnoughBytes" href="#raiseNotEnoughBytes"><span>raiseNotEnoughBytes:</span></a></dt><dd><ul class="simple">
+<li><a class="reference external"
+          data-doc-search-tag="reader_desc: proc raiseNotEnoughBytes(p: CborParser; msg: string)" href="cbor_serialization/reader_desc.html#raiseNotEnoughBytes%2CCborParser%2Cstring">reader_desc: proc raiseNotEnoughBytes(p: CborParser; msg: string)</a></li>
           </ul></dd>
 <dt><a name="raiseUnexpectedField" href="#raiseUnexpectedField"><span>raiseUnexpectedField:</span></a></dt><dd><ul class="simple">
 <li><a class="reference external"
@@ -846,7 +864,7 @@
       <div class="twelve-columns footer">
         <span class="nim-sprite"></span>
         <br>
-        <small style="color: var(--hint);">Made with Nim. Generated: 2026-05-27 00:02:22 UTC</small>
+        <small style="color: var(--hint);">Made with Nim. Generated: 2026-05-27 22:29:08 UTC</small>
       </div>
     </div>
   </div>

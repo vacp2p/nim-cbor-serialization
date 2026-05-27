@@ -25,8 +25,8 @@ nim	read	cbor_serialization/reader_impl.html#read,CborReader,T_3	proc read[T: en
 nim	read	cbor_serialization/reader_impl.html#read,CborReader,T_4	proc read[T: SomeInteger](r: var CborReader; value: var T)		346
 nim	read	cbor_serialization/reader_impl.html#read,CborReader,T_5	proc read[T: SomeFloat](r: var CborReader; value: var T)		351
 nim	read	cbor_serialization/reader_impl.html#read,CborReader,seq[T]	proc read[T](r: var CborReader; value: var seq[T])		356
-nim	read	cbor_serialization/reader_impl.html#read,CborReader,T_6	proc read[T: array](r: var CborReader; value: var T)		366
-nim	readRecordValue	cbor_serialization/reader_impl.html#readRecordValue.t,CborReader,	template readRecordValue(r: var CborReader; value: var object)		379
-nim	configureCborDeserialization	cbor_serialization/reader_impl.html#configureCborDeserialization.t,type[],static[bool],static[proc(string)]	template configureCborDeserialization(T: type[enum];\n                             allowNumericRepr: static[bool] = false;\n    stringNormalizer: static[proc (s: string): string] = strictNormalize)		383
+nim	read	cbor_serialization/reader_impl.html#read,CborReader,T_6	proc read[T: array](r: var CborReader; value: var T)		376
+nim	readRecordValue	cbor_serialization/reader_impl.html#readRecordValue.t,CborReader,	template readRecordValue(r: var CborReader; value: var object)		389
+nim	configureCborDeserialization	cbor_serialization/reader_impl.html#configureCborDeserialization.t,type[],static[bool],static[proc(string)]	template configureCborDeserialization(T: type[enum];\n                             allowNumericRepr: static[bool] = false;\n    stringNormalizer: static[proc (s: string): string] = strictNormalize)		393
 nimgrp	read	cbor_serialization/reader_impl.html#read-procs-all	proc		83
 nimgrp	readobjectfields	cbor_serialization/reader_impl.html#readObjectFields-iterators-all	iterator		238
