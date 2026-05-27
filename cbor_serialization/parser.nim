@@ -96,10 +96,7 @@ template parseStringLikeImpl(
     body
 
 template parseStringLikeImpl(
-    p: var CborParser,
-    majorExpected: CborMajor,
-    limit: int,
-    strLen, body: untyped,
+    p: var CborParser, majorExpected: CborMajor, limit: int, strLen, body: untyped
 ) =
   let L = lenMaybe(p)
   var i = 0'u64
@@ -192,10 +189,7 @@ template parseArrayLikeImpl(
   exitNestedStructure(p)
 
 template parseArrayLikeImpl(
-    p: var CborParser,
-    majorExpected: CborMajor,
-    limit: int,
-    arrLen, body: untyped,
+    p: var CborParser, majorExpected: CborMajor, limit: int, arrLen, body: untyped
 ) =
   let L = p.lenMaybe()
   var i = 0'u64
@@ -216,9 +210,7 @@ template parseArrayLike(
 
 # https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.10
 template parseArrayImpl(p: var CborParser, arrLen, body: untyped) =
-  parseArrayLikeImpl(
-    p, CborMajor.Array, p.conf.arrayElementsLimit, arrLen, body
-  )
+  parseArrayLikeImpl(p, CborMajor.Array, p.conf.arrayElementsLimit, arrLen, body)
 
 template parseArray(p: var CborParser, idx, body: untyped) =
   var idx = 0
