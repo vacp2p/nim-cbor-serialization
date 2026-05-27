@@ -9,7 +9,7 @@
 
 import unittest2, ./utils, ../cbor_serialization
 
-proc checkAny(cbor: seq[byte]) =
+proc checkTruncatedAny(cbor: seq[byte]) =
   expect CborNotEnoughBytesError:
     discard Cbor.decode(cbor, CborValueRef)
   expect CborNotEnoughBytesError:
@@ -23,21 +23,21 @@ suite "Malformed data tests":
     let cbor = "0x5b3fffffffffffffff01020304".unhex
     expect CborNotEnoughBytesError:
       discard Cbor.decode(cbor, seq[byte])
-    checkAny(cbor)
+    checkTruncatedAny(cbor)
 
   test "String of len int64.high div 2":
     # string of len (int64.high / 2) and content "abcd"
     let cbor = "0x7b3fffffffffffffff61626364".unhex
     expect CborNotEnoughBytesError:
       discard Cbor.decode(cbor, string)
-    checkAny(cbor)
+    checkTruncatedAny(cbor)
 
   test "Array of len int64.high div 2":
     # array of len (int64.high / 2) and content "01020304"
     let cbor = "0x9b3fffffffffffffff01020304".unhex
     expect CborNotEnoughBytesError:
       discard Cbor.decode(cbor, seq[int])
-    checkAny(cbor)
+    checkTruncatedAny(cbor)
 
   test "Map of len int64.high div 2":
     type Obj = object
@@ -47,4 +47,4 @@ suite "Malformed data tests":
     let cbor = "bb3fffffffffffffff01020304".unhex
     expect CborNotEnoughBytesError:
       discard Cbor.decode(cbor, Obj)
-    checkAny(cbor)
+    checkTruncatedAny(cbor)
