@@ -15,7 +15,7 @@ import
   json_serialization,
   ../../cbor_serialization/[reader, writer]
 
-export JsonString
+export JsonString, CborBytes, SerializationError
 
 # https://www.rfc-editor.org/rfc/rfc8949.html#section-6.1
 proc writeToJson*(

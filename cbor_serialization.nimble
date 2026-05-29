@@ -16,10 +16,11 @@ description = "Flexible CBOR serialization not relying on run-time type informat
 license = "Apache License 2.0"
 skipDirs = @["tests", "fuzzer"]
 
-requires "nim >= 2.0.0", "serialization >= 0.4.9", "stew >= 0.4.1", "results"
+requires "nim >= 2.0.0",
+  "serialization >= 0.4.9", "stew >= 0.4.1", "results", "json_serialization"
 
 feature "dev":
-  requires "json_serialization", "bigints"
+  requires "bigints"
 
 let nimc = getEnv("NIMC", "nim") # Which nim compiler to use
 let lang = getEnv("NIMLANG", "c") # Which backend (c/cpp/js)
