@@ -21,10 +21,12 @@ proc toSimpleNimTyp(s: string): NimNode =
   case s
   of "any":
     ident"CborBytes"
-  of "uint", "int", "float32", "float64", "float", "bool":
+  of "float32", "float64", "float", "bool":
     ident(s)
-  of "nint":
-    ident"int"
+  of "uint":
+    ident"uint64"
+  of "int", "nint":
+    ident"int64"
   of "float16", "float16-32":
     ident"float32"
   of "float32-64":
