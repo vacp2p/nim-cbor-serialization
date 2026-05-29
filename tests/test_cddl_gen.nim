@@ -49,7 +49,7 @@ suite "Test CDDL type generator":
       }"""
     let expected = quote:
       type Person* = object
-        age*: int
+        age*: int64
         name*: string
         employer*: string
 
@@ -65,7 +65,7 @@ suite "Test CDDL type generator":
       }"""
     let expected = quote:
       type Person* = object
-        age*: int
+        age*: int64
         name*: string
         employer*: string
 
@@ -81,7 +81,7 @@ suite "Test CDDL type generator":
       }"""
     let expected = quote:
       type Person* = object
-        age*: int
+        age*: int64
         name*: string
         employer*: string
 
@@ -139,7 +139,7 @@ suite "Test CDDL type generator":
     let expected = quote:
       type
         Foo* = string
-        Bar* = int
+        Bar* = int64
         Baz* = Bar
 
     checkCddl(cddl, expected)
@@ -150,7 +150,7 @@ suite "Test CDDL type generator":
       IntSeq = [* int]
       """
     let expected = quote:
-      type IntSeq* = seq[int]
+      type IntSeq* = seq[int64]
 
     checkCddl(cddl, expected)
 
@@ -160,7 +160,7 @@ suite "Test CDDL type generator":
       IntMap = { * tstr => int }
       """
     let expected = quote:
-      type IntMap* = Table[string, int]
+      type IntMap* = Table[string, int64]
 
     checkCddl(cddl, expected)
 
@@ -171,7 +171,7 @@ suite "Test CDDL type generator":
       """
     let expected = quote:
       type Foo* = object
-        opt*: Opt[int]
+        opt*: Opt[int64]
 
     checkCddl(cddl, expected)
 
@@ -202,16 +202,16 @@ suite "Test CDDL type generator":
       }"""
     let expected = quote:
       type
-        Bar* = int
+        Bar* = int64
         Foo* = object
           x01*: CborBytes
-          x02*: int
-          x03*: uint
+          x02*: int64
+          x03*: uint64
           x04*: float32
           x05*: float64
           x06*: float
           x07*: bool
-          x08*: int
+          x08*: int64
           x09*: float32
           x10*: float32
           x11*: float
@@ -220,9 +220,9 @@ suite "Test CDDL type generator":
           x14*: string
           x15*: string
           x16*: Bar
-          x16*: Table[string, int]
-          x17*: seq[int]
-          x18*: Opt[int]
+          x16*: Table[string, int64]
+          x17*: seq[int64]
+          x18*: Opt[int64]
 
     checkCddl(cddl, expected)
 

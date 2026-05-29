@@ -40,8 +40,13 @@ The `Request` object defined in the CDDL is generated and exported so it can be 
 | CDDL type | Nim output |
 | --- | --- |
 | `any` | `CborBytes` |
-| `uint`, `int`, `float32`, `float64`, `float`, `bool` | same |
-| negative int `nint` | `int` |
+| `uint` | `uint64` |
+| `int` | `int64` |
+| `nint` (negative int) | `int64` |
+| `float32` | `float32` |
+| `float64` | `float64` |
+| `float` | `float` |
+| `bool` | `bool` |
 | `float16`, `float16-32` | `float32` |
 | `float32-64` | `float` |
 | `bstr`, `bytes` | `seq[byte]` |
