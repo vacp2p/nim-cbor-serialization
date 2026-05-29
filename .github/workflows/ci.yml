@@ -20,6 +20,6 @@ jobs:
         env NIMLANG=c nimble test
         env NIMLANG=cpp nimble test
         env nimble examples
-        env nimble --features:dev install --depsonly
+        env nimble features
         env NIMLANG=c nimble test_dev
         env NIMLANG=cpp nimble test_dev

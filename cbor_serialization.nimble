@@ -19,8 +19,8 @@ skipDirs = @["tests", "fuzzer"]
 requires "nim >= 2.0.0",
   "serialization >= 0.4.9", "stew >= 0.4.1", "results", "json_serialization"
 
-feature "dev":
-  requires "bigints"
+#feature "dev":
+#  requires "bigints"
 
 let nimc = getEnv("NIMC", "nim") # Which nim compiler to use
 let lang = getEnv("NIMLANG", "c") # Which backend (c/cpp/js)
@@ -61,3 +61,6 @@ task docs, "Generate API documentation":
   exec "mdbook build docs"
   exec nimc & " doc " &
     "--git.url:https://github.com/vacp2p/nim-cbor-serialization --git.commit:master --outdir:docs/book/api --project cbor_serialization"
+
+task features, "Install all features":
+  exec "nimble install bigints -y"
