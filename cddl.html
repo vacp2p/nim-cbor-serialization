@@ -205,8 +205,13 @@ Request = {
 <h3 id="supported-types"><a class="header" href="#supported-types">Supported types</a></h3>
 <div class="table-wrapper"><table><thead><tr><th>CDDL type</th><th>Nim output</th></tr></thead><tbody>
 <tr><td><code>any</code></td><td><code>CborBytes</code></td></tr>
-<tr><td><code>uint</code>, <code>int</code>, <code>float32</code>, <code>float64</code>, <code>float</code>, <code>bool</code></td><td>same</td></tr>
-<tr><td>negative int <code>nint</code></td><td><code>int</code></td></tr>
+<tr><td><code>uint</code></td><td><code>uint64</code></td></tr>
+<tr><td><code>int</code></td><td><code>int64</code></td></tr>
+<tr><td><code>nint</code> (negative int)</td><td><code>int64</code></td></tr>
+<tr><td><code>float32</code></td><td><code>float32</code></td></tr>
+<tr><td><code>float64</code></td><td><code>float64</code></td></tr>
+<tr><td><code>float</code></td><td><code>float</code></td></tr>
+<tr><td><code>bool</code></td><td><code>bool</code></td></tr>
 <tr><td><code>float16</code>, <code>float16-32</code></td><td><code>float32</code></td></tr>
 <tr><td><code>float32-64</code></td><td><code>float</code></td></tr>
 <tr><td><code>bstr</code>, <code>bytes</code></td><td><code>seq[byte]</code></td></tr>
