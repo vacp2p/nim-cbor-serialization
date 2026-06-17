@@ -10,18 +10,8 @@
 {.warning[UnusedImport]: off.}
 
 import
-  test_spec, test_serialization, test_simple_value, test_cbor_flavor, test_parser,
-  test_reader, test_writer, test_valueref, test_cbor_raw, test_malformed, test_std,
-  test_overloads, test_edn, test_cddl_parser, test_cddl_gen
-
-template importBigints() =
-  import bigints
-
-#when compiles(importBigints):
-import ./test_bigints
-
-template importjson() =
-  import json_serialization
-
-#when compiles(importjson):
-import ./test_tools
+  ./[
+    test_spec, test_serialization, test_simple_value, test_cbor_flavor, test_parser,
+    test_reader, test_writer, test_valueref, test_cbor_raw, test_malformed, test_std,
+    test_overloads, test_edn, test_cddl_parser, test_cddl_gen,
+  ]
