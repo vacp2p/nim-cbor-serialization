@@ -7,28 +7,28 @@ nim	CborUnexpectedValueError	cbor_serialization/reader_desc.html#CborUnexpectedV
 nim	CborNotEnoughBytesError	cbor_serialization/reader_desc.html#CborNotEnoughBytesError	object CborNotEnoughBytesError		38
 nim	CborIncompleteObjectError	cbor_serialization/reader_desc.html#CborIncompleteObjectError	object CborIncompleteObjectError		40
 nim	CborIntOverflowError	cbor_serialization/reader_desc.html#CborIntOverflowError	object CborIntOverflowError		43
-nim	ReaderType	cbor_serialization/reader_desc.html#ReaderType.t,typeCbor	template ReaderType(T`gensym0: type Cbor; F`gensym0: distinct type = DefaultFlavor): type		30
-nim	Reader	cbor_serialization/reader_desc.html#Reader.t,typeCbor	template Reader(T`gensym0: type Cbor; F`gensym0: distinct type = DefaultFlavor): type		31
-nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W	template readValue[U: Reader(Cbor); W: string](r`gensym5: var U; value`gensym5: var W)		43
-nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_2	template readValue[U: Reader(Cbor); W: bool](r`gensym10: var U; value`gensym10: var W)		43
-nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_3	template readValue[U: Reader(Cbor); W: ref](r`gensym15: var U; value`gensym15: var W)		43
-nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_4	template readValue[U: Reader(Cbor); W: ptr](r`gensym20: var U; value`gensym20: var W)		43
-nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_5	template readValue[U: Reader(Cbor); W: enum](r`gensym25: var U; value`gensym25: var W)		43
-nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_6	template readValue[U: Reader(Cbor); W: SomeInteger](r`gensym30: var U;\n    value`gensym30: var W)		43
-nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_7	template readValue[U: Reader(Cbor); W: SomeFloat](r`gensym35: var U;\n    value`gensym35: var W)		43
-nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_8	template readValue[U: Reader(Cbor); W: seq](r`gensym40: var U; value`gensym40: var W)		43
-nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_9	template readValue[U: Reader(Cbor); W: array](r`gensym45: var U; value`gensym45: var W)		43
-nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_10	template readValue[U: Reader(Cbor); W: openArray](r`gensym50: var U;\n    value`gensym50: var W)		43
-nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_11	template readValue[U: Reader(Cbor); W: range](r`gensym55: var U; value`gensym55: var W)		43
-nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_12	template readValue[U: Reader(Cbor); W: CborNumber](r`gensym61: var U;\n    value`gensym61: var W)		43
-nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_13	template readValue[U: Reader(Cbor); W: CborTag](r`gensym66: var U; value`gensym66: var W)		43
-nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_14	template readValue[U: Reader(Cbor); W: CborVoid](r`gensym71: var U; value`gensym71: var W)		43
-nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_15	template readValue[U: Reader(Cbor); W: CborValueRef](r`gensym76: var U;\n    value`gensym76: var W)		43
-nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_16	template readValue[U: Reader(Cbor); W: TT`gensym75](r`gensym81: var U;\n    value`gensym81: var W)		46
-nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_17	template readValue[U: Reader(Cbor); W: CborSimpleValue](r`gensym84: var U;\n    value`gensym84: var W)		43
-nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_18	template readValue[U: Reader(Cbor); W: CborBytes](r`gensym89: var U;\n    value`gensym89: var W)		43
-nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_19	template readValue[U: Reader(Cbor); W: object](r`gensym95: var U; value`gensym95: var W)		43
-nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_20	template readValue[U: Reader(Cbor); W: tuple](r`gensym100: var U; value`gensym100: var W)		43
+nim	ReaderType	cbor_serialization/reader_desc.html#ReaderType.t,typeCbor	template ReaderType(T`gensym0: type Cbor; F`gensym0: distinct type = Flavor`gensym0): type		55
+nim	Reader	cbor_serialization/reader_desc.html#Reader.t,typeCbor	template Reader(T`gensym0: type Cbor; F`gensym0: distinct type = Flavor`gensym0): type		56
+nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W	template readValue[U: Reader(Cbor); W: string](r`gensym7: var U; value`gensym7: var W)		43
+nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_2	template readValue[U: Reader(Cbor); W: bool](r`gensym12: var U; value`gensym12: var W)		43
+nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_3	template readValue[U: Reader(Cbor); W: ref](r`gensym17: var U; value`gensym17: var W)		43
+nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_4	template readValue[U: Reader(Cbor); W: ptr](r`gensym22: var U; value`gensym22: var W)		43
+nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_5	template readValue[U: Reader(Cbor); W: enum](r`gensym27: var U; value`gensym27: var W)		43
+nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_6	template readValue[U: Reader(Cbor); W: SomeInteger](r`gensym32: var U;\n    value`gensym32: var W)		43
+nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_7	template readValue[U: Reader(Cbor); W: SomeFloat](r`gensym37: var U;\n    value`gensym37: var W)		43
+nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_8	template readValue[U: Reader(Cbor); W: seq](r`gensym42: var U; value`gensym42: var W)		43
+nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_9	template readValue[U: Reader(Cbor); W: array](r`gensym47: var U; value`gensym47: var W)		43
+nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_10	template readValue[U: Reader(Cbor); W: openArray](r`gensym52: var U;\n    value`gensym52: var W)		43
+nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_11	template readValue[U: Reader(Cbor); W: range](r`gensym57: var U; value`gensym57: var W)		43
+nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_12	template readValue[U: Reader(Cbor); W: CborNumber](r`gensym63: var U;\n    value`gensym63: var W)		43
+nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_13	template readValue[U: Reader(Cbor); W: CborTag](r`gensym68: var U; value`gensym68: var W)		43
+nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_14	template readValue[U: Reader(Cbor); W: CborVoid](r`gensym73: var U; value`gensym73: var W)		43
+nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_15	template readValue[U: Reader(Cbor); W: CborValueRef](r`gensym78: var U;\n    value`gensym78: var W)		43
+nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_16	template readValue[U: Reader(Cbor); W: TT`gensym77](r`gensym83: var U;\n    value`gensym83: var W)		46
+nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_17	template readValue[U: Reader(Cbor); W: CborSimpleValue](r`gensym86: var U;\n    value`gensym86: var W)		43
+nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_18	template readValue[U: Reader(Cbor); W: CborBytes](r`gensym91: var U;\n    value`gensym91: var W)		43
+nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_19	template readValue[U: Reader(Cbor); W: object](r`gensym97: var U; value`gensym97: var W)		43
+nim	readValue	cbor_serialization/reader_desc.html#readValue.t,U,W_20	template readValue[U: Reader(Cbor); W: tuple](r`gensym102: var U; value`gensym102: var W)		43
 nim	formatMsg	cbor_serialization/reader_desc.html#formatMsg.e,ref.CborReaderError,string	method formatMsg(err: ref CborReaderError; filename: string): string		55
 nim	formatMsg	cbor_serialization/reader_desc.html#formatMsg.e,ref.CborIntOverflowError,string	method formatMsg(err: ref CborIntOverflowError; filename: string): string		58
 nim	formatMsg	cbor_serialization/reader_desc.html#formatMsg.e,ref.CborUnexpectedValueError,string	method formatMsg(err: ref CborUnexpectedValueError; filename: string): string		61

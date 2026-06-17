@@ -14,8 +14,9 @@ nim	defaultObjectSerialization	cbor_serialization/format.html#defaultObjectSeria
 nim	defaultReaders	cbor_serialization/format.html#defaultReaders.t,type	template defaultReaders(Flavor: type)		132
 nim	defaultWriters	cbor_serialization/format.html#defaultWriters.t,type	template defaultWriters(Flavor: type)		137
 nim	defaultSerialization	cbor_serialization/format.html#defaultSerialization.t,type	template defaultSerialization(Flavor: type)		142
-nim	Cbor	cbor_serialization/format.html#Cbor	object Cbor		22
-nim	mimeType	cbor_serialization/format.html#mimeType.t,typeCbor	template mimeType(T: type Cbor): string		146
+nim	Cbor	cbor_serialization/format.html#Cbor	object Cbor		23
+nim	mimeType	cbor_serialization/format.html#mimeType.t,typeCbor	template mimeType(T: type Cbor): string		24
+nim	versionInt	cbor_serialization/format.html#versionInt.t,typeCbor	template versionInt(T: type Cbor): uint		146
 nim	supports	cbor_serialization/format.html#supports.t,typeCbor,type	template supports(_: type Cbor; T: type): bool		148
 nim	EnumAsString	cbor_serialization/format.html#EnumAsString	EnumRepresentation.EnumAsString		152
 nim	EnumAsNumber	cbor_serialization/format.html#EnumAsNumber	EnumRepresentation.EnumAsNumber		152
