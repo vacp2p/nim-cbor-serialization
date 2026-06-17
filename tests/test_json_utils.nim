@@ -92,6 +92,12 @@ const testCasesNoRountrip = [
   ("0xc349010000000000000000", "\"~AQAAAAAAAAAA\""),
   ("0x40", "\"\""),
   ("0x4401020304", "\"AQIDBA\""),
+  # maps with non-string keys
+  ("0xa201020304", """{"1":2,"3":4}"""),
+  (
+    "0xa1c074323031332d30332d32315432303a30343a30305a01",
+    """{"2013-03-21T20:04:00Z":1}""",
+  ),
 ]
 
 suite "Test CBOR to JSON":

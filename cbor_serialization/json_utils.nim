@@ -28,6 +28,12 @@ proc writeToJson*(
     else:
       p.raiseUnexpectedValue(msg)
 
+  template readAsJson(reader: untyped): string =
+    var outTmp = memoryOutput()
+    var writerTmp = JsonWriter.init(outTmp)
+    writeToJson(reader, writerTmp)
+    outTmp.getOutput(string)
+
   case p.cborKind()
   of CborValueKind.Bytes:
     writer.writeValue(Base64Url.encode(reader.readValue(seq[byte])))
@@ -50,8 +56,26 @@ proc writeToJson*(
       writer.writeValue(f)
   of CborValueKind.Object:
     writeObject(writer):
-      parseObject(reader, key):
+      parseObjectCustomKey(reader):
+        let key =
+          case p.cborKind()
+          of CborValueKind.String:
+            reader.readValue(string)
+          of CborValueKind.Tag:
+            var val: string
+            var tag: uint64
+            parseTag(reader, tag):
+              val =
+                case p.cborKind()
+                of CborValueKind.String:
+                  reader.readValue(string)
+                else:
+                  reader.readAsJson()
+            val
+          else:
+            reader.readAsJson()
         writer.writeName(key)
+      do:
         writeToJson(reader, writer)
   of CborValueKind.Array:
     writeArray(writer):
