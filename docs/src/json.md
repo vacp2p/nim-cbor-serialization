@@ -38,6 +38,7 @@ Note some CBOR types do not have direct analogs in JSON:
 - Tag 3 is base64 encoded and prefixed with `~`.
 - Tag 23 is hex encoded.
 - All tag numbers are lost (not encoded); only their value is encoded.
+- Non-string map keys are stringified using `toJson` which can create key collisions.
 
 Requires the `json_serialization` nimble package.
 
