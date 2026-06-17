@@ -19,16 +19,16 @@ skipDirs = @["tests", "fuzzer"]
 requires "nim >= 2.0.0",
   "serialization >= 0.4.9", "stew >= 0.4.1", "npeg >= 1.3.0", "results", "unittest2"
 
-#feature "bigints":
-#  require "bigints"
+#feature "dev":
+#  requires "bigints", "json_serialization"
+
+from os import quoteShell
+from strutils import endsWith
 
 let nimc = getEnv("NIMC", "nim") # Which nim compiler to use
 let lang = getEnv("NIMLANG", "c") # Which backend (c/cpp/js)
 let flags = getEnv("NIMFLAGS", "") # Extra flags for the compiler
 let verbose = getEnv("V", "") notin ["", "0"]
-
-from os import quoteShell
-from strutils import endsWith
 
 let cfg =
   " --styleCheck:usages --styleCheck:error" &
@@ -47,6 +47,10 @@ task test, "Run all tests":
   for threads in ["--threads:off", "--threads:on"]:
     run threads, "tests/test_all"
 
+task test_dev, "Run all dev tests":
+  for threads in ["--threads:off", "--threads:on"]:
+    run threads, "tests/test_all_dev"
+
 task examples, "Run examples":
   # Run book examples
   for file in listFiles("docs/examples"):
@@ -57,6 +61,3 @@ task docs, "Generate API documentation":
   exec "mdbook build docs"
   exec nimc & " doc " &
     "--git.url:https://github.com/vacp2p/nim-cbor-serialization --git.commit:master --outdir:docs/book/api --project cbor_serialization"
-
-task features, "Install all features":
-  exec "nimble install bigints -y"

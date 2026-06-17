@@ -16,7 +16,9 @@ jobs:
       test-command: |
         nimble dump --solve
         nimble list --installed --version
-        env nimble features
         env NIMLANG=c nimble test
         env NIMLANG=cpp nimble test
+        env nimble --useSystemNim install -y --depsonly json_serialization bigints
         env nimble examples
+        env NIMLANG=c nimble test_dev
+        env NIMLANG=cpp nimble test_dev
