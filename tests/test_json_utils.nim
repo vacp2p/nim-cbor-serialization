@@ -7,8 +7,7 @@
 # This file may not be copied, modified, or distributed except according to
 # those terms.
 
-import
-  unittest2, ../cbor_serialization, ../cbor_serialization/json_utils, ./utils
+import unittest2, ../cbor_serialization, ../cbor_serialization/json_utils, ./utils
 
 const testCases = [
   ("0x00", "0"),

@@ -10,10 +10,7 @@
 {.push raises: [], gcsafe.}
 
 import
-  std/[math, strutils],
-  stew/[base64, byteutils],
-  json_serialization,
-  ./[reader, writer]
+  std/[math, strutils], stew/[base64, byteutils], json_serialization, ./[reader, writer]
 
 export JsonString, CborBytes, SerializationError
 
