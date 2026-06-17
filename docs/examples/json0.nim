@@ -6,7 +6,7 @@ import cbor_serialization, cbor_serialization/json_utils
 
 # ANCHOR: json
 let jsonDecoded = """{"cborrpc":"2.0","method":"subtract","params":[42,3],"id":1}"""
-# ANCHOR: json
+# ANCHOR_END: json
 
 # ANCHOR: toCbor
 let encoded = toCbor(jsonDecoded.JsonString)
