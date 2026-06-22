@@ -16,6 +16,9 @@ export results
 template shouldWriteObjectField*[T](F: type Cbor, field: Result[T, void]): bool =
   field.isOk
 
+func isFieldExpected*[T, E](F: type Cbor, _: type[Result[T, E]]): bool {.compileTime.} =
+  false
+
 proc write*[T](writer: var CborWriter, value: Result[T, void]) {.raises: [IOError].} =
   mixin writeValue
 
@@ -35,5 +38,8 @@ proc read*[T](
   else:
     value.ok reader.readValue(T)
 
-func isFieldExpected*[T, E](F: type Cbor, _: type[Result[T, E]]): bool {.compileTime.} =
-  false
+template writeValue*[T](writer: var CborWriter, value: Result[T, void]) =
+  write(writer, value)
+
+template readValue*[T](reader: var CborReader, value: var Result[T, void]) =
+  read(reader, value)

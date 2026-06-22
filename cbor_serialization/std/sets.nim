@@ -25,6 +25,12 @@ proc readImpl(
   for elem in readArray(reader, ElemType):
     value.incl elem
 
+template writeValue*(writer: var CborWriter, value: SetType) =
+  writeImpl(writer, value)
+
+template readValue*(reader: var CborReader, value: var SetType) =
+  readImpl(reader, value)
+
 # TODO: https://github.com/nim-lang/Nim/issues/25174
 
 template write*(writer: var CborWriter, value: OrderedSet) =
@@ -45,4 +51,4 @@ template read*(reader: var CborReader, value: var HashSet) =
 template read*(reader: var CborReader, value: var set) =
   readImpl(reader, value)
 
-Cbor.defaultSerialization(set)
+#Cbor.defaultSerialization(set)

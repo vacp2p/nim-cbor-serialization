@@ -45,6 +45,12 @@ proc readImpl(
   except ValueError as ex:
     reader.raiseUnexpectedValue("TableType: " & ex.msg)
 
+template writeValue*(writer: var CborWriter, value: TableType) =
+  writeImpl(writer, value)
+
+template readValue*(reader: var CborReader, value: var TableType) =
+  readImpl(reader, value)
+
 # TODO: https://github.com/nim-lang/Nim/issues/25174
 
 template write*(writer: var CborWriter, value: OrderedTable) =

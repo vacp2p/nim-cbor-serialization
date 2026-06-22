@@ -40,3 +40,21 @@ proc write*(writer: var CborWriter, value: AddressFamily) {.raises: [IOError].} 
 proc read*(reader: var CborReader, value: var AddressFamily) =
   mixin readValue
   value = parseEnum[AddressFamily](reader.readValue(string))
+
+template writeValue*(writer: var CborWriter, value: IpAddress) =
+  write(writer, value)
+
+template readValue*(reader: var CborReader, value: var IpAddress) =
+  read(reader, value)
+
+template writeValue*(writer: var CborWriter, value: Port) =
+  write(writer, value)
+
+template readValue*(reader: var CborReader, value: var Port) =
+  read(reader, value)
+
+template writeValue*(writer: var CborWriter, value: AddressFamily) =
+  write(writer, value)
+
+template readValue*(reader: var CborReader, value: var AddressFamily) =
+  read(reader, value)
