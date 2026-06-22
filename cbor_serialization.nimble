@@ -10,7 +10,7 @@
 mode = ScriptMode.Verbose
 
 packageName = "cbor_serialization"
-version = "0.4.0"
+version = "0.4.1"
 author = "Status Research & Development GmbH"
 description = "Flexible CBOR serialization not relying on run-time type information"
 license = "Apache License 2.0"
