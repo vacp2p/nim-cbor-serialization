@@ -625,7 +625,8 @@ suite "Test CDDL parser":
     const r = parseCddl("my-first-rule = int")
     check r[0].name == "my-first-rule"
 
-const schemaIssue36 = """
+const schemaIssue36 =
+  """
 ; -- metadata --
 _module = "rt"
 _version = [1, 0]
