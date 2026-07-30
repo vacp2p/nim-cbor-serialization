@@ -40,8 +40,7 @@ proc checkCddl(cddl: string, expected: NimNode) =
 
 suite "Test CDDL type generator":
   staticTest "map should generate an object":
-    const cddl =
-      """
+    const cddl = """
       Person = {
         age: int,
         name: tstr,
@@ -56,8 +55,7 @@ suite "Test CDDL type generator":
     checkCddl(cddl, expected)
 
   staticTest "map => should generate an object":
-    const cddl =
-      """
+    const cddl = """
       Person = {
         age => int,
         name => tstr,
@@ -72,8 +70,7 @@ suite "Test CDDL type generator":
     checkCddl(cddl, expected)
 
   staticTest "map of string keys should generate an object":
-    const cddl =
-      """
+    const cddl = """
       Person = {
         "age" => int,
         "name" => tstr,
@@ -88,8 +85,7 @@ suite "Test CDDL type generator":
     checkCddl(cddl, expected)
 
   staticTest "literal variant should generate an enum":
-    const cddl =
-      """
+    const cddl = """
       ca = 0
       cb = 1
       cc = 2
@@ -104,8 +100,7 @@ suite "Test CDDL type generator":
     checkCddl(cddl, expected)
 
   staticTest "literal variant of numbers should generate an enum":
-    const cddl =
-      """
+    const cddl = """
       Choices = 0 / 1 / 2
       """
     let expected = quote:
@@ -117,8 +112,7 @@ suite "Test CDDL type generator":
     checkCddl(cddl, expected)
 
   staticTest "literal variant of strings should generate an enum":
-    const cddl =
-      """
+    const cddl = """
       Choices = "foo" / "bar" / "baz"
       """
     let expected = quote:
@@ -130,8 +124,7 @@ suite "Test CDDL type generator":
     checkCddl(cddl, expected)
 
   staticTest "simple type should generate an alias":
-    const cddl =
-      """
+    const cddl = """
       Foo = tstr
       Bar = int
       Baz = Bar
@@ -145,8 +138,7 @@ suite "Test CDDL type generator":
     checkCddl(cddl, expected)
 
   staticTest "array should generate a seq":
-    const cddl =
-      """
+    const cddl = """
       IntSeq = [* int]
       """
     let expected = quote:
@@ -155,8 +147,7 @@ suite "Test CDDL type generator":
     checkCddl(cddl, expected)
 
   staticTest "map should generate a Table":
-    const cddl =
-      """
+    const cddl = """
       IntMap = { * tstr => int }
       """
     let expected = quote:
@@ -165,8 +156,7 @@ suite "Test CDDL type generator":
     checkCddl(cddl, expected)
 
   staticTest "optional should generate an Opt[T]":
-    const cddl =
-      """
+    const cddl = """
       Foo = { ? opt: int }
       """
     let expected = quote:
@@ -176,8 +166,7 @@ suite "Test CDDL type generator":
     checkCddl(cddl, expected)
 
   staticTest "all type fields object":
-    const cddl =
-      """
+    const cddl = """
       Bar = int
       Foo = {
         x01: any,
