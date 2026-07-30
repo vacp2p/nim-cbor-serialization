@@ -620,3 +620,7 @@ suite "Test CDDL parser":
       if dump.normalizeText() != dumpContent.normalizeText():
         checkpoint(dump)
         fail()
+
+  staticTest "parse result can be stored in a const":
+    const r = parseCddl("my-first-rule = int")
+    check r[0].name == "my-first-rule"
