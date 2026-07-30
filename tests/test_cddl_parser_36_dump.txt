@@ -1,0 +1,248 @@
+Rule: _module  [rkType]
+  Value("rt")
+Rule: _version  [rkType]
+  Array[
+    [ocOne]
+      Value(1)
+    [ocOne]
+      Value(0)
+  ]
+Rule: rt.state  [rkType]
+  Union[
+    Value("unloaded")
+    Value("loaded")
+    Value("ready")
+    Value("stopping")
+    Value("error")
+  ]
+Rule: rt.mode  [rkType]
+  Union[
+    Value("direct")
+    Value("local-transport")
+    Value("remote-transport")
+  ]
+Rule: rt.route_state  [rkType]
+  Union[
+    Value("establishing")
+    Value("ready")
+    Value("draining")
+    Value("revoked")
+    Value("failed")
+    Value("closed")
+  ]
+Rule: rt.list_modules_request  [rkType]
+  Map{
+  }
+Rule: rt.list_modules_response  [rkType]
+  Map{
+    [ocOne] key=modules(kkName)
+      Array[
+        [ocZeroOrMore]
+          Map{
+            [ocOne] key=module(kkName)
+              SimpleType(tstr)
+            [ocOptional] key=provider(kkName)
+              Map{
+                [ocOptional] key=runtime_instance_id(kkName)
+                  SimpleType(tstr)
+                [ocOne] key=provider(kkName)
+                  SimpleType(tstr)
+              }
+            [ocOptional] key=remote(kkName)
+              Map{
+                [ocOne] key=runtime(kkName)
+                  Map{
+                    [ocOptional] key=runtime_instance_id(kkName)
+                      SimpleType(tstr)
+                    [ocOne] key=address(kkName)
+                      Map{
+                        [ocOne] key=transport(kkName)
+                          SimpleType(tstr)
+                        [ocOptional] key=path(kkName)
+                          SimpleType(tstr)
+                        [ocOptional] key=host(kkName)
+                          SimpleType(tstr)
+                        [ocOptional] key=port(kkName)
+                          SimpleType(uint)
+                        [ocOptional] key=server_name(kkName)
+                          SimpleType(tstr)
+                        [ocOptional] key=alpn(kkName)
+                          SimpleType(tstr)
+                      }
+                  }
+                [ocOptional] key=provider(kkName)
+                  SimpleType(tstr)
+                [ocOptional] key=module(kkName)
+                  SimpleType(tstr)
+              }
+            [ocOptional] key=instance(kkName)
+              SimpleType(tstr)
+            [ocOne] key=state(kkName)
+              SimpleType(rt.state)
+            [ocOne] key=mode(kkName)
+              SimpleType(rt.mode)
+            [ocOptional] key=schema_namespace(kkName)
+              SimpleType(tstr)
+            [ocOptional] key=schema(kkName)
+              Map{
+                [ocOne] key=commitment_model(kkName)
+                  SimpleType(tstr)
+                [ocOne] key=schema_root(kkName)
+                  SimpleType(bstr)
+                [ocOne] key=hash_profile(kkName)
+                  SimpleType(tstr)
+                [ocOne] key=hash_suite(kkName)
+                  SimpleType(tstr)
+              }
+            [ocOptional] key=reason(kkName)
+              SimpleType(tstr)
+          }
+      ]
+  }
+Rule: rt.list_routes_request  [rkType]
+  Map{
+    [ocOptional] key=module(kkName)
+      SimpleType(tstr)
+    [ocOptional] key=provider(kkName)
+      Map{
+        [ocOptional] key=runtime_instance_id(kkName)
+          SimpleType(tstr)
+        [ocOne] key=provider(kkName)
+          SimpleType(tstr)
+      }
+  }
+Rule: rt.list_routes_response  [rkType]
+  Map{
+    [ocOne] key=routes(kkName)
+      Array[
+        [ocZeroOrMore]
+          Map{
+            [ocOne] key=route(kkName)
+              SimpleType(tstr)
+            [ocOne] key=caller_runtime(kkName)
+              SimpleType(tstr)
+            [ocOne] key=target_provider(kkName)
+              Map{
+                [ocOptional] key=runtime_instance_id(kkName)
+                  SimpleType(tstr)
+                [ocOne] key=provider(kkName)
+                  SimpleType(tstr)
+              }
+            [ocOne] key=module(kkName)
+              SimpleType(tstr)
+            [ocOptional] key=instance(kkName)
+              SimpleType(tstr)
+            [ocOptional] key=schema_namespace(kkName)
+              SimpleType(tstr)
+            [ocOptional] key=schema(kkName)
+              Map{
+                [ocOne] key=commitment_model(kkName)
+                  SimpleType(tstr)
+                [ocOne] key=schema_root(kkName)
+                  SimpleType(bstr)
+                [ocOne] key=hash_profile(kkName)
+                  SimpleType(tstr)
+                [ocOne] key=hash_suite(kkName)
+                  SimpleType(tstr)
+              }
+            [ocOne] key=state(kkName)
+              SimpleType(rt.route_state)
+            [ocOne] key=invocation(kkName)
+              Map{
+                [ocOne] key=kind(kkName)
+                  SimpleType(rt.mode)
+                [ocOne] key=descriptor_kind(kkName)
+                  SimpleType(tstr)
+                [ocOptional] key=descriptor(kkName)
+                  SimpleType(bstr)
+              }
+            [ocOptional] key=authority(kkName)
+              Map{
+                [ocOptional] key=authority_provider(kkName)
+                  Map{
+                    [ocOptional] key=runtime_instance_id(kkName)
+                      SimpleType(tstr)
+                    [ocOne] key=provider(kkName)
+                      SimpleType(tstr)
+                  }
+                [ocOptional] key=authority_ref(kkName)
+                  SimpleType(tstr)
+                [ocOptional] key=expires_at(kkName)
+                  SimpleType(uint)
+                [ocOptional] key=audit_ref(kkName)
+                  SimpleType(tstr)
+              }
+            [ocOptional] key=failure(kkName)
+              Map{
+                [ocOne] key=code(kkName)
+                  SimpleType(tstr)
+                [ocOptional] key=message(kkName)
+                  SimpleType(tstr)
+              }
+          }
+      ]
+  }
+Rule: rt.revoke_route_request  [rkType]
+  Map{
+    [ocOne] key=route(kkName)
+      SimpleType(tstr)
+    [ocOptional] key=reason(kkName)
+      SimpleType(tstr)
+  }
+Rule: rt.revoke_route_response  [rkType]
+  Map{
+    [ocOne] key=route(kkName)
+      SimpleType(tstr)
+    [ocOne] key=state(kkName)
+      SimpleType(rt.route_state)
+  }
+Rule: rt.start_module_request  [rkType]
+  Map{
+    [ocOne] key=module(kkName)
+      SimpleType(tstr)
+    [ocOptional] key=instance(kkName)
+      SimpleType(tstr)
+  }
+Rule: rt.start_module_response  [rkType]
+  Map{
+    [ocOne] key=module(kkName)
+      SimpleType(tstr)
+    [ocOne] key=instance(kkName)
+      SimpleType(tstr)
+    [ocOne] key=state(kkName)
+      SimpleType(rt.state)
+  }
+Rule: rt.stop_module_request  [rkType]
+  Map{
+    [ocOne] key=module(kkName)
+      SimpleType(tstr)
+    [ocOptional] key=instance(kkName)
+      SimpleType(tstr)
+  }
+Rule: rt.stop_module_response  [rkType]
+  Map{
+    [ocOne] key=module(kkName)
+      SimpleType(tstr)
+    [ocOptional] key=instance(kkName)
+      SimpleType(tstr)
+    [ocOne] key=state(kkName)
+      SimpleType(rt.state)
+  }
+Rule: rt.get_readiness_request  [rkType]
+  Map{
+    [ocOne] key=module(kkName)
+      SimpleType(tstr)
+    [ocOptional] key=instance(kkName)
+      SimpleType(tstr)
+  }
+Rule: rt.get_readiness_response  [rkType]
+  Map{
+    [ocOne] key=module(kkName)
+      SimpleType(tstr)
+    [ocOptional] key=instance(kkName)
+      SimpleType(tstr)
+    [ocOne] key=state(kkName)
+      SimpleType(rt.state)
+    [ocOptional] key=reason(kkName)
+      SimpleType(tstr)
+  }

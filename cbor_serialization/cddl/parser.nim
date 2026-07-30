@@ -51,7 +51,7 @@ type
     variants*: seq[FieldType]
     # fkTagged:
     tagNumber*: string
-    inner*: ref FieldType
+    inner*: seq[FieldType]
     # fkGeneric:
     genericBase*: string
     genericArgs*: seq[FieldType]
@@ -221,9 +221,9 @@ proc parseCddl*(source: string): CddlSchema {.raises: [CborCddlError].} =
       userdata.variants.add userdata.wip.typ
 
     # type1 <- type2 * ?(S * (rangeop | ctlop) * S * type2)
-    type1 <- type1WithOp | type2
+    type1 <- type2 * ?type1WithOp
 
-    type1WithOp <- type2 * S * type1WithOpLhs * S * type2 do:
+    type1WithOp <- S * type1WithOpLhs * S * type2 do:
       userdata.wip.typ = FieldType(
         kind: fkGeneric,
         genericBase: userdata.opText,
@@ -331,9 +331,8 @@ proc parseCddl*(source: string): CddlSchema {.raises: [CborCddlError].} =
 
     # ('#' * '6' * ?('.' * uint) * '(' * S * typ * S * ')')
     type2Tag <- '#' * >('6' * ?('.' * uint)) * '(' * S * typ * S * ')' do:
-      let inner = new FieldType
-      inner[] = userdata.wip.typ
-      userdata.wip.typ = FieldType(kind: fkTagged, tagNumber: $1, inner: inner)
+      userdata.wip.typ =
+        FieldType(kind: fkTagged, tagNumber: $1, inner: @[userdata.wip.typ])
 
     # ('#' * DIGIT * ?('.' * uintx))
     type2Major <- '#' * >(DIGIT * ?('.' * uint)) do:
@@ -471,7 +470,7 @@ proc showType*(ft: FieldType, indent = 0): string =
       s &= showType(v, indent + 1) & "\n"
     s & pad & "]"
   of fkTagged:
-    pad & "Tagged(" & ft.tagNumber & ")\n" & showType(ft.inner[], indent + 1)
+    pad & "Tagged(" & ft.tagNumber & ")\n" & showType(ft.inner[0], indent + 1)
   of fkGeneric:
     var gargs: seq[string]
     for v in ft.genericArgs:
