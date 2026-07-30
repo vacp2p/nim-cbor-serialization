@@ -624,3 +624,163 @@ suite "Test CDDL parser":
   staticTest "parse result can be stored in a const":
     const r = parseCddl("my-first-rule = int")
     check r[0].name == "my-first-rule"
+
+const schemaIssue36 = """
+; -- metadata --
+_module = "rt"
+_version = [1, 0]
+
+; -- types --
+rt.state = "unloaded" / "loaded" / "ready" / "stopping" / "error"
+rt.mode = "direct" / "local-transport" / "remote-transport"
+rt.route_state = "establishing" / "ready" / "draining" / "revoked" / "failed" / "closed"
+
+; -- method definitions --
+
+; list_modules
+rt.list_modules_request = {}
+rt.list_modules_response = {
+    modules: [* {
+        module: tstr,
+        ? provider: {
+            ? runtime_instance_id: tstr,
+            provider: tstr,
+        },
+        ? remote: {
+            runtime: {
+                ? runtime_instance_id: tstr,
+                address: {
+                    transport: tstr,
+                    ? path: tstr,
+                    ? host: tstr,
+                    ? port: uint,
+                    ? server_name: tstr,
+                    ? alpn: tstr,
+                },
+            },
+            ? provider: tstr,
+            ? module: tstr,
+        },
+        ? instance: tstr,
+        state: rt.state,
+        mode: rt.mode,
+        ? schema_namespace: tstr,
+        ? schema: {
+            commitment_model: tstr,
+            schema_root: bstr,
+            hash_profile: tstr,
+            hash_suite: tstr,
+        },
+        ? reason: tstr,
+    }],
+}
+
+; list_routes
+rt.list_routes_request = {
+    ? module: tstr,
+    ? provider: {
+        ? runtime_instance_id: tstr,
+        provider: tstr,
+    },
+}
+rt.list_routes_response = {
+    routes: [* {
+        route: tstr,
+        caller_runtime: tstr,
+        target_provider: {
+            ? runtime_instance_id: tstr,
+            provider: tstr,
+        },
+        module: tstr,
+        ? instance: tstr,
+        ? schema_namespace: tstr,
+        ? schema: {
+            commitment_model: tstr,
+            schema_root: bstr,
+            hash_profile: tstr,
+            hash_suite: tstr,
+        },
+        state: rt.route_state,
+        invocation: {
+            kind: rt.mode,
+            descriptor_kind: tstr,
+            ? descriptor: bstr,
+        },
+        ? authority: {
+            ? authority_provider: {
+                ? runtime_instance_id: tstr,
+                provider: tstr,
+            },
+            ? authority_ref: tstr,
+            ? expires_at: uint,
+            ? audit_ref: tstr,
+        },
+        ? failure: {
+            code: tstr,
+            ? message: tstr,
+        },
+    }],
+}
+
+; revoke_route
+rt.revoke_route_request = {
+    route: tstr,
+    ? reason: tstr,
+}
+rt.revoke_route_response = {
+    route: tstr,
+    state: rt.route_state,
+}
+
+; start_module
+rt.start_module_request = {
+    module: tstr,
+    ? instance: tstr,
+}
+rt.start_module_response = {
+    module: tstr,
+    instance: tstr,
+    state: rt.state,
+}
+
+; stop_module
+rt.stop_module_request = {
+    module: tstr,
+    ? instance: tstr,
+}
+rt.stop_module_response = {
+    module: tstr,
+    ? instance: tstr,
+    state: rt.state,
+}
+
+; get_readiness
+rt.get_readiness_request = {
+    module: tstr,
+    ? instance: tstr,
+}
+rt.get_readiness_response = {
+    module: tstr,
+    ? instance: tstr,
+    state: rt.state,
+    ? reason: tstr,
+}
+"""
+
+suite "Test CDDL parser issue 36":
+  staticTest "parse issue 36":
+    let schema = parseCddl(schemaIssue36)
+    var dump = ""
+    for r in schema:
+      dump.add "Rule: " & r.name & "  [" & $r.kind & "]\n"
+      if r.genericParams.len > 0:
+        dump.add "  genericParams: " & $r.genericParams & "\n"
+      if r.typeExpr.kind != fkUnset:
+        dump.add showType(r.typeExpr, 1) & "\n"
+      elif r.groupEntries.len > 0:
+        dump.add "  groupEntries: " & $r.groupEntries.len & " field(s)\n"
+    const dumpFile = currentSourcePath.parentDir() / "test_cddl_parser_36_dump.txt"
+    const dumpContent = staticRead(dumpFile)
+    if dump.normalizeText() != dumpContent.normalizeText():
+      checkpoint(dump)
+      fail()
