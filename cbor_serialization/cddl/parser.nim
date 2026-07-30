@@ -331,7 +331,8 @@ proc parseCddl*(source: string): CddlSchema {.raises: [CborCddlError].} =
 
     # ('#' * '6' * ?('.' * uint) * '(' * S * typ * S * ')')
     type2Tag <- '#' * >('6' * ?('.' * uint)) * '(' * S * typ * S * ')' do:
-      userdata.wip.typ = FieldType(kind: fkTagged, tagNumber: $1, inner: @[userdata.wip.typ])
+      userdata.wip.typ =
+        FieldType(kind: fkTagged, tagNumber: $1, inner: @[userdata.wip.typ])
 
     # ('#' * DIGIT * ?('.' * uintx))
     type2Major <- '#' * >(DIGIT * ?('.' * uint)) do:
