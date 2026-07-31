@@ -1,478 +1,1941 @@
-Rule: foo  [rkType]
-  SimpleType(bar)
-Rule: foo  [rkType]
-  Union[
-    SimpleType(uint)
-    SimpleType(tstr)
-    SimpleType(bstr)
-  ]
-Rule: small  [rkType]
-  Generic(..<0,100>)
-Rule: name  [rkType]
-  Generic(..<1,..<1,64>>)
-Rule: my-type  [rkType]
-  SimpleType(nil)
-Rule: tagged  [rkType]
-  Tagged(6.1)
-    SimpleType(tstr)
-Rule: any-cbor  [rkType]
+Rule person [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(age)
+      TypeRef(int)
+    Entry [ocOne] key(skColon)
+      TypeRef(name)
+      TypeRef(tstr)
+    Entry [ocOne] key(skColon)
+      TypeRef(employer)
+      TypeRef(tstr)
+  ; person = {age: int, name: tstr, employer: tstr}
+Rule pii [rkGroup]
+  Entry [ocOne]
+    Group
+      Entry [ocOne] key(skColon)
+        TypeRef(age)
+        TypeRef(int)
+      Entry [ocOne] key(skColon)
+        TypeRef(name)
+        TypeRef(tstr)
+      Entry [ocOne] key(skColon)
+        TypeRef(employer)
+        TypeRef(tstr)
+  ; pii = (age: int, name: tstr, employer: tstr)
+Rule person [rkType]
+  Map
+    Entry [ocOne]
+      TypeRef(pii)
+  ; person = {pii}
+Rule person [rkType]
+  Map
+    Entry [ocOne]
+      Group
+        Entry [ocOne] key(skColon)
+          TypeRef(age)
+          TypeRef(int)
+        Entry [ocOne] key(skColon)
+          TypeRef(name)
+          TypeRef(tstr)
+        Entry [ocOne] key(skColon)
+          TypeRef(employer)
+          TypeRef(tstr)
+  ; person = {(age: int, name: tstr, employer: tstr)}
+Rule person [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(age)
+      TypeRef(int)
+    Entry [ocOne] key(skColon)
+      TypeRef(name)
+      TypeRef(tstr)
+    Entry [ocOne] key(skColon)
+      TypeRef(employer)
+      TypeRef(tstr)
+  ; person = {age: int, name: tstr, employer: tstr}
+Empty
+Rule dog [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(age)
+      TypeRef(int)
+    Entry [ocOne] key(skColon)
+      TypeRef(name)
+      TypeRef(tstr)
+    Entry [ocOne] key(skColon)
+      TypeRef(leash-length)
+      TypeRef(float)
+  ; dog = {age: int, name: tstr, leash-length: float}
+Rule person [rkType]
+  Map
+    Entry [ocOne]
+      TypeRef(identity)
+    Entry [ocOne] key(skColon)
+      TypeRef(employer)
+      TypeRef(tstr)
+  ; person = {identity, employer: tstr}
+Empty
+Rule dog [rkType]
+  Map
+    Entry [ocOne]
+      TypeRef(identity)
+    Entry [ocOne] key(skColon)
+      TypeRef(leash-length)
+      TypeRef(float)
+  ; dog = {identity, leash-length: float}
+Empty
+Rule identity [rkGroup]
+  Entry [ocOne]
+    Group
+      Entry [ocOne] key(skColon)
+        TypeRef(age)
+        TypeRef(int)
+      Entry [ocOne] key(skColon)
+        TypeRef(name)
+        TypeRef(tstr)
+  ; identity = (age: int, name: tstr)
+Rule attire [rkType]
+  Union
+    Value("bow tie")
+    Value("necktie")
+    Value("Internet attire")
+  ; attire = "bow tie" / "necktie" / "Internet attire"
+Rule protocol [rkType]
+  Union
+    Value(6)
+    Value(17)
+  ; protocol = 6 / 17
+Rule address [rkType]
+  Map
+    Entry [ocOne]
+      TypeRef(delivery)
+  ; address = {delivery}
+Empty
+Rule delivery [rkGroup]
+  Entry [ocOne]
+    Group
+      GroupChoice
+        Group
+          Entry [ocOne] key(skColon)
+            TypeRef(street)
+            TypeRef(tstr)
+          Entry [ocOptional] key(skColon)
+            TypeRef(number)
+            TypeRef(uint)
+          Entry [ocOne]
+            TypeRef(city)
+        Group
+          Entry [ocOne] key(skColon)
+            TypeRef(po-box)
+            TypeRef(uint)
+          Entry [ocOne]
+            TypeRef(city)
+        Group
+          Entry [ocOne] key(skColon)
+            TypeRef(per-pickup)
+            TypeRef(true)
+  ; delivery = (street: tstr, ? number: uint, city // po-box: uint, city // per-pickup: true)
+Empty
+Rule city [rkGroup]
+  Entry [ocOne]
+    Group
+      Entry [ocOne] key(skColon)
+        TypeRef(name)
+        TypeRef(tstr)
+      Entry [ocOne] key(skColon)
+        TypeRef(zip-code)
+        TypeRef(uint)
+  ; city = (name: tstr, zip-code: uint)
+Rule attire [rkTypeExt]
+  Value("swimwear")
+  ; attire /= "swimwear"
+Empty
+Rule delivery [rkGroupExt]
+  Entry [ocOne]
+    Group
+      Entry [ocOne] key(skColon)
+        TypeRef(lat)
+        TypeRef(float)
+      Entry [ocOne] key(skColon)
+        TypeRef(long)
+        TypeRef(float)
+      Entry [ocOne] key(skColon)
+        TypeRef(drone-type)
+        TypeRef(tstr)
+  ; delivery //= (lat: float, long: float, drone-type: tstr)
+Rule device-address [rkType]
+  TypeRef(byte)
+  ; device-address = byte
+Rule max-byte [rkType]
+  Value(255)
+  ; max-byte = 255
+Rule byte [rkType]
+  Range(..)
+    Value(0)
+    TypeRef(max-byte)
+  ; byte = 0..max-byte
+CommentInline(; inclusive range)
+Rule first-non-byte [rkType]
+  Value(256)
+  ; first-non-byte = 256
+Rule byte1 [rkType]
+  Range(...)
+    Value(0)
+    TypeRef(first-non-byte)
+  ; byte1 = 0...first-non-byte
+CommentInline(; byte1 is equivalent to byte)
+Rule int-range [rkType]
+  Range(..)
+    Value(0)
+    Value(10)
+  ; int-range = 0..10
+CommentInline(; only integers match)
+Rule float-range [rkType]
+  Range(..)
+    Value(0.0)
+    Value(10.0)
+  ; float-range = 0.0..10.0
+CommentInline(; only floats match)
+Rule BAD-range1 [rkType]
+  Range(..)
+    Value(0)
+    Value(10.0)
+  ; BAD-range1 = 0..10.0
+CommentInline(; NOT DEFINED)
+Rule BAD-range2 [rkType]
+  Range(..)
+    Value(0.0)
+    Value(10)
+  ; BAD-range2 = 0.0..10
+CommentInline(; NOT DEFINED)
+Rule numeric-range [rkType]
+  Union
+    TypeRef(int-range)
+    TypeRef(float-range)
+  ; numeric-range = int-range / float-range
+Rule terminal-color [rkType]
+  Enum
+    TypeRef(basecolors)
+  ; terminal-color = &basecolors
+Rule basecolors [rkGroup]
+  Entry [ocOne]
+    Group
+      Entry [ocOne] key(skColon)
+        TypeRef(black)
+        Value(0)
+      Entry [ocOne] key(skColon)
+        TypeRef(red)
+        Value(1)
+      Entry [ocOne] key(skColon)
+        TypeRef(green)
+        Value(2)
+      Entry [ocOne] key(skColon)
+        TypeRef(yellow)
+        Value(3)
+      Entry [ocOne] key(skColon)
+        TypeRef(blue)
+        Value(4)
+      Entry [ocOne] key(skColon)
+        TypeRef(magenta)
+        Value(5)
+      Entry [ocOne] key(skColon)
+        TypeRef(cyan)
+        Value(6)
+      Entry [ocOne] key(skColon)
+        TypeRef(white)
+        Value(7)
+  ; basecolors = (black: 0, red: 1, green: 2, yellow: 3, blue: 4, magenta: 5, cyan: 6, white: 7)
+Rule extended-color [rkType]
+  Enum
+    Group
+      Entry [ocOne]
+        TypeRef(basecolors)
+      Entry [ocOne] key(skColon)
+        TypeRef(orange)
+        Value(8)
+      Entry [ocOne] key(skColon)
+        TypeRef(pink)
+        Value(9)
+      Entry [ocOne] key(skColon)
+        TypeRef(purple)
+        Value(10)
+      Entry [ocOne] key(skColon)
+        TypeRef(brown)
+        Value(11)
+  ; extended-color = &(basecolors, orange: 8, pink: 9, purple: 10, brown: 11)
+Rule my_breakfast [rkType]
+  Tagged(#6.55799)
+    TypeRef(breakfast)
+  ; my_breakfast = #6.55799(breakfast)
+CommentInline(; cbor-any is too general!)
+Rule breakfast [rkType]
+  Union
+    TypeRef(cereal)
+    TypeRef(porridge)
+  ; breakfast = cereal / porridge
+Rule cereal [rkType]
+  Tagged(#6.998)
+    TypeRef(tstr)
+  ; cereal = #6.998(tstr)
+Rule porridge [rkType]
+  Tagged(#6.999)
+    Array
+      Entry [ocOne]
+        TypeRef(liquid)
+      Entry [ocOne]
+        TypeRef(solid)
+  ; porridge = #6.999([liquid, solid])
+Rule liquid [rkType]
+  Union
+    TypeRef(milk)
+    TypeRef(water)
+  ; liquid = milk / water
+Rule milk [rkType]
+  Value(0)
+  ; milk = 0
+Rule water [rkType]
+  Value(1)
+  ; water = 1
+Rule solid [rkType]
+  TypeRef(tstr)
+  ; solid = tstr
+Comment(; This is a comment)
+Rule person [rkType]
+  Map
+    Entry [ocOne]
+      TypeRef(g)
+  ; person = {g}
+Empty
+Rule g [rkGroup]
+  Entry [ocOne]
+    Group
+      Entry [ocOne] key(skColon)
+        Value("name")
+        TypeRef(tstr)
+      Entry [ocOne] key(skColon)
+        TypeRef(age)
+        TypeRef(int)
+      CommentInline(; "age" is a bareword)
+  ; g = ("name": tstr, age: int)
+Rule apartment [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(kitchen)
+      TypeRef(size)
+    Entry [ocZeroOrMore] key(skColon)
+      TypeRef(bedroom)
+      TypeRef(size)
+  ; apartment = {kitchen: size, * bedroom: size}
+Rule size [rkType]
+  TypeRef(float)
+  ; size = float
+CommentInline(; in m2)
+Rule unlimited-people [rkType]
+  Array
+    Entry [ocZeroOrMore]
+      TypeRef(person)
+  ; unlimited-people = [* person]
+Rule one-or-two-people [rkType]
+  Array
+    Entry [ocRange] 1*2
+      TypeRef(person)
+  ; one-or-two-people = [1*2 person]
+Rule at-least-two-people [rkType]
+  Array
+    Entry [ocRange] 2*
+      TypeRef(person)
+  ; at-least-two-people = [2* person]
+Rule person [rkGroup]
+  Entry [ocOne]
+    Group
+      Entry [ocOne] key(skColon)
+        TypeRef(name)
+        TypeRef(tstr)
+      Entry [ocOne] key(skColon)
+        TypeRef(age)
+        TypeRef(uint)
+  ; person = (name: tstr, age: uint)
+Rule Geography [rkType]
+  Array
+    Entry [ocOne] key(skColon)
+      TypeRef(city)
+      TypeRef(tstr)
+    Entry [ocOne] key(skColon)
+      TypeRef(gpsCoordinates)
+      TypeRef(GpsCoordinates)
+  ; Geography = [city: tstr, gpsCoordinates: GpsCoordinates]
+Empty
+Rule GpsCoordinates [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(longitude)
+      TypeRef(uint)
+    CommentInline(; degrees, scaled by 10^7)
+    Entry [ocOne] key(skColon)
+      TypeRef(latitude)
+      TypeRef(uint)
+    CommentInline(; degrees, scaled by 10^7)
+  ; GpsCoordinates = {longitude: uint, latitude: uint}
+Rule located-samples [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(sample-point)
+      TypeRef(int)
+    Entry [ocOne] key(skColon)
+      TypeRef(samples)
+      Array
+        Entry [ocOneOrMore]
+          TypeRef(float)
+  ; located-samples = {sample-point: int, samples: [+ float]}
+Rule located-samples [rkType]
+  Map
+    Entry [ocOne] key(skArrow)
+      Value("sample-point")
+      TypeRef(int)
+    Entry [ocOne] key(skArrow)
+      Value("samples")
+      Array
+        Entry [ocOneOrMore]
+          TypeRef(float)
+  ; located-samples = {"sample-point" => int, "samples" => [+ float]}
+Rule located-samples [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(sample-point)
+      TypeRef(int)
+    Entry [ocOne] key(skColon)
+      TypeRef(samples)
+      Array
+        Entry [ocOneOrMore]
+          TypeRef(float)
+    Entry [ocZeroOrMore] key(skArrow)
+      TypeRef(equipment-type)
+      TypeRef(equipment-tolerances)
+  ; located-samples = {sample-point: int, samples: [+ float], * equipment-type => equipment-tolerances}
+Rule equipment-type [rkType]
+  Array
+    Entry [ocOne] key(skColon)
+      TypeRef(name)
+      TypeRef(tstr)
+    Entry [ocOne] key(skColon)
+      TypeRef(manufacturer)
+      TypeRef(tstr)
+  ; equipment-type = [name: tstr, manufacturer: tstr]
+Rule equipment-tolerances [rkType]
+  Array
+    Entry [ocOneOrMore]
+      Array
+        Entry [ocOne]
+          TypeRef(float)
+        Entry [ocOne]
+          TypeRef(float)
+  ; equipment-tolerances = [+ [float, float]]
+Rule PersonalData [rkType]
+  Map
+    Entry [ocOptional] key(skColon)
+      TypeRef(displayName)
+      TypeRef(tstr)
+    Entry [ocOne]
+      TypeRef(NameComponents)
+    Entry [ocOptional] key(skColon)
+      TypeRef(age)
+      TypeRef(uint)
+  ; PersonalData = {? displayName: tstr, NameComponents, ? age: uint}
+Empty
+Rule NameComponents [rkGroup]
+  Entry [ocOne]
+    Group
+      Entry [ocOptional] key(skColon)
+        TypeRef(firstName)
+        TypeRef(tstr)
+      Entry [ocOptional] key(skColon)
+        TypeRef(familyName)
+        TypeRef(tstr)
+  ; NameComponents = (? firstName: tstr, ? familyName: tstr)
+Rule PersonalData [rkType]
+  Map
+    Entry [ocOptional] key(skColon)
+      TypeRef(displayName)
+      TypeRef(tstr)
+    Entry [ocOne]
+      TypeRef(NameComponents)
+    Entry [ocOptional] key(skColon)
+      TypeRef(age)
+      TypeRef(uint)
+    Entry [ocZeroOrMore] key(skArrow)
+      TypeRef(tstr)
+      TypeRef(any)
+  ; PersonalData = {? displayName: tstr, NameComponents, ? age: uint, * tstr => any}
+Empty
+Rule NameComponents [rkGroup]
+  Entry [ocOne]
+    Group
+      Entry [ocOptional] key(skColon)
+        TypeRef(firstName)
+        TypeRef(tstr)
+      Entry [ocOptional] key(skColon)
+        TypeRef(familyName)
+        TypeRef(tstr)
+  ; NameComponents = (? firstName: tstr, ? familyName: tstr)
+Rule square-roots [rkType]
+  Map
+    Entry [ocZeroOrMore] key(skArrow)
+      TypeRef(x)
+      TypeRef(y)
+  ; square-roots = {* x => y}
+Rule x [rkType]
+  TypeRef(int)
+  ; x = int
+Rule y [rkType]
+  TypeRef(float)
+  ; y = float
+Rule tostring [rkType]
+  Map
+    Entry [ocZeroOrMore] key(skArrow)
+      TypeRef(mynumber)
+      TypeRef(tstr)
+  ; tostring = {* mynumber => tstr}
+Rule mynumber [rkType]
+  Union
+    TypeRef(int)
+    TypeRef(float)
+  ; mynumber = int / float
+Rule labeled-values [rkType]
+  Map
+    Entry [ocOptional] key(skColon)
+      TypeRef(fritz)
+      TypeRef(number)
+    Entry [ocZeroOrMore] key(skArrow)
+      TypeRef(label)
+      TypeRef(value)
+  ; labeled-values = {? fritz: number, * label => value}
+Rule label [rkType]
+  TypeRef(text)
+  ; label = text
+Rule value [rkType]
+  TypeRef(number)
+  ; value = number
+Rule do-not-do-this [rkType]
+  Map
+    Entry [ocOne] key(skArrow)
+      TypeRef(int)
+      TypeRef(int)
+    Entry [ocOne] key(skArrow)
+      TypeRef(int)
+      Value(6)
+  ; do-not-do-this = {int => int, int => 6}
+Rule extensible-map-example [rkType]
+  Map
+    Entry [ocOptional] key(skArrow)
+      Value("optional-key")
+      TypeRef(int)
+    Entry [ocZeroOrMore] key(skArrow)
+      TypeRef(tstr)
+      TypeRef(any)
+  ; extensible-map-example = {? "optional-key" => int, * tstr => any}
+Rule extensible-map-example [rkType]
+  Map
+    Entry [ocOptional] key(skArrowCut)
+      Value("optional-key")
+      TypeRef(int)
+    Entry [ocZeroOrMore] key(skArrow)
+      TypeRef(tstr)
+      TypeRef(any)
+  ; extensible-map-example = {? "optional-key" ^ => int, * tstr => any}
+Rule extensible-map-example [rkType]
+  Map
+    Entry [ocOptional] key(skColon)
+      Value("optional-key")
+      TypeRef(int)
+    Entry [ocZeroOrMore] key(skArrow)
+      TypeRef(tstr)
+      TypeRef(any)
+  ; extensible-map-example = {? "optional-key": int, * tstr => any}
+Rule extensible-map-example [rkType]
+  Map
+    Entry [ocOptional] key(skColon)
+      TypeRef(optional-key)
+      TypeRef(int)
+    Entry [ocZeroOrMore] key(skArrow)
+      TypeRef(tstr)
+      TypeRef(any)
+  ; extensible-map-example = {? optional-key: int, * tstr => any}
+Rule buuid [rkType]
+  Tagged(#6.37)
+    TypeRef(bstr)
+  ; buuid = #6.37(bstr)
+Rule my_uri [rkType]
+  Union
+    Tagged(#6.32)
+      TypeRef(tstr)
+    TypeRef(tstr)
+  ; my_uri = #6.32(tstr) / tstr
+Rule basic-header-group [rkGroup]
+  Entry [ocOne]
+    Group
+      Entry [ocOne] key(skColon)
+        TypeRef(field1)
+        TypeRef(int)
+      Entry [ocOne] key(skColon)
+        TypeRef(field2)
+        TypeRef(text)
+  ; basic-header-group = (field1: int, field2: text)
+Empty
+Rule basic-header [rkType]
+  Array
+    Entry [ocOne]
+      TypeRef(basic-header-group)
+  ; basic-header = [basic-header-group]
+Empty
+Rule advanced-header [rkType]
+  Array
+    Entry [ocOne]
+      TypeRef(basic-header-group)
+    Entry [ocOne] key(skColon)
+      TypeRef(field3)
+      TypeRef(bytes)
+    Entry [ocOne] key(skColon)
+      TypeRef(field4)
+      TypeRef(number)
+    CommentInline(; as in the tagged type "time")
+  ; advanced-header = [basic-header-group, field3: bytes, field4: number]
+Rule basic-header [rkType]
+  Array
+    Entry [ocOne] key(skColon)
+      TypeRef(field1)
+      TypeRef(int)
+    Entry [ocOne] key(skColon)
+      TypeRef(field2)
+      TypeRef(text)
+  ; basic-header = [field1: int, field2: text]
+Empty
+Rule advanced-header [rkType]
+  Array
+    Entry [ocOne]
+      Unwrap
+        TypeRef(basic-header)
+    Entry [ocOne] key(skColon)
+      TypeRef(field3)
+      TypeRef(bytes)
+    Entry [ocOne] key(skColon)
+      TypeRef(field4)
+      Unwrap
+        TypeRef(time)
+  ; advanced-header = [~basic-header, field3: bytes, field4: ~time]
+Rule full-address [rkType]
+  Array
+    Entry [ocOne]
+      Array
+        Entry [ocOneOrMore]
+          TypeRef(label)
+    Entry [ocOne]
+      TypeRef(ip4)
+    Entry [ocOne]
+      TypeRef(ip6)
+  ; full-address = [[+ label], ip4, ip6]
+Rule ip4 [rkType]
+  Control(.size)
+    TypeRef(bstr)
+    Value(4)
+  ; ip4 = bstr .size 4
+Rule ip6 [rkType]
+  Control(.size)
+    TypeRef(bstr)
+    Value(16)
+  ; ip6 = bstr .size 16
+Rule label [rkType]
+  Control(.size)
+    TypeRef(bstr)
+    Paren
+      Range(..)
+        Value(1)
+        Value(63)
+  ; label = bstr .size (1..63)
+Rule audio_sample [rkType]
+  Control(.size)
+    TypeRef(uint)
+    Value(3)
+  ; audio_sample = uint .size 3
+CommentInline(; 24-bit, equivalent to 0...16777216)
+Rule tcpflagbytes [rkType]
+  Control(.bits)
+    TypeRef(bstr)
+    TypeRef(flags)
+  ; tcpflagbytes = bstr .bits flags
+Rule flags [rkType]
+  Union
+    Enum
+      Group
+        Entry [ocOne] key(skColon)
+          TypeRef(fin)
+          Value(8)
+        Entry [ocOne] key(skColon)
+          TypeRef(syn)
+          Value(9)
+        Entry [ocOne] key(skColon)
+          TypeRef(rst)
+          Value(10)
+        Entry [ocOne] key(skColon)
+          TypeRef(psh)
+          Value(11)
+        Entry [ocOne] key(skColon)
+          TypeRef(ack)
+          Value(12)
+        Entry [ocOne] key(skColon)
+          TypeRef(urg)
+          Value(13)
+        Entry [ocOne] key(skColon)
+          TypeRef(ece)
+          Value(14)
+        Entry [ocOne] key(skColon)
+          TypeRef(cwr)
+          Value(15)
+        Entry [ocOne] key(skColon)
+          TypeRef(ns)
+          Value(0)
+    Paren
+      Range(..)
+        Value(4)
+        Value(7)
+  ; flags = &(fin: 8, syn: 9, rst: 10, psh: 11, ack: 12, urg: 13, ece: 14, cwr: 15, ns: 0) / (4..7)
+CommentInline(; data offset bits)
+Empty
+Rule rwxbits [rkType]
+  Control(.bits)
+    TypeRef(uint)
+    TypeRef(rwx)
+  ; rwxbits = uint .bits rwx
+Rule rwx [rkType]
+  Enum
+    Group
+      Entry [ocOne] key(skColon)
+        TypeRef(r)
+        Value(2)
+      Entry [ocOne] key(skColon)
+        TypeRef(w)
+        Value(1)
+      Entry [ocOne] key(skColon)
+        TypeRef(x)
+        Value(0)
+  ; rwx = &(r: 2, w: 1, x: 0)
+Rule nai [rkType]
+  Control(.regexp)
+    TypeRef(tstr)
+    Value("[A-Za-z0-9]+@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)+")
+  ; nai = tstr .regexp "[A-Za-z0-9]+@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)+"
+Rule message [rkType]
+  Control(.within)
+    TypeRef($message)
+    TypeRef(message-structure)
+  ; message = $message .within message-structure
+Rule message-structure [rkType]
+  Array
+    Entry [ocOne]
+      TypeRef(message_type)
+    Entry [ocZeroOrMore]
+      TypeRef(message_option)
+  ; message-structure = [message_type, * message_option]
+Rule message_type [rkType]
+  Range(..)
+    Value(0)
+    Value(255)
+  ; message_type = 0..255
+Rule message_option [rkType]
+  TypeRef(any)
+  ; message_option = any
+Empty
+Rule $message [rkTypeExt]
+  Array
+    Entry [ocOne]
+      Value(3)
+    Entry [ocOne] key(skColon)
+      TypeRef(dough)
+      TypeRef(text)
+    Entry [ocOne] key(skColon)
+      TypeRef(topping)
+      Array
+        Entry [ocZeroOrMore]
+          TypeRef(text)
+  ; $message /= [3, dough: text, topping: [* text]]
+Rule $message [rkTypeExt]
+  Array
+    Entry [ocOne]
+      Value(4)
+    Entry [ocOne] key(skColon)
+      TypeRef(noodles)
+      TypeRef(text)
+    Entry [ocOne] key(skColon)
+      TypeRef(sauce)
+      TypeRef(text)
+    Entry [ocOne] key(skColon)
+      TypeRef(parmesan)
+      TypeRef(bool)
+  ; $message /= [4, noodles: text, sauce: text, parmesan: bool]
+Rule speed [rkType]
+  Control(.ge)
+    TypeRef(number)
+    Value(0)
+  ; speed = number .ge 0
+CommentInline(; unit: m/s)
+Rule timer [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(time)
+      TypeRef(uint)
+    Entry [ocOptional] key(skColon)
+      TypeRef(displayed-step)
+      Control(.default)
+        Paren
+          Control(.gt)
+            TypeRef(number)
+            Value(0)
+        Value(1)
+  ; timer = {time: uint, ? displayed-step: (number .gt 0) .default 1}
+Rule tcp-header [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(seq)
+      TypeRef(uint)
+    Entry [ocOne] key(skColon)
+      TypeRef(ack)
+      TypeRef(uint)
+    Entry [ocZeroOrMore]
+      TypeRef($$tcp-option)
+  ; tcp-header = {seq: uint, ack: uint, * $$tcp-option}
+Empty
+Comment(; later, in a different file)
+Empty
+Rule $$tcp-option [rkGroupExt]
+  Entry [ocOne]
+    Group
+      Entry [ocOne] key(skColon)
+        TypeRef(sack)
+        Array
+          Entry [ocOneOrMore]
+            Group
+              Entry [ocOne] key(skColon)
+                TypeRef(left)
+                TypeRef(uint)
+              Entry [ocOne] key(skColon)
+                TypeRef(right)
+                TypeRef(uint)
+  ; $$tcp-option //= (sack: [+ (left: uint, right: uint)])
+Empty
+Comment(; and, maybe in another file)
+Empty
+Rule $$tcp-option [rkGroupExt]
+  Entry [ocOne]
+    Group
+      Entry [ocOne] key(skColon)
+        TypeRef(sack-permitted)
+        TypeRef(true)
+  ; $$tcp-option //= (sack-permitted: true)
+Rule PersonalData [rkType]
+  Map
+    Entry [ocOptional] key(skColon)
+      TypeRef(displayName)
+      TypeRef(tstr)
+    Entry [ocOne]
+      TypeRef(NameComponents)
+    Entry [ocOptional] key(skColon)
+      TypeRef(age)
+      TypeRef(uint)
+    Entry [ocZeroOrMore]
+      TypeRef($$personaldata-extensions)
+  ; PersonalData = {? displayName: tstr, NameComponents, ? age: uint, * $$personaldata-extensions}
+Empty
+Rule NameComponents [rkGroup]
+  Entry [ocOne]
+    Group
+      Entry [ocOptional] key(skColon)
+        TypeRef(firstName)
+        TypeRef(tstr)
+      Entry [ocOptional] key(skColon)
+        TypeRef(familyName)
+        TypeRef(tstr)
+  ; NameComponents = (? firstName: tstr, ? familyName: tstr)
+Empty
+Comment(; The above already works as is.)
+Comment(; But then, we can add later:)
+Empty
+Rule $$personaldata-extensions [rkGroupExt]
+  Entry [ocOne]
+    Group
+      Entry [ocOne] key(skColon)
+        TypeRef(favorite-salsa)
+        TypeRef(tstr)
+  ; $$personaldata-extensions //= (favorite-salsa: tstr)
+Empty
+Comment(; and again, somewhere else:)
+Empty
+Rule $$personaldata-extensions [rkGroupExt]
+  Entry [ocOne]
+    Group
+      Entry [ocOne] key(skColon)
+        TypeRef(shoesize)
+        TypeRef(uint)
+  ; $$personaldata-extensions //= (shoesize: uint)
+Rule messages [rkType]
+  Union
+    Generic(message)
+      Value("reboot")
+      Value("now")
+    Generic(message)
+      Value("sleep")
+      Range(..)
+        Value(1)
+        Value(100)
+  ; messages = message<"reboot", "now"> / message<"sleep", 1..100>
+Rule message<t,v> [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(type)
+      TypeRef(t)
+    Entry [ocOne] key(skColon)
+      TypeRef(value)
+      TypeRef(v)
+  ; message<t, v> = {type: t, value: v}
+Rule t [rkType]
+  Array
+    Entry [ocOne]
+      TypeRef(group1)
+  ; t = [group1]
+Rule group1 [rkGroup]
+  Entry [ocOne]
+    Group
+      GroupChoice
+        Group
+          Entry [ocOne]
+            Union
+              TypeRef(a)
+              TypeRef(b)
+        Group
+          Entry [ocOne]
+            Union
+              TypeRef(c)
+              TypeRef(d)
+  ; group1 = (a / b // c / d)
+Rule a [rkType]
+  Value(1)
+  ; a = 1
+Rule b [rkType]
+  Value(2)
+  ; b = 2
+Rule c [rkType]
+  Value(3)
+  ; c = 3
+Rule d [rkType]
+  Value(4)
+  ; d = 4
+Rule t [rkType]
+  Map
+    Entry [ocOne]
+      TypeRef(group2)
+  ; t = {group2}
+Rule group2 [rkGroup]
+  Entry [ocOne]
+    Group
+      GroupChoice
+        Group
+          Entry [ocOptional] key(skColon)
+            TypeRef(ab)
+            Union
+              TypeRef(a)
+              TypeRef(b)
+        Group
+          Entry [ocOne] key(skColon)
+            TypeRef(cd)
+            Union
+              TypeRef(c)
+              TypeRef(d)
+  ; group2 = (? ab: a / b // cd: c / d)
+Rule a [rkType]
+  Value(1)
+  ; a = 1
+Rule b [rkType]
+  Value(2)
+  ; b = 2
+Rule c [rkType]
+  Value(3)
+  ; c = 3
+Rule d [rkType]
+  Value(4)
+  ; d = 4
+Rule t [rkType]
+  Array
+    Entry [ocOne]
+      TypeRef(group3)
+  ; t = [group3]
+Rule group3 [rkGroup]
+  Entry [ocOne]
+    Group
+      Entry [ocOneOrMore]
+        Union
+          TypeRef(a)
+          TypeRef(b)
+          TypeRef(c)
+  ; group3 = (+ a / b / c)
+Rule a [rkType]
+  Value(1)
+  ; a = 1
+Rule b [rkType]
+  Value(2)
+  ; b = 2
+Rule c [rkType]
+  Value(3)
+  ; c = 3
+Rule t [rkType]
+  Array
+    Entry [ocOne]
+      TypeRef(group4)
+  ; t = [group4]
+Rule group4 [rkGroup]
+  Entry [ocOne]
+    Group
+      GroupChoice
+        Group
+          Entry [ocOneOrMore]
+            TypeRef(a)
+        Group
+          Entry [ocOne]
+            Union
+              TypeRef(b)
+              TypeRef(c)
+  ; group4 = (+ a // b / c)
+Rule a [rkType]
+  Value(1)
+  ; a = 1
+Rule b [rkType]
+  Value(2)
+  ; b = 2
+Rule c [rkType]
+  Value(3)
+  ; c = 3
+Rule t [rkType]
+  Array
+    Entry [ocOne]
+      TypeRef(group4a)
+  ; t = [group4a]
+Rule group4a [rkGroup]
+  Entry [ocOne]
+    Group
+      GroupChoice
+        Group
+          Entry [ocOne]
+            Group
+              Entry [ocOneOrMore]
+                TypeRef(a)
+        Group
+          Entry [ocOne]
+            Paren
+              Union
+                TypeRef(b)
+                TypeRef(c)
+  ; group4a = ((+ a) // (b / c))
+Rule a [rkType]
+  Value(1)
+  ; a = 1
+Rule b [rkType]
+  Value(2)
+  ; b = 2
+Rule c [rkType]
+  Value(3)
+  ; c = 3
+Rule foo [rkType]
+  TypeRef(bar)
+  ; foo = bar
+Rule foo [rkType]
+  Union
+    TypeRef(uint)
+    TypeRef(tstr)
+    TypeRef(bstr)
+  ; foo = uint / tstr / bstr
+Rule small [rkType]
+  Range(..)
+    Value(0)
+    Value(100)
+  ; small = 0..100
+Rule name [rkType]
+  Control(.size)
+    TypeRef(tstr)
+    Paren
+      Range(..)
+        Value(1)
+        Value(64)
+  ; name = tstr .size (1..64)
+Rule my-type [rkType]
+  TypeRef(nil)
+  ; my-type = nil
+Rule tagged [rkType]
+  Tagged(#6.1)
+    TypeRef(tstr)
+  ; tagged = #6.1(tstr)
+Rule any-cbor [rkType]
   Any
-Rule: foo  [rkType]
-  SimpleType(bar)
-Rule: g  [rkType]
-  genericParams: @["T"]
-  Array[
-    [ocZeroOrMore]
-      SimpleType(T)
-  ]
-Rule: address  [rkType]
-  Map{
-    [ocOne] key=street(kkName)
-      SimpleType(tstr)
-    [ocOne] key=zip(kkName)
-      SimpleType(uint)
-  }
-Rule: response  [rkType]
-  Map{
-    [ocOptional] key="err"(kkType)
-      SimpleType(tstr)
-    [ocOneOrMore] key="item"(kkType)
-      SimpleType(uint)
-  }
-Rule: coord  [rkType]
-  Array[
-    [ocOne]
-      SimpleType(float)
-    [ocOne]
-      SimpleType(float)
-  ]
-Rule: things  [rkType]
-  Array[
-    [ocZeroOrMore]
-      SimpleType(tstr)
-  ]
-Rule: person  [rkType]
-  Map{
-    [ocOne] key=name(kkName)
-      SimpleType(tstr)
-    [ocOne] key=address(kkName)
-      Map{
-        [ocOne] key=street(kkName)
-          SimpleType(tstr)
-        [ocOne] key=city(kkName)
-          SimpleType(tstr)
-      }
-  }
-Rule: config  [rkType]
-  Map{
-    [ocOne] key=db(kkName)
-      Map{
-        [ocOne] key=host(kkName)
-          SimpleType(tstr)
-        [ocOne] key=port(kkName)
-          SimpleType(uint)
-      }
-    [ocOptional] key=tls(kkName)
-      Map{
-        [ocOne] key=cert(kkName)
-          SimpleType(bstr)
-        [ocOne] key=key(kkName)
-          SimpleType(bstr)
-      }
-  }
-Rule: deep  [rkType]
-  Map{
-    [ocOne] key=a(kkName)
-      Map{
-        [ocOne] key=b(kkName)
-          Map{
-            [ocOne] key=c(kkName)
-              SimpleType(uint)
-          }
-      }
-  }
-Rule: matrix  [rkType]
-  Array[
-    [ocOne]
-      Array[
-        [ocOne]
-          SimpleType(float)
-      ]
-  ]
-Rule: nested  [rkType]
-  Array[
-    [ocZeroOrMore]
-      Array[
-        [ocOne]
-          SimpleType(uint)
-        [ocOne]
-          SimpleType(uint)
-      ]
-  ]
-Rule: triple  [rkType]
-  Array[
-    [ocOne]
-      Array[
-        [ocZeroOrMore]
-          SimpleType(tstr)
-      ]
-    [ocOne]
-      Array[
-        [ocZeroOrMore]
-          SimpleType(uint)
-      ]
-    [ocOne]
-      Array[
-        [ocZeroOrMore]
-          SimpleType(bstr)
-      ]
-  ]
-Rule: table  [rkType]
-  Array[
-    [ocZeroOrMore]
-      Map{
-        [ocOne] key=key(kkName)
-          SimpleType(tstr)
-        [ocOne] key=value(kkName)
-          SimpleType(uint)
-      }
-  ]
-Rule: envelope  [rkType]
-  Map{
-    [ocOne] key=headers(kkName)
-      Array[
-        [ocZeroOrMore]
-          SimpleType(tstr)
-      ]
-    [ocOne] key=payload(kkName)
-      Array[
-        [ocOne]
-          SimpleType(uint)
-        [ocOne]
-          SimpleType(bstr)
-      ]
-  }
-Rule: mixed  [rkType]
-  Array[
-    [ocOne]
-      Map{
-        [ocOne] key=x(kkName)
-          SimpleType(float)
-        [ocOne] key=y(kkName)
-          SimpleType(float)
-      }
-    [ocZeroOrMore]
-      Map{
-        [ocOne] key=label(kkName)
-          SimpleType(tstr)
-      }
-  ]
-Rule: result  [rkType]
-  Map{
-    [ocOptional] key="ok"(kkType)
-      Map{
-        [ocOne] key=code(kkName)
-          SimpleType(uint)
-        [ocOne] key=body(kkName)
-          SimpleType(tstr)
-      }
-    [ocOne] key="err"(kkType)
-      Map{
-        [ocOne] key=msg(kkName)
-          SimpleType(tstr)
-      }
-  }
-Rule: tree  [rkType]
-  Array[
-    [ocOne]
-      SimpleType(uint)
-    [ocZeroOrMore]
-      Array[
-        [ocOne]
-          SimpleType(uint)
-        [ocOne]
-          Array[
-            [ocZeroOrMore]
-              SimpleType(uint)
-          ]
-      ]
-  ]
-Rule: profile  [rkType]
-  Map{
-    [ocOne] key=name(kkName)
-      SimpleType(tstr)
-    [ocOptional] key=email(kkName)
-      SimpleType(tstr)
-    [ocOptional] key=age(kkName)
-      SimpleType(uint)
-  }
-Rule: settings  [rkType]
-  Map{
-    [ocOne] key=retries(kkName)
-      SimpleType(uint)
-    [ocOne] key=timeout-ms(kkName)
-      SimpleType(uint)
-    [ocOne] key=mode(kkName)
-      SimpleType(tstr)
-  }
-Rule: status  [rkType]
-  Union[
+  ; any-cbor = #
+Comment(; comment)
+Rule foo [rkType]
+  TypeRef(bar)
+  ; foo = bar
+Rule g<T> [rkType]
+  Array
+    Entry [ocZeroOrMore]
+      TypeRef(T)
+  ; g<T> = [* T]
+Rule address [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(street)
+      TypeRef(tstr)
+    Entry [ocOne] key(skColon)
+      TypeRef(zip)
+      TypeRef(uint)
+  ; address = {street: tstr, zip: uint}
+Rule response [rkType]
+  Map
+    Entry [ocOptional] key(skArrow)
+      Value("err")
+      TypeRef(tstr)
+    Entry [ocOneOrMore] key(skArrow)
+      Value("item")
+      TypeRef(uint)
+  ; response = {? "err" => tstr, + "item" => uint}
+Rule coord [rkType]
+  Array
+    Entry [ocOne]
+      TypeRef(float)
+    Entry [ocOne]
+      TypeRef(float)
+  ; coord = [float, float]
+Rule things [rkType]
+  Array
+    Entry [ocZeroOrMore]
+      TypeRef(tstr)
+  ; things = [* tstr]
+Rule person [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(name)
+      TypeRef(tstr)
+    Entry [ocOne] key(skColon)
+      TypeRef(address)
+      Map
+        Entry [ocOne] key(skColon)
+          TypeRef(street)
+          TypeRef(tstr)
+        Entry [ocOne] key(skColon)
+          TypeRef(city)
+          TypeRef(tstr)
+  ; person = {name: tstr, address: {street: tstr, city: tstr}}
+Rule config [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(db)
+      Map
+        Entry [ocOne] key(skColon)
+          TypeRef(host)
+          TypeRef(tstr)
+        Entry [ocOne] key(skColon)
+          TypeRef(port)
+          TypeRef(uint)
+    Entry [ocOptional] key(skColon)
+      TypeRef(tls)
+      Map
+        Entry [ocOne] key(skColon)
+          TypeRef(cert)
+          TypeRef(bstr)
+        Entry [ocOne] key(skColon)
+          TypeRef(key)
+          TypeRef(bstr)
+  ; config = {db: {host: tstr, port: uint}, ? tls: {cert: bstr, key: bstr}}
+Rule deep [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(a)
+      Map
+        Entry [ocOne] key(skColon)
+          TypeRef(b)
+          Map
+            Entry [ocOne] key(skColon)
+              TypeRef(c)
+              TypeRef(uint)
+  ; deep = {a: {b: {c: uint}}}
+Rule matrix [rkType]
+  Array
+    Entry [ocOne]
+      Array
+        Entry [ocOne]
+          TypeRef(float)
+  ; matrix = [[float]]
+Rule nested [rkType]
+  Array
+    Entry [ocZeroOrMore]
+      Array
+        Entry [ocOne]
+          TypeRef(uint)
+        Entry [ocOne]
+          TypeRef(uint)
+  ; nested = [* [uint, uint]]
+Rule triple [rkType]
+  Array
+    Entry [ocOne]
+      Array
+        Entry [ocZeroOrMore]
+          TypeRef(tstr)
+    Entry [ocOne]
+      Array
+        Entry [ocZeroOrMore]
+          TypeRef(uint)
+    Entry [ocOne]
+      Array
+        Entry [ocZeroOrMore]
+          TypeRef(bstr)
+  ; triple = [[* tstr], [* uint], [* bstr]]
+Rule table [rkType]
+  Array
+    Entry [ocZeroOrMore]
+      Map
+        Entry [ocOne] key(skColon)
+          TypeRef(key)
+          TypeRef(tstr)
+        Entry [ocOne] key(skColon)
+          TypeRef(value)
+          TypeRef(uint)
+  ; table = [* {key: tstr, value: uint}]
+Rule envelope [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(headers)
+      Array
+        Entry [ocZeroOrMore]
+          TypeRef(tstr)
+    Entry [ocOne] key(skColon)
+      TypeRef(payload)
+      Array
+        Entry [ocOne]
+          TypeRef(uint)
+        Entry [ocOne]
+          TypeRef(bstr)
+  ; envelope = {headers: [* tstr], payload: [uint, bstr]}
+Rule mixed [rkType]
+  Array
+    Entry [ocOne]
+      Map
+        Entry [ocOne] key(skColon)
+          TypeRef(x)
+          TypeRef(float)
+        Entry [ocOne] key(skColon)
+          TypeRef(y)
+          TypeRef(float)
+    Entry [ocZeroOrMore]
+      Map
+        Entry [ocOne] key(skColon)
+          TypeRef(label)
+          TypeRef(tstr)
+  ; mixed = [{x: float, y: float}, * {label: tstr}]
+Rule result [rkType]
+  Map
+    GroupChoice
+      Group
+        Entry [ocOptional] key(skArrow)
+          Value("ok")
+          Map
+            Entry [ocOne] key(skColon)
+              TypeRef(code)
+              TypeRef(uint)
+            Entry [ocOne] key(skColon)
+              TypeRef(body)
+              TypeRef(tstr)
+      Group
+        Entry [ocOne] key(skArrow)
+          Value("err")
+          Map
+            Entry [ocOne] key(skColon)
+              TypeRef(msg)
+              TypeRef(tstr)
+  ; result = {? "ok" => {code: uint, body: tstr} // "err" => {msg: tstr}}
+Rule tree [rkType]
+  Array
+    Entry [ocOne]
+      TypeRef(uint)
+    Entry [ocZeroOrMore]
+      Array
+        Entry [ocOne]
+          TypeRef(uint)
+        Entry [ocOne]
+          Array
+            Entry [ocZeroOrMore]
+              TypeRef(uint)
+  ; tree = [uint, * [uint, [* uint]]]
+Rule profile [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(name)
+      TypeRef(tstr)
+    Entry [ocOptional] key(skColon)
+      TypeRef(email)
+      TypeRef(tstr)
+    Entry [ocOptional] key(skColon)
+      TypeRef(age)
+      TypeRef(uint)
+  ; profile = {name: tstr, ? email: tstr, ? age: uint}
+Rule settings [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(retries)
+      TypeRef(uint)
+    Entry [ocOne] key(skColon)
+      TypeRef(timeout-ms)
+      TypeRef(uint)
+    Entry [ocOne] key(skColon)
+      TypeRef(mode)
+      TypeRef(tstr)
+  ; settings = {retries: uint, timeout-ms: uint, mode: tstr}
+Rule status [rkType]
+  Union
     Value("pending")
     Value("running")
     Value("done")
     Value("failed")
-  ]
-Rule: port  [rkType]
-  Union[
+  ; status = "pending" / "running" / "done" / "failed"
+Rule port [rkType]
+  Union
     Value(80)
     Value(443)
     Value(8080)
-  ]
-Rule: bytes-id  [rkType]
-  Generic(.size<bstr,16>)
-Rule: identifier  [rkType]
-  Union[
-    SimpleType(uint)
-    SimpleType(tstr)
-    SimpleType(bytes-id)
-  ]
-Rule: short-name  [rkType]
-  Generic(..<1,..<1,32>>)
-Rule: sha256  [rkType]
-  Generic(.size<bstr,32>)
-Rule: resource-url  [rkType]
-  Tagged(6.32)
-    SimpleType(tstr)
-Rule: base64-data  [rkType]
-  Tagged(6.21)
-    SimpleType(bstr)
-Rule: box  [rkType]
-  genericParams: @["T"]
-  Map{
-    [ocOne] key=value(kkName)
-      SimpleType(T)
-  }
-Rule: list  [rkType]
-  genericParams: @["T"]
-  Array[
-    [ocZeroOrMore]
-      SimpleType(T)
-  ]
-Rule: dictionary  [rkType]
-  genericParams: @["K", "V"]
-  Map{
-    [ocZeroOrMore] key=K(kkType)
-      SimpleType(V)
-  }
-Rule: response  [rkType]
-  genericParams: @["T"]
-  Map{
-    [ocOne] key=status(kkName)
-      SimpleType(uint)
-    [ocOne] key=payload(kkName)
-      SimpleType(T)
-  }
-Rule: paged  [rkType]
-  genericParams: @["T"]
-  Map{
-    [ocOne] key=items(kkName)
-      Array[
-        [ocZeroOrMore]
-          SimpleType(T)
-      ]
-    [ocOne] key=next-page(kkName)
-      SimpleType(uint)
-  }
-Rule: bounded-list  [rkType]
-  genericParams: @["T"]
-  Array[
-    [ocRange]
-      SimpleType(T)
-  ]
-Rule: success  [rkType]
-  genericParams: @["T"]
-  Map{
-    [ocOne] key=ok(kkName)
-      SimpleType(true)
-    [ocOne] key=value(kkName)
-      SimpleType(T)
-  }
-Rule: failure  [rkType]
-  Map{
-    [ocOne] key=ok(kkName)
-      SimpleType(false)
-    [ocOne] key=error(kkName)
-      SimpleType(tstr)
-  }
-Rule: result  [rkType]
-  genericParams: @["T"]
-  Union[
-    Generic(success<T>)
-    SimpleType(failure)
-  ]
-Rule: user  [rkType]
-  Map{
-    [ocOne] key=id(kkName)
-      SimpleType(uint)
-    [ocOne] key=name(kkName)
-      SimpleType(tstr)
-  }
-Rule: encoded-user  [rkType]
-  Generic(.cbor<bstr,user>)
-Rule: node  [rkType]
-  Map{
-    [ocOne] key=value(kkName)
-      SimpleType(int)
-    [ocOne] key=children(kkName)
-      Array[
-        [ocZeroOrMore]
-          SimpleType(node)
-      ]
-  }
-Rule: linked-node  [rkType]
-  Map{
-    [ocOne] key=value(kkName)
-      SimpleType(any)
-    [ocOptional] key=next(kkName)
-      SimpleType(linked-node)
-  }
-Rule: opcode  [rkType]
-  Group(
-    [ocOne] key=login
+  ; port = 80 / 443 / 8080
+Rule bytes-id [rkType]
+  Control(.size)
+    TypeRef(bstr)
+    Value(16)
+  ; bytes-id = bstr .size 16
+Rule identifier [rkType]
+  Union
+    TypeRef(uint)
+    TypeRef(tstr)
+    TypeRef(bytes-id)
+  ; identifier = uint / tstr / bytes-id
+Rule short-name [rkType]
+  Control(.size)
+    TypeRef(tstr)
+    Paren
+      Range(..)
+        Value(1)
+        Value(32)
+  ; short-name = tstr .size (1..32)
+Rule sha256 [rkType]
+  Control(.size)
+    TypeRef(bstr)
+    Value(32)
+  ; sha256 = bstr .size 32
+Rule resource-url [rkType]
+  Tagged(#6.32)
+    TypeRef(tstr)
+  ; resource-url = #6.32(tstr)
+Rule base64-data [rkType]
+  Tagged(#6.21)
+    TypeRef(bstr)
+  ; base64-data = #6.21(bstr)
+Rule box<T> [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(value)
+      TypeRef(T)
+  ; box<T> = {value: T}
+Rule list<T> [rkType]
+  Array
+    Entry [ocZeroOrMore]
+      TypeRef(T)
+  ; list<T> = [* T]
+Rule dictionary<K,V> [rkType]
+  Map
+    Entry [ocZeroOrMore] key(skArrow)
+      TypeRef(K)
+      TypeRef(V)
+  ; dictionary<K, V> = {* K => V}
+Rule response<T> [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(status)
+      TypeRef(uint)
+    Entry [ocOne] key(skColon)
+      TypeRef(payload)
+      TypeRef(T)
+  ; response<T> = {status: uint, payload: T}
+Rule paged<T> [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(items)
+      Array
+        Entry [ocZeroOrMore]
+          TypeRef(T)
+    Entry [ocOne] key(skColon)
+      TypeRef(next-page)
+      TypeRef(uint)
+  ; paged<T> = {items: [* T], next-page: uint}
+Rule bounded-list<T> [rkType]
+  Array
+    Entry [ocRange] 1*100
+      TypeRef(T)
+  ; bounded-list<T> = [1*100 T]
+Rule pair<K,V> [rkGroup]
+  Entry [ocOne]
+    Group
+      Entry [ocOne] key(skColon)
+        TypeRef(key)
+        TypeRef(K)
+      Entry [ocOne] key(skColon)
+        TypeRef(value)
+        TypeRef(V)
+  ; pair<K, V> = (key: K, value: V)
+Rule $$ext<T> [rkGroupExt]
+  Entry [ocOne]
+    Group
+      Entry [ocOne] key(skColon)
+        TypeRef(payload)
+        TypeRef(T)
+  ; $$ext<T> //= (payload: T)
+Rule success<T> [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(ok)
+      TypeRef(true)
+    Entry [ocOne] key(skColon)
+      TypeRef(value)
+      TypeRef(T)
+  ; success<T> = {ok: true, value: T}
+Rule failure [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(ok)
+      TypeRef(false)
+    Entry [ocOne] key(skColon)
+      TypeRef(error)
+      TypeRef(tstr)
+  ; failure = {ok: false, error: tstr}
+Rule result<T> [rkType]
+  Union
+    Generic(success)
+      TypeRef(T)
+    TypeRef(failure)
+  ; result<T> = success<T> / failure
+Rule user [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(id)
+      TypeRef(uint)
+    Entry [ocOne] key(skColon)
+      TypeRef(name)
+      TypeRef(tstr)
+  ; user = {id: uint, name: tstr}
+Rule encoded-user [rkType]
+  Control(.cbor)
+    TypeRef(bstr)
+    TypeRef(user)
+  ; encoded-user = bstr .cbor user
+Rule node [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(value)
+      TypeRef(int)
+    Entry [ocOne] key(skColon)
+      TypeRef(children)
+      Array
+        Entry [ocZeroOrMore]
+          TypeRef(node)
+  ; node = {value: int, children: [* node]}
+Rule linked-node [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(value)
+      TypeRef(any)
+    Entry [ocOptional] key(skColon)
+      TypeRef(next)
+      TypeRef(linked-node)
+  ; linked-node = {value: any, ? next: linked-node}
+Rule opcode [rkType]
+  Enum
+    Group
+      Entry [ocOne] key(skColon)
+        TypeRef(login)
+        Value(1)
+      Entry [ocOne] key(skColon)
+        TypeRef(logout)
+        Value(2)
+      Entry [ocOne] key(skColon)
+        TypeRef(ping)
+        Value(3)
+      Entry [ocOne] key(skColon)
+        TypeRef(pong)
+        Value(4)
+  ; opcode = &(login: 1, logout: 2, ping: 3, pong: 4)
+Rule common-fields [rkGroup]
+  Entry [ocOne]
+    Group
+      Entry [ocOne] key(skColon)
+        TypeRef(id)
+        TypeRef(uint)
+      Entry [ocOne] key(skColon)
+        TypeRef(created-at)
+        TypeRef(uint)
+  ; common-fields = (id: uint, created-at: uint)
+Rule article [rkType]
+  Map
+    Entry [ocOne]
+      TypeRef(common-fields)
+    Entry [ocOne] key(skColon)
+      TypeRef(title)
+      TypeRef(tstr)
+    Entry [ocOne] key(skColon)
+      TypeRef(body)
+      TypeRef(tstr)
+  ; article = {common-fields, title: tstr, body: tstr}
+Rule open-metadata [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(version)
+      TypeRef(uint)
+    Entry [ocZeroOrMore] key(skArrow)
+      TypeRef(tstr)
+      TypeRef(any)
+  ; open-metadata = {version: uint, * tstr => any}
+Rule sensor-values [rkType]
+  Map
+    Entry [ocOne] key(skArrow)
       Value(1)
-    [ocOne] key=logout
+      TypeRef(float)
+    Entry [ocOne] key(skArrow)
       Value(2)
-    [ocOne] key=ping
+      TypeRef(float)
+    Entry [ocOne] key(skArrow)
       Value(3)
-    [ocOne] key=pong
-      Value(4)
-  )
-Rule: common-fields  [rkGroup]
-  Group(
-    [ocOne] key=id
-      SimpleType(uint)
-    [ocOne] key=created-at
-      SimpleType(uint)
-  )
-Rule: article  [rkType]
-  Map{
-    [ocOne]
-      SimpleType(common-fields)
-    [ocOne] key=title(kkName)
-      SimpleType(tstr)
-    [ocOne] key=body(kkName)
-      SimpleType(tstr)
-  }
-Rule: open-metadata  [rkType]
-  Map{
-    [ocOne] key=version(kkName)
-      SimpleType(uint)
-    [ocZeroOrMore] key=tstr(kkType)
-      SimpleType(any)
-  }
-Rule: sensor-values  [rkType]
-  Map{
-    [ocOne] key=1(kkType)
-      SimpleType(float)
-    [ocOne] key=2(kkType)
-      SimpleType(float)
-    [ocOne] key=3(kkType)
-      SimpleType(float)
-  }
-Rule: user  [rkType]
-  Map{
-    [ocOne] key=id(kkName)
-      SimpleType(uint)
-    [ocOne] key=name(kkName)
-      SimpleType(tstr)
-  }
-Rule: page  [rkType]
-  genericParams: @["T"]
-  Map{
-    [ocOne] key=items(kkName)
-      Array[
-        [ocZeroOrMore]
-          SimpleType(T)
-      ]
-    [ocOne] key=total(kkName)
-      SimpleType(uint)
-    [ocOne] key=page(kkName)
-      SimpleType(uint)
-    [ocOne] key=page-size(kkName)
-      SimpleType(uint)
-  }
-Rule: api-envelope  [rkType]
-  genericParams: @["T"]
-  Map{
-    [ocOne] key=trace-id(kkName)
-      SimpleType(tstr)
-    [ocOne] key=timestamp(kkName)
-      SimpleType(uint)
-    [ocOne] key=payload(kkName)
-      SimpleType(T)
-  }
-Rule: user-page-envelope  [rkType]
-  Generic(api-envelope<page<user>>)
-Rule: api-response  [rkType]
-  genericParams: @["T"]
-  Map{
-    [ocOne] key=code(kkName)
-      SimpleType(uint)
-    [ocOne] key=success(kkName)
-      SimpleType(bool)
-    [ocOptional] key=data(kkName)
-      SimpleType(T)
-    [ocOptional] key=error(kkName)
-      Map{
-        [ocOne] key=message(kkName)
-          SimpleType(tstr)
-        [ocOne] key=details(kkName)
-          SimpleType(tstr)
-      }
-  }
-Rule: message-type  [rkType]
-  Union[
+      TypeRef(float)
+  ; sensor-values = {1 => float, 2 => float, 3 => float}
+Rule user [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(id)
+      TypeRef(uint)
+    Entry [ocOne] key(skColon)
+      TypeRef(name)
+      TypeRef(tstr)
+  ; user = {id: uint, name: tstr}
+Rule page<T> [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(items)
+      Array
+        Entry [ocZeroOrMore]
+          TypeRef(T)
+    Entry [ocOne] key(skColon)
+      TypeRef(total)
+      TypeRef(uint)
+    Entry [ocOne] key(skColon)
+      TypeRef(page)
+      TypeRef(uint)
+    Entry [ocOne] key(skColon)
+      TypeRef(page-size)
+      TypeRef(uint)
+  ; page<T> = {items: [* T], total: uint, page: uint, page-size: uint}
+Rule api-envelope<T> [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(trace-id)
+      TypeRef(tstr)
+    Entry [ocOne] key(skColon)
+      TypeRef(timestamp)
+      TypeRef(uint)
+    Entry [ocOne] key(skColon)
+      TypeRef(payload)
+      TypeRef(T)
+  ; api-envelope<T> = {trace-id: tstr, timestamp: uint, payload: T}
+Rule user-page-envelope [rkType]
+  Generic(api-envelope)
+    Generic(page)
+      TypeRef(user)
+  ; user-page-envelope = api-envelope<page<user>>
+Rule api-response<T> [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(code)
+      TypeRef(uint)
+    Entry [ocOne] key(skColon)
+      TypeRef(success)
+      TypeRef(bool)
+    Entry [ocOptional] key(skColon)
+      TypeRef(data)
+      TypeRef(T)
+    Entry [ocOptional] key(skColon)
+      TypeRef(error)
+      Map
+        Entry [ocOne] key(skColon)
+          TypeRef(message)
+          TypeRef(tstr)
+        Entry [ocOne] key(skColon)
+          TypeRef(details)
+          TypeRef(tstr)
+  ; api-response<T> = {code: uint, success: bool, ? data: T, ? error: {message: tstr, details: tstr}}
+Rule message-type [rkType]
+  Union
     Value(1)
     Value(2)
     Value(3)
-  ]
-Rule: header  [rkType]
-  Map{
-    [ocOne] key=version(kkName)
+  ; message-type = 1 / 2 / 3
+Rule header [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(version)
       Value(1)
-    [ocOne] key=msg-type(kkName)
-      SimpleType(message-type)
-    [ocOne] key=request-id(kkName)
-      SimpleType(uint)
-  }
-Rule: login-payload  [rkType]
-  Map{
-    [ocOne] key=username(kkName)
-      SimpleType(tstr)
-    [ocOne] key=password(kkName)
-      SimpleType(tstr)
-  }
-Rule: ping-payload  [rkType]
-  Map{
-    [ocOne] key=timestamp(kkName)
-      SimpleType(uint)
-  }
-Rule: payload  [rkType]
-  Union[
-    SimpleType(login-payload)
-    SimpleType(ping-payload)
-  ]
-Rule: packet  [rkType]
-  Map{
-    [ocOne] key=header(kkName)
-      SimpleType(header)
-    [ocOne] key=body(kkName)
-      SimpleType(payload)
-  }
-Rule: plugin-config  [rkType]
-  Map{
-    [ocOne] key=name(kkName)
-      SimpleType(tstr)
-    [ocOne] key=config(kkName)
-      SimpleType(any)
-  }
+    Entry [ocOne] key(skColon)
+      TypeRef(msg-type)
+      TypeRef(message-type)
+    Entry [ocOne] key(skColon)
+      TypeRef(request-id)
+      TypeRef(uint)
+  ; header = {version: 1, msg-type: message-type, request-id: uint}
+Rule login-payload [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(username)
+      TypeRef(tstr)
+    Entry [ocOne] key(skColon)
+      TypeRef(password)
+      TypeRef(tstr)
+  ; login-payload = {username: tstr, password: tstr}
+Rule ping-payload [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(timestamp)
+      TypeRef(uint)
+  ; ping-payload = {timestamp: uint}
+Rule payload [rkType]
+  Union
+    TypeRef(login-payload)
+    TypeRef(ping-payload)
+  ; payload = login-payload / ping-payload
+Rule packet [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(header)
+      TypeRef(header)
+    Entry [ocOne] key(skColon)
+      TypeRef(body)
+      TypeRef(payload)
+  ; packet = {header: header, body: payload}
+Rule plugin-config [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      TypeRef(name)
+      TypeRef(tstr)
+    Entry [ocOne] key(skColon)
+      TypeRef(config)
+      TypeRef(any)
+  ; plugin-config = {name: tstr, config: any}
+Rule my-first-rule [rkType]
+  TypeRef(int)
+  ; my-first-rule = int
+Rule my-rule [rkType]
+  Union
+    TypeRef(int)
+    TypeRef(tstr)
+  ; my-rule = int / tstr
+Rule my-rule [rkType]
+  TypeRef(int)
+  ; my-rule = int
+Rule my-rule [rkTypeExt]
+  TypeRef(tstr)
+  ; my-rule /= tstr
+Rule message-type [rkType]
+  Value(1)
+  ; message-type = 1
+Rule protocol-version [rkType]
+  Value("1.0")
+  ; protocol-version = "1.0"
+Rule fixed-header [rkType]
+  Value(h'cafef00d')
+  ; fixed-header = h'cafef00d'
+Rule status-code [rkType]
+  Union
+    Value(200)
+    Value(404)
+    Value(500)
+  ; status-code = 200 / 404 / 500
+Rule triplet [rkType]
+  Array
+    Entry [ocOne]
+      TypeRef(uint)
+    Entry [ocOne]
+      TypeRef(uint)
+    Entry [ocOne]
+      TypeRef(uint)
+  ; triplet = [uint, uint, uint]
+Rule empty-array [rkType]
+  Array
+  ; empty-array = []
+Rule mixed-array [rkType]
+  Array
+    Entry [ocOne]
+      TypeRef(bool)
+    Entry [ocOne]
+      Union
+        TypeRef(int)
+        TypeRef(null)
+  ; mixed-array = [bool, int / null]
+Rule simple-object [rkType]
+  Map
+    Entry [ocOne] key(skColon)
+      Value("name")
+      TypeRef(tstr)
+    Entry [ocOne] key(skColon)
+      Value("age")
+      TypeRef(uint)
+    Entry [ocOne] key(skColon)
+      TypeRef(is-verified)
+      TypeRef(bool)
+  ; simple-object = {"name": tstr, "age": uint, is-verified: bool}
+Rule indexed-data [rkType]
+  Map
+    Entry [ocOne] key(skArrow)
+      Value(1)
+      TypeRef(tstr)
+    Entry [ocOne] key(skArrow)
+      Value(2)
+      TypeRef(bstr)
+    Entry [ocOptional] key(skArrow)
+      Value(3)
+      TypeRef(float)
+  ; indexed-data = {1 => tstr, 2 => bstr, ? 3 => float}
+Rule lookup-table [rkType]
+  Map
+    Entry [ocZeroOrMore] key(skArrow)
+      TypeRef(uint)
+      TypeRef(tstr)
+  ; lookup-table = {* uint => tstr}
+Rule empty-map [rkType]
+  Map
+  ; empty-map = {}
+Rule record-header [rkGroup]
+  Entry [ocOne]
+    Group
+      Entry [ocOne]
+        TypeRef(uint)
+      Entry [ocOne]
+        TypeRef(tstr)
+  ; record-header = (uint, tstr)
+Rule point-2d [rkGroup]
+  Entry [ocOne]
+    Group
+      Entry [ocOne]
+        TypeRef(float)
+      Entry [ocOne]
+        TypeRef(float)
+  ; point-2d = (float, float)
+Rule address [rkGroup]
+  Entry [ocOne]
+    Group
+      Entry [ocOne] key(skColon)
+        TypeRef(street)
+        TypeRef(tstr)
+      Entry [ocOne] key(skColon)
+        TypeRef(city)
+        TypeRef(tstr)
+      Entry [ocOne] key(skColon)
+        TypeRef(zip)
+        TypeRef(uint)
+  ; address = (street: tstr, city: tstr, zip: uint)
+Rule optional-id [rkType]
+  Array
+    Entry [ocOptional]
+      TypeRef(uint)
+  ; optional-id = [? uint]
+Rule config [rkGroup]
+  Entry [ocOne]
+    Group
+      Entry [ocOne]
+        TypeRef(tstr)
+      Entry [ocOptional]
+        TypeRef(bool)
+  ; config = (tstr, ? bool)
+Rule int-list [rkType]
+  Array
+    Entry [ocZeroOrMore]
+      TypeRef(int)
+  ; int-list = [* int]
+Rule byte-chunks [rkGroup]
+  Entry [ocOne]
+    Group
+      Entry [ocZeroOrMore]
+        TypeRef(bstr)
+  ; byte-chunks = (* bstr)
+Rule non-empty-list [rkType]
+  Array
+    Entry [ocOneOrMore]
+      TypeRef(tstr)
+  ; non-empty-list = [+ tstr]
+Rule data-record [rkGroup]
+  Entry [ocOne]
+    Group
+      Entry [ocOne]
+        TypeRef(uint)
+      Entry [ocOneOrMore]
+        TypeRef(float)
+  ; data-record = (uint, + float)
+Rule rgb-color [rkType]
+  Array
+    Entry [ocRange] 3*3
+      TypeRef(uint)
+  ; rgb-color = [3*3 uint]
+Rule short-ids [rkType]
+  Array
+    Entry [ocRange] 1*5
+      TypeRef(int)
+  ; short-ids = [1*5 int]
+Rule max-10-items [rkType]
+  Array
+    Entry [ocRange] *10
+      TypeRef(any)
+  ; max-10-items = [*10 any]
+Rule at-least-2 [rkType]
+  Array
+    Entry [ocRange] 2*
+      TypeRef(bstr)
+  ; at-least-2 = [2* bstr]
+Rule identifier [rkType]
+  Union
+    TypeRef(tstr)
+    TypeRef(uint)
+  ; identifier = tstr / uint
+Rule config-value [rkType]
+  Union
+    TypeRef(bool)
+    TypeRef(int)
+    TypeRef(tstr)
+    TypeRef(null)
+  ; config-value = bool / int / tstr / null
+Rule measurement [rkType]
+  Array
+    Entry [ocOne]
+      TypeRef(tstr)
+    Entry [ocOne]
+      Union
+        TypeRef(int)
+        TypeRef(float)
+  ; measurement = [tstr, int / float]
+Rule contact-method [rkType]
+  Map
+    GroupChoice
+      Group
+        Entry [ocOne]
+          Group
+            Entry [ocOne] key(skColon)
+              TypeRef(email)
+              TypeRef(tstr)
+      Group
+        Entry [ocOne]
+          Group
+            Entry [ocOne] key(skColon)
+              TypeRef(phone)
+              TypeRef(tstr)
+      Group
+        Entry [ocOne]
+          TypeRef(postal-address)
+  ; contact-method = {(email: tstr) // (phone: tstr) // postal-address}
+Rule response [rkType]
+  Map
+    GroupChoice
+      Group
+        Entry [ocOne]
+          Group
+            Entry [ocOne] key(skColon)
+              TypeRef(status)
+              Value(200)
+            Entry [ocOne] key(skColon)
+              TypeRef(body)
+              TypeRef(bstr)
+      Group
+        Entry [ocOne]
+          Group
+            Entry [ocOne] key(skColon)
+              TypeRef(status)
+              Value(500)
+            Entry [ocOne] key(skColon)
+              TypeRef(error)
+              TypeRef(tstr)
+  ; response = {(status: 200, body: bstr) // (status: 500, error: tstr)}
+Rule age [rkType]
+  Control(.le)
+    TypeRef(uint)
+    Value(120)
+  ; age = uint .le 120
+Rule percentage [rkType]
+  Range(..)
+    Value(0)
+    Value(100)
+  ; percentage = 0..100
+Rule temperature [rkType]
+  Range(..)
+    Value(-40)
+    Value(50)
+  ; temperature = -40..50
+Rule http-status-ok [rkType]
+  Range(..)
+    Value(200)
+    Value(299)
+  ; http-status-ok = 200..299
+Rule first-byte [rkType]
+  Range(..)
+    Value(0x00)
+    Value(0xFF)
+  ; first-byte = 0x00..0xFF
+Rule short-string [rkType]
+  Control(.size)
+    TypeRef(tstr)
+    Paren
+      Range(..)
+        Value(1)
+        Value(64)
+  ; short-string = tstr .size (1..64)
+Rule sha256-hash [rkType]
+  Control(.size)
+    TypeRef(bstr)
+    Value(32)
+  ; sha256-hash = bstr .size 32
+Rule coordinate [rkType]
+  Control(.size)
+    Array
+      Entry [ocOne]
+        TypeRef(float)
+    Value(2)
+  ; coordinate = [float] .size 2
+Rule simple-map [rkType]
+  Control(.size)
+    Map
+      Entry [ocZeroOrMore] key(skArrow)
+        TypeRef(tstr)
+        TypeRef(any)
+    Paren
+      Range(..)
+        Value(1)
+        Value(5)
+  ; simple-map = {* tstr => any} .size (1..5)
+Rule email [rkType]
+  Control(.regexp)
+    TypeRef(tstr)
+    Value("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}")
+  ; email = tstr .regexp "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+Rule iso-date [rkType]
+  Control(.regexp)
+    TypeRef(tstr)
+    Value("\d{4}-\d{2}-\d{2}")
+  ; iso-date = tstr .regexp "\d{4}-\d{2}-\d{2}"
+Rule payload [rkType]
+  Control(.cbor)
+    TypeRef(bstr)
+    TypeRef(any)
+  ; payload = bstr .cbor any
+Rule message-stream [rkType]
+  Control(.cborseq)
+    TypeRef(bstr)
+    TypeRef(log-entry)
+  ; message-stream = bstr .cborseq log-entry

@@ -17,7 +17,8 @@ license = "Apache License 2.0"
 skipDirs = @["tests", "fuzzer"]
 
 requires "nim >= 2.0.0",
-  "serialization >= 0.4.9", "stew >= 0.4.1", "npeg >= 1.3.0", "results", "unittest2"
+  "faststreams >= 0.5.1", "serialization >= 0.4.9", "stew >= 0.4.1", "npeg >= 1.3.0",
+  "results", "unittest2"
 
 #feature "dev":
 #  requires "bigints", "json_serialization"

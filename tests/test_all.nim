@@ -13,5 +13,9 @@ import
   ./[
     test_spec, test_serialization, test_simple_value, test_cbor_flavor, test_parser,
     test_reader, test_writer, test_valueref, test_cbor_raw, test_malformed, test_std,
-    test_overloads, test_edn, test_cddl_parser, test_cddl_gen,
+    test_overloads, test_edn, test_cddl_gen,
   ]
+
+# XXX npeg crash in cpp https://github.com/zevv/npeg/issues/79
+when not defined(cpp):
+  import ./[test_cddl_parser_old, test_cddl_parser]
