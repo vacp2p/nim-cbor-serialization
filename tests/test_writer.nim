@@ -199,6 +199,8 @@ suite "Test writer":
     check w.hex == "0x6132"
     checkCbor w, "2"
 
+    Cbor.enumRep(DefaultFlavor, EnumAsString)
+
   test "EnumAsString of DefaultFlavor/Cbor":
     type
       Fruit = enum
@@ -258,6 +260,8 @@ suite "Test writer":
     let v = MyCbor.encode(One)
     check v.hex == "0x634f6e65"
     checkCbor v, "One"
+
+    Cbor.flavorEnumRep(EnumAsString)
 
 type
   DefinText = distinct string

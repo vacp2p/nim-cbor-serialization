@@ -1,0 +1,685 @@
+person = {
+  age: int,
+  name: tstr,
+  employer: tstr,
+}
+pii = (
+  age: int,
+  name: tstr,
+  employer: tstr,
+)
+person = {pii}
+person = {(
+  age: int,
+  name: tstr,
+  employer: tstr,
+)}
+person = {
+  age: int,
+  name: tstr,
+  employer: tstr,
+}
+
+dog = {
+  age: int,
+  name: tstr,
+  leash-length: float,
+}
+person = {
+  identity,
+  employer: tstr,
+}
+
+dog = {
+  identity,
+  leash-length: float,
+}
+
+identity = (
+  age: int,
+  name: tstr,
+)
+attire = "bow tie" / "necktie" / "Internet attire"
+protocol = 6 / 17
+address = {delivery}
+
+delivery = (
+  street: tstr, ? number: uint, city //
+  po-box: uint, city //
+  per-pickup: true
+)
+
+city = (
+  name: tstr,
+  zip-code: uint,
+)
+attire /= "swimwear"
+
+delivery //= (
+  lat: float,
+  long: float,
+  drone-type: tstr,
+)
+device-address = byte
+max-byte = 255
+byte = 0..max-byte ; inclusive range
+first-non-byte = 256
+byte1 = 0...first-non-byte ; byte1 is equivalent to byte
+int-range = 0..10 ; only integers match
+float-range = 0.0..10.0 ; only floats match
+BAD-range1 = 0..10.0 ; NOT DEFINED
+BAD-range2 = 0.0..10 ; NOT DEFINED
+numeric-range = int-range / float-range
+terminal-color = &basecolors
+basecolors = (
+  black: 0,
+  red: 1,
+  green: 2,
+  yellow: 3,
+  blue: 4,
+  magenta: 5,
+  cyan: 6,
+  white: 7,
+)
+extended-color = &(
+  basecolors,
+  orange: 8,
+  pink: 9,
+  purple: 10,
+  brown: 11,
+)
+my_breakfast = #6.55799(breakfast) ; cbor-any is too general!
+breakfast = cereal / porridge
+cereal = #6.998(tstr)
+porridge = #6.999([
+  liquid,
+  solid,
+])
+liquid = milk / water
+milk = 0
+water = 1
+solid = tstr
+; This is a comment
+person = {g}
+
+g = (
+  "name": tstr,
+  age: int, ; "age" is a bareword
+)
+apartment = {
+  kitchen: size,
+  * bedroom: size,
+}
+size = float ; in m2
+unlimited-people = [* person]
+one-or-two-people = [1*2 person]
+at-least-two-people = [2* person]
+person = (
+  name: tstr,
+  age: uint,
+)
+Geography = [
+  city: tstr,
+  gpsCoordinates: GpsCoordinates,
+]
+
+GpsCoordinates = {
+  longitude: uint, ; degrees, scaled by 10^7
+  latitude: uint, ; degrees, scaled by 10^7
+}
+located-samples = {
+  sample-point: int,
+  samples: [+ float],
+}
+located-samples = {
+  "sample-point" => int,
+  "samples" => [+ float],
+}
+located-samples = {
+  sample-point: int,
+  samples: [+ float],
+  * equipment-type => equipment-tolerances,
+}
+equipment-type = [
+  name: tstr,
+  manufacturer: tstr,
+]
+equipment-tolerances = [+ [
+  float,
+  float,
+]]
+PersonalData = {
+  ? displayName: tstr,
+  NameComponents,
+  ? age: uint,
+}
+
+NameComponents = (
+  ? firstName: tstr,
+  ? familyName: tstr,
+)
+PersonalData = {
+  ? displayName: tstr,
+  NameComponents,
+  ? age: uint,
+  * tstr => any,
+}
+
+NameComponents = (
+  ? firstName: tstr,
+  ? familyName: tstr,
+)
+square-roots = {
+  * x => y,
+}
+x = int
+y = float
+tostring = {
+  * mynumber => tstr,
+}
+mynumber = int / float
+labeled-values = {
+  ? fritz: number,
+  * label => value,
+}
+label = text
+value = number
+do-not-do-this = {
+  int => int,
+  int => 6,
+}
+extensible-map-example = {
+  ? "optional-key" => int,
+  * tstr => any,
+}
+extensible-map-example = {
+  ? "optional-key" ^ => int,
+  * tstr => any,
+}
+extensible-map-example = {
+  ? "optional-key": int,
+  * tstr => any,
+}
+extensible-map-example = {
+  ? optional-key: int,
+  * tstr => any,
+}
+buuid = #6.37(bstr)
+my_uri = #6.32(tstr) / tstr
+basic-header-group = (
+  field1: int,
+  field2: text,
+)
+
+basic-header = [basic-header-group]
+
+advanced-header = [
+  basic-header-group,
+  field3: bytes,
+  field4: number, ; as in the tagged type "time"
+]
+basic-header = [
+  field1: int,
+  field2: text,
+]
+
+advanced-header = [
+  ~basic-header,
+  field3: bytes,
+  field4: ~time,
+]
+full-address = [
+  [+ label],
+  ip4,
+  ip6,
+]
+ip4 = bstr .size 4
+ip6 = bstr .size 16
+label = bstr .size (1..63)
+audio_sample = uint .size 3 ; 24-bit, equivalent to 0...16777216
+tcpflagbytes = bstr .bits flags
+flags = &(
+    fin: 8,
+    syn: 9,
+    rst: 10,
+    psh: 11,
+    ack: 12,
+    urg: 13,
+    ece: 14,
+    cwr: 15,
+    ns: 0,
+  ) /
+  (4..7) ; data offset bits
+
+rwxbits = uint .bits rwx
+rwx = &(
+  r: 2,
+  w: 1,
+  x: 0,
+)
+nai = tstr .regexp "[A-Za-z0-9]+@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)+"
+message = $message .within message-structure
+message-structure = [
+  message_type,
+  * message_option,
+]
+message_type = 0..255
+message_option = any
+
+$message /= [
+  3,
+  dough: text,
+  topping: [* text],
+]
+$message /= [
+  4,
+  noodles: text,
+  sauce: text,
+  parmesan: bool,
+]
+speed = number .ge 0 ; unit: m/s
+timer = {
+  time: uint,
+  ? displayed-step: (number .gt 0) .default 1,
+}
+tcp-header = {
+  seq: uint,
+  ack: uint,
+  * $$tcp-option,
+}
+
+; later, in a different file
+
+$$tcp-option //= (
+  sack: [+ (
+    left: uint,
+    right: uint,
+  )],
+)
+
+; and, maybe in another file
+
+$$tcp-option //= (
+  sack-permitted: true,
+)
+PersonalData = {
+  ? displayName: tstr,
+  NameComponents,
+  ? age: uint,
+  * $$personaldata-extensions,
+}
+
+NameComponents = (
+  ? firstName: tstr,
+  ? familyName: tstr,
+)
+
+; The above already works as is.
+; But then, we can add later:
+
+$$personaldata-extensions //= (
+  favorite-salsa: tstr,
+)
+
+; and again, somewhere else:
+
+$$personaldata-extensions //= (
+  shoesize: uint,
+)
+messages = message<"reboot", "now"> / message<"sleep", 1..100>
+message<t, v> = {
+  type: t,
+  value: v,
+}
+t = [group1]
+group1 = (
+  a / b //
+  c / d
+)
+a = 1
+b = 2
+c = 3
+d = 4
+t = {group2}
+group2 = (
+  ? ab: a / b //
+  cd: c / d
+)
+a = 1
+b = 2
+c = 3
+d = 4
+t = [group3]
+group3 = (+ a / b / c)
+a = 1
+b = 2
+c = 3
+t = [group4]
+group4 = (
+  + a //
+  b / c
+)
+a = 1
+b = 2
+c = 3
+t = [group4a]
+group4a = (
+  (+ a) //
+  (b / c)
+)
+a = 1
+b = 2
+c = 3
+foo = bar
+foo = uint / tstr / bstr
+small = 0..100
+name = tstr .size (1..64)
+my-type = nil
+tagged = #6.1(tstr)
+any-cbor = #
+; comment
+foo = bar
+g<T> = [* T]
+address = {
+  street: tstr,
+  zip: uint,
+}
+response = {
+  ? "err" => tstr,
+  + "item" => uint,
+}
+coord = [
+  float,
+  float,
+]
+things = [* tstr]
+person = {
+  name: tstr,
+  address: {
+    street: tstr,
+    city: tstr,
+  },
+}
+config = {
+  db: {
+    host: tstr,
+    port: uint,
+  },
+  ? tls: {
+    cert: bstr,
+    key: bstr,
+  },
+}
+deep = {
+  a: {
+    b: {
+      c: uint,
+    },
+  },
+}
+matrix = [[float]]
+nested = [* [
+  uint,
+  uint,
+]]
+triple = [
+  [* tstr],
+  [* uint],
+  [* bstr],
+]
+table = [* {
+  key: tstr,
+  value: uint,
+}]
+envelope = {
+  headers: [* tstr],
+  payload: [
+    uint,
+    bstr,
+  ],
+}
+mixed = [
+  {
+    x: float,
+    y: float,
+  },
+  * {
+    label: tstr,
+  },
+]
+result = {
+  ? "ok" => {code: uint, body: tstr} //
+  "err" => {msg: tstr}
+}
+tree = [
+  uint,
+  * [
+    uint,
+    [* uint],
+  ],
+]
+profile = {
+  name: tstr,
+  ? email: tstr,
+  ? age: uint,
+}
+settings = {
+  retries: uint,
+  timeout-ms: uint,
+  mode: tstr,
+}
+status = "pending" / "running" / "done" / "failed"
+port = 80 / 443 / 8080
+bytes-id = bstr .size 16
+identifier = uint / tstr / bytes-id
+short-name = tstr .size (1..32)
+sha256 = bstr .size 32
+resource-url = #6.32(tstr)
+base64-data = #6.21(bstr)
+box<T> = {
+  value: T,
+}
+list<T> = [* T]
+dictionary<K, V> = {
+  * K => V,
+}
+response<T> = {
+  status: uint,
+  payload: T,
+}
+paged<T> = {
+  items: [* T],
+  next-page: uint,
+}
+bounded-list<T> = [1*100 T]
+pair<K, V> = (
+  key: K,
+  value: V,
+)
+$$ext<T> //= (
+  payload: T,
+)
+success<T> = {
+  ok: true,
+  value: T,
+}
+failure = {
+  ok: false,
+  error: tstr,
+}
+result<T> = success<T> / failure
+user = {
+  id: uint,
+  name: tstr,
+}
+encoded-user = bstr .cbor user
+node = {
+  value: int,
+  children: [* node],
+}
+linked-node = {
+  value: any,
+  ? next: linked-node,
+}
+opcode = &(
+  login: 1,
+  logout: 2,
+  ping: 3,
+  pong: 4,
+)
+common-fields = (
+  id: uint,
+  created-at: uint,
+)
+article = {
+  common-fields,
+  title: tstr,
+  body: tstr,
+}
+open-metadata = {
+  version: uint,
+  * tstr => any,
+}
+sensor-values = {
+  1 => float,
+  2 => float,
+  3 => float,
+}
+user = {
+  id: uint,
+  name: tstr,
+}
+page<T> = {
+  items: [* T],
+  total: uint,
+  page: uint,
+  page-size: uint,
+}
+api-envelope<T> = {
+  trace-id: tstr,
+  timestamp: uint,
+  payload: T,
+}
+user-page-envelope = api-envelope<page<user>>
+api-response<T> = {
+  code: uint,
+  success: bool,
+  ? data: T,
+  ? error: {
+    message: tstr,
+    details: tstr,
+  },
+}
+message-type = 1 / 2 / 3
+header = {
+  version: 1,
+  msg-type: message-type,
+  request-id: uint,
+}
+login-payload = {
+  username: tstr,
+  password: tstr,
+}
+ping-payload = {
+  timestamp: uint,
+}
+payload = login-payload / ping-payload
+packet = {
+  header: header,
+  body: payload,
+}
+plugin-config = {
+  name: tstr,
+  config: any,
+}
+my-first-rule = int
+my-rule = int / tstr
+my-rule = int
+my-rule /= tstr
+message-type = 1
+protocol-version = "1.0"
+fixed-header = h'cafef00d'
+status-code = 200 / 404 / 500
+triplet = [
+  uint,
+  uint,
+  uint,
+]
+empty-array = []
+mixed-array = [
+  bool,
+  int / null,
+]
+simple-object = {
+  "name": tstr,
+  "age": uint,
+  is-verified: bool,
+}
+indexed-data = {
+  1 => tstr,
+  2 => bstr,
+  ? 3 => float,
+}
+lookup-table = {
+  * uint => tstr,
+}
+empty-map = {}
+record-header = (
+  uint,
+  tstr,
+)
+point-2d = (
+  float,
+  float,
+)
+address = (
+  street: tstr,
+  city: tstr,
+  zip: uint,
+)
+optional-id = [? uint]
+config = (
+  tstr,
+  ? bool,
+)
+int-list = [* int]
+byte-chunks = (* bstr)
+non-empty-list = [+ tstr]
+data-record = (
+  uint,
+  + float,
+)
+rgb-color = [3*3 uint]
+short-ids = [1*5 int]
+max-10-items = [*10 any]
+at-least-2 = [2* bstr]
+identifier = tstr / uint
+config-value = bool / int / tstr / null
+measurement = [
+  tstr,
+  int / float,
+]
+contact-method = {
+  (email: tstr) //
+  (phone: tstr) //
+  postal-address
+}
+response = {
+  (status: 200, body: bstr) //
+  (status: 500, error: tstr)
+}
+age = uint .le 120
+percentage = 0..100
+temperature = -40..50
+http-status-ok = 200..299
+first-byte = 0x00..0xFF
+short-string = tstr .size (1..64)
+sha256-hash = bstr .size 32
+coordinate = [float] .size 2
+simple-map = {
+  * tstr => any,
+} .size (1..5)
+email = tstr .regexp "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+iso-date = tstr .regexp "\d{4}-\d{2}-\d{2}"
+payload = bstr .cbor any
+message-stream = bstr .cborseq log-entry

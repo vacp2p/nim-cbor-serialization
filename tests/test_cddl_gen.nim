@@ -7,6 +7,8 @@
 # This file may not be copied, modified, or distributed except according to
 # those terms.
 
+{.push raises: [], gcsafe.}
+
 import std/[macros, strutils], unittest2, ../cbor_serialization/cddl/type_generator
 
 proc fixAst(ast: NimNode): NimNode =
@@ -32,7 +34,7 @@ proc fixAst(ast: NimNode): NimNode =
 
   inspect(ast)
 
-proc checkCddl(cddl: string, expected: NimNode) =
+proc checkCddl(cddl: string, expected: NimNode) {.raises: [CborCddlError].} =
   let gened = fromCddlImpl(cddl.unindent)
   if gened != expected.fixAst:
     checkpoint("FAILED: Got: " & repr(gened) & "\nExpected: " & repr(expected.fixAst))

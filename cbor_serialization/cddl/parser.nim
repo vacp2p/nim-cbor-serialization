@@ -9,6 +9,8 @@
 
 #{.push raises: [], gcsafe.}
 
+{.deprecated: "use parser2".}
+
 import std/strutils
 import npeg, results
 
@@ -120,7 +122,9 @@ proc newCddlError(s: string, matchLen, matchMax: int): ref CborCddlError =
 # https://datatracker.ietf.org/doc/html/rfc8610#appendix-A
 # https://datatracker.ietf.org/doc/html/rfc8610#appendix-B
 # https://github.com/zevv/npeg#ordering-of-rules-in-a-grammar
-proc parseCddl*(source: string): CddlSchema {.raises: [CborCddlError].} =
+proc parseCddl*(
+    source: string
+): CddlSchema {.raises: [CborCddlError], deprecated: "use parser2.parseCddl".} =
   let parser = peg("cddl", userdata: ParseState):
     cddl <- S * +(rule * S) * !1
 

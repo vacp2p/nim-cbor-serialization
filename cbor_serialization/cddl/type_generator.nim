@@ -7,17 +7,20 @@
 # This file may not be copied, modified, or distributed except according to
 # those terms.
 
-import std/[macros, tables, strutils], stew/shims/macros as stewmacros, ./parser
+{.push raises: [], gcsafe.}
+
+import std/[macros, tables, strutils], stew/shims/macros as stewmacros, ./parser2
 
 export CborCddlError
 
-const repeatedMap = {OccurKind.ocOneOrMore, OccurKind.ocZeroOrMore, OccurKind.ocRange}
+const repeatedMap =
+  {CddlOccurKind.ocOneOrMore, CddlOccurKind.ocZeroOrMore, CddlOccurKind.ocRange}
 
 proc newCborCddlError(msg: string): ref CborCddlError =
   (ref CborCddlError)(msg: msg)
 
 # https://datatracker.ietf.org/doc/html/rfc8610#appendix-D
-proc toSimpleNimTyp(s: string): NimNode =
+proc toSimpleNimTyp(s: string): NimNode {.raises: [CborCddlError].} =
   case s
   of "any":
     ident"CborBytes"
@@ -43,36 +46,51 @@ proc toSimpleNimTyp(s: string): NimNode =
   else:
     ident(s)
 
-proc toNimTyp(ft: FieldType, isOptional = false): NimNode =
+proc entriesOf(n: CddlNode): lent seq[CddlNode] {.raises: [CborCddlError].} =
+  ## Members of a map, array or group; a group choice has no Nim equivalent.
+  for c in n.children:
+    if c.kind == nkGroupChoice:
+      raise newCborCddlError("unsupported group choice in " & $n.kind)
+  n.children
+
+proc toNimTyp(node: CddlNode, isOptional = false): NimNode {.raises: [CborCddlError].} =
+  template n(): untyped =
+    node.unparen
+
   let typ =
-    case ft.kind
-    of fkSimpleType:
-      toSimpleNimTyp(ft.name)
-    of fkArray:
-      if ft.fields.len != 1:
-        raise newCborCddlError("unsupported array of len: " & $ft.fields.len)
-      let inner = toNimTyp(ft.fields[0].typ)
+    case n.kind
+    of nkTypeRef:
+      toSimpleNimTyp(n.val.text)
+    of nkArray:
+      let entries = entriesOf(n)
+      if entries.len != 1:
+        raise newCborCddlError("unsupported array of len: " & $entries.len)
+      let inner = toNimTyp(entries[0].body)
       newNimNode(nnkBracketExpr).add(ident("seq"), inner)
-    of fkMap:
-      if ft.fields.len != 1:
-        raise newCborCddlError("unsupported map of len: " & $ft.fields.len)
-      if ft.fields[0].occur.kind notin repeatedMap:
+    of nkMap:
+      let entries = entriesOf(n)
+      if entries.len != 1:
+        raise newCborCddlError("unsupported map of len: " & $entries.len)
+      if entries[0].val.occur.kind notin repeatedMap:
         raise newCborCddlError("unsupported single key map")
-      let key = toSimpleNimTyp(ft.fields[0].keyText)
-      let val = toNimTyp(ft.fields[0].typ)
+      let keyNode = entries[0].key.unparen
+      if keyNode.kind != nkTypeRef:
+        raise newCborCddlError("unsupported map key " & $keyNode.kind)
+      let key = toSimpleNimTyp(keyNode.val.text)
+      let val = toNimTyp(entries[0].body)
       newNimNode(nnkBracketExpr).add(ident("Table"), key, val)
     else:
-      raise newCborCddlError("unsupported type " & $ft.kind)
+      raise newCborCddlError("unsupported type " & $n.kind)
   if isOptional:
     newNimNode(nnkBracketExpr).add(ident("Opt"), typ)
   else:
     typ
 
-proc toLitNode(ft: FieldType): NimNode =
+proc toLitNode(n: CddlNode): NimNode {.raises: [CborCddlError].} =
   template s(): untyped =
-    ft.valueText
+    n.val.text
 
-  doAssert ft.kind == fkValue
+  doAssert n.kind == nkValue
   doAssert s.len > 0
   if s[0] == '"':
     doAssert s.len >= 2
@@ -86,17 +104,23 @@ proc toLitNode(ft: FieldType): NimNode =
         raise newCborCddlError("unsupported value " & s)
     newLitFixed(val)
 
-proc toKeyNode(ft: Field): NimNode =
-  template s(): untyped =
-    ft.keyText
-
-  doAssert s.len > 0
-  if s[0] == '"':
-    doAssert s.len >= 2
-    doAssert s[^1] == '"'
-    ident(s[1 ..< s.high])
+proc toKeyNode(n: CddlNode): NimNode {.raises: [CborCddlError].} =
+  ## The Nim field name a member key stands for.
+  let k = n.key.unparen
+  case k.kind
+  of nkTypeRef: # a bareword, or a name used as a key
+    ident(k.val.text)
+  of nkValue:
+    let s = k.val.text
+    doAssert s.len > 0
+    if s[0] == '"':
+      doAssert s.len >= 2
+      doAssert s[^1] == '"'
+      ident(s[1 ..< s.high])
+    else:
+      ident(s)
   else:
-    ident(s)
+    raise newCborCddlError("unsupported member key " & $k.kind)
 
 proc toEnumFieldName(s: string, i: int): NimNode =
   if s.len >= 2 and s[0].isAlphaAscii and s[1].isAlphaAscii:
@@ -104,68 +128,73 @@ proc toEnumFieldName(s: string, i: int): NimNode =
   else:
     ident("e" & $i)
 
-proc literalsMap(cddl: CddlSchema): TableRef[string, FieldType] =
+proc literalsMap(cddl: CddlSchema): TableRef[string, CddlNode] =
   ## map of rule_name -> literal_val
-  result = newTable[string, FieldType]()
-  for rule in cddl:
-    if rule.kind == rkType and rule.typeExpr.kind == fkValue:
-      result[rule.name] = rule.typeExpr
+  result = newTable[string, CddlNode]()
+  for rule in cddl.children:
+    if rule.val.ruleKind in typeRules and rule.body.unparen.kind == nkValue:
+      result[rule.val.ruleText] = rule.body.unparen
 
-proc isOptional(f: Field): bool =
-  f.occur.kind == OccurKind.ocOptional
+proc isOptional(n: CddlNode): bool =
+  n.val.occur.kind == CddlOccurKind.ocOptional
 
 proc fromCddlImpl*(s: string): NimNode {.raises: [CborCddlError].} =
+  template body(): untyped =
+    rule.body.unparen
+
   result = newNimNode(nnkTypeSection)
-  let cddl = parseCddl(s)
+  let cddl = parseCddl(s, ignoreComments = true)
   let lits = literalsMap(cddl)
-  for rule in cddl:
-    doAssert rule.kind == rkType
+  for rule in cddl.children:
+    doAssert rule.kind == nkRule
+    doAssert rule.val.ruleKind in typeRules
     let value =
-      case rule.typeExpr.kind
-      of fkMap:
-        if rule.typeExpr.fields.len == 1 and
-            rule.typeExpr.fields[0].occur.kind in repeatedMap:
-          toNimTyp(rule.typeExpr)
+      case body.kind
+      of nkMap:
+        let entries = entriesOf(body)
+        if entries.len == 1 and entries[0].val.occur.kind in repeatedMap:
+          toNimTyp(body)
         else:
           let fields = newNimNode(nnkRecList)
-          for f in rule.typeExpr.fields:
+          for f in entries:
             fields.add newNimNode(nnkIdentDefs).add(
               newNimNode(nnkPostfix).add(ident("*"), toKeyNode(f)),
-              toNimTyp(f.typ, f.isOptional),
+              toNimTyp(f.body, f.isOptional),
               newEmptyNode(),
             )
           newNimNode(nnkObjectTy).add(newEmptyNode(), newEmptyNode(), fields)
-      of fkUnion:
+      of nkUnion:
         var fields = default(seq[NimNode])
-        for i, variant in rule.typeExpr.variants.pairs():
+        for i, parenthesized in body.children.pairs():
+          let variant = parenthesized.unparen
           case variant.kind
-          of fkSimpleType:
-            let v = lits.getOrDefault(variant.name, default(FieldType))
-            if v.kind == fkUnset:
-              raise newCborCddlError("union variant not found: " & $variant.name)
+          of nkTypeRef:
+            let v = lits.getOrDefault(variant.val.text, default(CddlNode))
+            if v.kind == nkUnset:
+              raise newCborCddlError("union variant not found: " & $variant.val.text)
             fields.add newNimNode(nnkEnumFieldDef).add(
-              ident(variant.name), toLitNode(v)
+              ident(variant.val.text), toLitNode(v)
             )
-          of fkValue:
+          of nkValue:
             fields.add newNimNode(nnkEnumFieldDef).add(
-              toEnumFieldName(rule.name, i), toLitNode(variant)
+              toEnumFieldName(rule.val.ruleText, i), toLitNode(variant)
             )
           else:
             raise newCborCddlError("unsupported type " & $variant.kind)
         newNimNode(nnkEnumTy).add(newEmptyNode()).add(fields)
-      of fkSimpleType, fkArray:
-        toNimTyp(rule.typeExpr)
-      of fkValue:
+      of nkTypeRef, nkArray:
+        toNimTyp(body)
+      of nkValue:
         default(NimNode) # lits map contains this field
       else:
-        raise newCborCddlError("unsupported type " & $rule.typeExpr.kind)
-    case rule.typeExpr.kind
-    of fkValue:
+        raise newCborCddlError("unsupported type " & $body.kind)
+    case body.kind
+    of nkValue:
       discard
-    of fkUnion:
+    of nkUnion:
       result.add newNimNode(nnkTypeDef).add(
         newNimNode(nnkPragmaExpr).add(
-          newNimNode(nnkPostfix).add(ident("*"), ident(rule.name)),
+          newNimNode(nnkPostfix).add(ident("*"), ident(rule.val.ruleText)),
           newNimNode(nnkPragma).add(ident("pure")),
         ),
         newEmptyNode(),
@@ -173,10 +202,14 @@ proc fromCddlImpl*(s: string): NimNode {.raises: [CborCddlError].} =
       )
     else:
       result.add newNimNode(nnkTypeDef).add(
-        newNimNode(nnkPostfix).add(ident("*"), ident(rule.name)), newEmptyNode(), value
+        newNimNode(nnkPostfix).add(ident("*"), ident(rule.val.ruleText)),
+        newEmptyNode(),
+        value,
       )
   when defined(CborLogGeneratedTypes):
     debugEcho repr(result)
+
+{.pop.}
 
 macro fromCddl*(s: static[string]): untyped =
   fromCddlImpl(s)
