@@ -120,15 +120,15 @@ proc parseStringLike[T: string or seq[byte]](
 ) {.raises: [IOError, CborReaderError].} =
   type ElmType = typeof val[0]
   val.setLen 0
-  var L = p.lenMaybe()
   var i = 0
-  parseStringLikeImpl(p, majorExpected, limit, strLen):
-    if L > -1: # can prealloc safely
+  if p.lenMaybe() > -1: # can prealloc safely
+    parseStringLikeImpl(p, majorExpected, limit, strLen):
       val.setLen val.len.uint64 + strLen
       for _ in 0 ..< strLen:
         val[i] = p.read ElmType
         inc i
-    else:
+  else:
+    parseStringLikeImpl(p, majorExpected, limit, strLen):
       for _ in 0 ..< strLen:
         val.add p.read ElmType
 

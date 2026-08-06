@@ -359,15 +359,15 @@ proc read*[T](
   mixin readValue
 
   value.setLen 0
-  var L = r.parser.lenMaybe()
   var i = 0
-  r.parseArray2(arrLen):
-    if L > -1: # can prealloc safely
+  if r.parser.lenMaybe() > -1: # can prealloc safely
+    r.parseArray2(arrLen):
       value.setLen value.len.uint64 + arrLen
       for _ in 0 ..< arrLen:
         readValue(r, value[i])
         inc i
-    else:
+  else:
+    r.parseArray2(arrLen):
       for _ in 0 ..< arrLen:
         value.setLen value.len + 1
         readValue(r, value[i])
