@@ -99,3 +99,9 @@ proc read*(
       value *= -1.initBigInt
   else:
     reader.parser.raiseUnexpectedValue("number", $kind)
+
+template writeValue*(writer: var CborWriter, value: BigInt) =
+  write(writer, value)
+
+template readValue*(reader: var CborReader, value: var BigInt) =
+  read(reader, value)

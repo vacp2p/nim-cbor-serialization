@@ -33,3 +33,9 @@ proc read*[T](
     discard reader.parseSimpleValue()
   else:
     value = some reader.readValue(T)
+
+template writeValue*(writer: var CborWriter, value: Option) =
+  write(writer, value)
+
+template readValue*[T](reader: var CborReader, value: var Option[T]) =
+  read(reader, value)

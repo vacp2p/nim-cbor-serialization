@@ -78,6 +78,7 @@ template defaultBuiltinWriter*(Flavor: type) =
   Flavor.defaultWriter(CborValueRef)
   Flavor.defaultWriter(CborSimpleValue)
   Flavor.defaultWriter(CborBytes)
+  Flavor.defaultWriter(CborObjectType)
 
 template defaultBuiltinSerialization*(Flavor: type) =
   defaultBuiltinReader(Flavor)
