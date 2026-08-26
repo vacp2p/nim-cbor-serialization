@@ -125,9 +125,10 @@ proc parseStringLike[T: string or seq[byte]](
     validateUtf8: bool,
     val: var T,
 ) {.raises: [IOError, CborReaderError].} =
-  template utf8Validation(s, pos: untyped): untyped =
-    if not verifyUtf8(s):
-      p.raiseInvalidUtf8(pos, "Invalid utf-8 string")
+  when val is string:
+    template utf8Validation(s, pos: untyped): untyped =
+      if not verifyUtf8(s):
+        p.raiseInvalidUtf8(pos, "Invalid utf-8 string")
 
   type ElmType = typeof val[0]
   val.setLen 0
@@ -609,11 +610,8 @@ proc parseBool*(r: var CborReader): bool {.raises: [IOError, CborReaderError].} 
     r.parser.raiseUnexpectedValue("bool", $val)
 
 proc parseValue(
-    r: var CborReader, val: var CborVoid
+    p: var CborParser, val: var CborVoid
 ) {.raises: [IOError, CborReaderError].} =
-  template p(): untyped =
-    r.parser
-
   case p.cborKind()
   of CborValueKind.Unsigned, CborValueKind.Negative:
     parseNumber(p, val)
@@ -623,12 +621,12 @@ proc parseValue(
     parseString(p, false, val)
   of CborValueKind.Array:
     parseArray(p, idx):
-      parseValue(r, val)
+      parseValue(p, val)
   of CborValueKind.Object:
     parseObjectImpl(p, false):
-      parseValue(r, val)
+      parseValue(p, val)
     do:
-      parseValue(r, val)
+      parseValue(p, val)
   of CborValueKind.Bool, CborValueKind.Null, CborValueKind.Undefined,
       CborValueKind.Simple:
     var sv: CborSimpleValue
@@ -638,14 +636,15 @@ proc parseValue(
   of CborValueKind.Tag:
     var tag: uint64
     parseTag(p, tag):
-      parseValue(r, val)
+      parseValue(p, val)
 
-proc parseValue*(
-    r: var CborReader, val: var CborValueRef
+proc skipSingleValue*(r: var CborReader) {.raises: [IOError, CborReaderError].} =
+  var val: CborVoid
+  parseValue(r.parser, val)
+
+proc parseValue(
+    p: var CborParser, validateUtf8: bool, val: var CborValueRef
 ) {.raises: [IOError, CborReaderError].} =
-  template p(): untyped =
-    r.parser
-
   val = CborValueRef(kind: p.cborKind())
   case val.kind
   of CborValueKind.Unsigned, CborValueKind.Negative:
@@ -653,16 +652,16 @@ proc parseValue*(
   of CborValueKind.Bytes:
     parseByteString(p, val.bytesVal)
   of CborValueKind.String:
-    parseString(p, r.validateUtf8, val.strVal)
+    parseString(p, validateUtf8, val.strVal)
   of CborValueKind.Array:
     parseArray(p, idx):
       let lastPos = val.arrayVal.len
       val.arrayVal.setLen(lastPos + 1)
-      parseValue(r, val.arrayVal[lastPos])
+      parseValue(p, validateUtf8, val.arrayVal[lastPos])
   of CborValueKind.Object:
-    parseObject(p, false, r.validateUtf8, key):
+    parseObject(p, false, validateUtf8, key):
       var v: CborValueRef
-      parseValue(r, v)
+      parseValue(p, validateUtf8, v)
       val.objVal[key] = v
   of CborValueKind.Bool:
     var sv: CborSimpleValue
@@ -681,19 +680,21 @@ proc parseValue*(
     var tag: uint64
     parseTag(p, tag):
       val.tagVal = CborTag[CborValueRef](tag: tag)
-      parseValue(r, val.tagVal.val)
+      parseValue(p, validateUtf8, val.tagVal.val)
+
+proc parseValue*(
+    r: var CborReader, val: var CborValueRef
+) {.raises: [IOError, CborReaderError].} =
+  parseValue(r.parser, r.validateUtf8, val)
 
 proc parseValue*(
     r: var CborReader
 ): CborValueRef {.raises: [IOError, CborReaderError].} =
   parseValue(r, result)
 
-proc parseValue*(
-    r: var CborReader, val: var CborBytes
+proc parseValue(
+    p: var CborParser, val: var CborBytes
 ) {.raises: [IOError, CborReaderError].} =
-  template p(): untyped =
-    r.parser
-
   let c = p.peek()
   case c.major
   of CborMajor.Unsigned, CborMajor.Negative:
@@ -704,24 +705,25 @@ proc parseValue*(
     parseRawStringLike(p, val, p.conf.stringLengthLimit)
   of CborMajor.Array:
     parseRawArrayLike(p, val, p.conf.arrayElementsLimit):
-      parseValue(r, val)
+      parseValue(p, val)
   of CborMajor.Map:
     parseRawArrayLike(p, val, p.conf.objectFieldsLimit):
-      parseValue(r, val)
-      parseValue(r, val)
+      parseValue(p, val)
+      parseValue(p, val)
   of CborMajor.Tag:
     enterNestedStructure(p)
     parseRawHead(p, val)
-    parseValue(r, val)
+    parseValue(p, val)
     exitNestedStructure(p)
   of CborMajor.SimpleOrFloat:
     parseRawHead(p, val)
 
+proc parseValue*(
+    r: var CborReader, val: var CborBytes
+) {.raises: [IOError, CborReaderError].} =
+  parseValue(r.parser, val)
+
 template parseObjectCustomKey*(r: var CborReader, keyAction, body: untyped) =
   parseObjectImpl(r.parser, r.skipNullFields, keyAction, body)
-
-proc skipSingleValue*(r: var CborReader) {.raises: [IOError, CborReaderError].} =
-  var val: CborVoid
-  r.parseValue(val)
 
 {.pop.}
