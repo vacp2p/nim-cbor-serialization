@@ -115,6 +115,9 @@ iterator parseStringLikeIt(
     for _ in 0 ..< strLen:
       yield p.read()
 
+# String chunks must be utf-8 valid as per:
+# https://www.rfc-editor.org/rfc/rfc8949.html#section-3.2.3
+# https://www.rfc-editor.org/rfc/rfc8949.html#section-5.3.1
 proc parseStringLike[T: string or seq[byte]](
     p: var CborParser, majorExpected: CborMajor, limit: int, val: var T
 ) {.raises: [IOError, CborReaderError].} =
@@ -122,15 +125,25 @@ proc parseStringLike[T: string or seq[byte]](
   val.setLen 0
   var L = p.lenMaybe()
   var i = 0
+  var i0 {.used.} = 0
   parseStringLikeImpl(p, majorExpected, limit, strLen):
+    let pos {.used.} = p.stream.pos
     if L > -1: # can prealloc safely
+      i0 = i
       val.setLen val.len.uint64 + strLen
       for _ in 0 ..< strLen:
         val[i] = p.read ElmType
         inc i
+      when val is string:
+        if not validateUtf8(toOpenArray(val, i0, i-1)):
+          p.raiseInvalidUtf8(pos, "Invalid utf-8 string")
     else:
       for _ in 0 ..< strLen:
-        val.add p.read ElmType
+        val[i] = p.read ElmType
+        inc i
+      when val is string:
+        if not validateUtf8(toOpenArray(val, i0, i-1)):
+          p.raiseInvalidUtf8(pos, "Invalid utf-8 string")
 
 proc parseStringLike(
     p: var CborParser, majorExpected: CborMajor, limit: int, val: var CborVoid

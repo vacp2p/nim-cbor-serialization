@@ -44,6 +44,8 @@ type
     isNegative: bool
     absIntVal: BiggestUInt
 
+  CborInvalidUtf8Error* = object of CborReaderError
+
 Cbor.setReader CborReader
 Cbor.defaultReaders()
 
@@ -66,6 +68,9 @@ method formatMsg*(err: ref CborNotEnoughBytesError, filename: string): string =
 
 method formatMsg*(err: ref CborIncompleteObjectError, filename: string): string =
   fmt"{filename}({err.pos}) Not all required fields were specified when reading '{err.objectType}'"
+
+method formatMsg*(err: ref CborInvalidUtf8Error, filename: string): string =
+  fmt"{filename}({err.pos}) {err.msg}"
 
 func raiseUnexpectedValue*(
     p: CborParser, msg: string
@@ -119,6 +124,14 @@ func raiseIncompleteObject*(
 
 template raiseIncompleteObject*(r: CborReader, objectType: cstring) =
   raiseIncompleteObject(r.parser, objectType)
+
+func raiseInvalidUtf8*(
+    p: CborParser, pos: int, msg: string
+) {.noreturn, raises: [CborReaderError].} =
+  var ex = new CborInvalidUtf8Error
+  ex.pos = pos
+  ex.msg = msg
+  raise ex
 
 proc init*(
     T: type CborParser,

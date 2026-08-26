@@ -7,7 +7,7 @@
 # This file may not be copied, modified, or distributed except according to
 # those terms.
 
-import std/[math]
+import std/[math, unicode]
 
 proc ldexp(x: float64, exp: int): float64 =
   x * pow(2.0, float64(exp))
@@ -28,3 +28,6 @@ proc decodeHalf*(half: uint16): float =
       -val
     else:
       val
+
+proc validateUtf8*(s: openArray[char]): bool =
+  unicode.validateUtf8(s) == -1
