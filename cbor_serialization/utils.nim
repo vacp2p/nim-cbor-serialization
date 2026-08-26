@@ -29,5 +29,5 @@ proc decodeHalf*(half: uint16): float =
     else:
       val
 
-proc validateUtf8*(s: openArray[char]): bool =
-  unicode.validateUtf8(s) == -1
+proc verifyUtf8*(s: openArray[char]): bool =
+  validateUtf8(s) == -1
