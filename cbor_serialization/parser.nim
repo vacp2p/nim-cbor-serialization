@@ -119,7 +119,11 @@ iterator parseStringLikeIt(
 # https://www.rfc-editor.org/rfc/rfc8949.html#section-3.2.3
 # https://www.rfc-editor.org/rfc/rfc8949.html#section-5.3.1
 proc parseStringLike[T: string or seq[byte]](
-    p: var CborParser, majorExpected: CborMajor, limit: int, validateUtf8: bool, val: var T
+    p: var CborParser,
+    majorExpected: CborMajor,
+    limit: int,
+    validateUtf8: bool,
+    val: var T,
 ) {.raises: [IOError, CborReaderError].} =
   type ElmType = typeof val[0]
   val.setLen 0
@@ -146,7 +150,11 @@ proc parseStringLike[T: string or seq[byte]](
           p.raiseInvalidUtf8(pos, "Invalid utf-8 string")
 
 proc parseStringLike(
-    p: var CborParser, majorExpected: CborMajor, limit: int, validateUtf8: bool, val: var CborVoid
+    p: var CborParser,
+    majorExpected: CborMajor,
+    limit: int,
+    validateUtf8: bool,
+    val: var CborVoid,
 ) {.raises: [IOError, CborReaderError].} =
   for _ in parseStringLikeIt(p, majorExpected, limit):
     discard val
@@ -244,7 +252,9 @@ template parseObjectImpl(p: var CborParser, skipNullFields, keyAction, body: unt
     else:
       body
 
-template parseObject(p: var CborParser, skipNullFields, validateUtf8, key, body: untyped) =
+template parseObject(
+    p: var CborParser, skipNullFields, validateUtf8, key, body: untyped
+) =
   parseObjectImpl(p, skipNullFields):
     var key = ""
     p.parseString(validateUtf8, key)
