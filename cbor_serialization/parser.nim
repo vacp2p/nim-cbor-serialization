@@ -115,25 +115,52 @@ iterator parseStringLikeIt(
     for _ in 0 ..< strLen:
       yield p.read()
 
+# String chunks must be utf-8 valid as per:
+# https://www.rfc-editor.org/rfc/rfc8949.html#section-3.2.3
+# https://www.rfc-editor.org/rfc/rfc8949.html#section-5.3.1
 proc parseStringLike[T: string or seq[byte]](
-    p: var CborParser, majorExpected: CborMajor, limit: int, val: var T
+    p: var CborParser,
+    majorExpected: CborMajor,
+    limit: int,
+    validateUtf8: bool,
+    val: var T,
 ) {.raises: [IOError, CborReaderError].} =
+  when val is string:
+    template utf8Validation(s, pos: untyped): untyped =
+      if not verifyUtf8(s):
+        p.raiseInvalidUtf8(pos, "Invalid utf-8 string")
+
   type ElmType = typeof val[0]
   val.setLen 0
   var L = p.lenMaybe()
   var i = 0
+  var i0 {.used.} = 0
   parseStringLikeImpl(p, majorExpected, limit, strLen):
+    when val is string:
+      let pos = p.stream.pos
+    i0 = i
     if L > -1: # can prealloc safely
       val.setLen val.len.uint64 + strLen
       for _ in 0 ..< strLen:
         val[i] = p.read ElmType
         inc i
+      when val is string:
+        if validateUtf8:
+          utf8Validation(toOpenArray(val, i0, i - 1), pos)
     else:
       for _ in 0 ..< strLen:
         val.add p.read ElmType
+        inc i
+      when val is string:
+        if validateUtf8:
+          utf8Validation(toOpenArray(val, i0, i - 1), pos)
 
 proc parseStringLike(
-    p: var CborParser, majorExpected: CborMajor, limit: int, val: var CborVoid
+    p: var CborParser,
+    majorExpected: CborMajor,
+    limit: int,
+    validateUtf8: bool,
+    val: var CborVoid,
 ) {.raises: [IOError, CborReaderError].} =
   for _ in parseStringLikeIt(p, majorExpected, limit):
     discard val
@@ -142,7 +169,7 @@ proc parseStringLike(
 proc parseByteString[T](
     p: var CborParser, limit: int, val: var T
 ) {.raises: [IOError, CborReaderError].} =
-  parseStringLike(p, CborMajor.Bytes, limit, val)
+  parseStringLike(p, CborMajor.Bytes, limit, false, val)
 
 proc parseByteString[T](
     p: var CborParser, val: var T
@@ -151,14 +178,14 @@ proc parseByteString[T](
 
 # https://www.rfc-editor.org/rfc/rfc8949#section-3.1-2.8
 proc parseString[T](
-    p: var CborParser, limit: int, val: var T
+    p: var CborParser, limit: int, validateUtf8: bool, val: var T
 ) {.raises: [IOError, CborReaderError].} =
-  parseStringLike(p, CborMajor.Text, limit, val)
+  parseStringLike(p, CborMajor.Text, limit, validateUtf8, val)
 
 proc parseString[T](
-    p: var CborParser, val: var T
+    p: var CborParser, validateUtf8: bool, val: var T
 ) {.raises: [IOError, CborReaderError].} =
-  parseString[T](p, p.conf.stringLengthLimit, val)
+  parseString[T](p, p.conf.stringLengthLimit, validateUtf8, val)
 
 template enterNestedStructure(p: CborParser) =
   inc p.currDepth
@@ -231,10 +258,12 @@ template parseObjectImpl(p: var CborParser, skipNullFields, keyAction, body: unt
     else:
       body
 
-template parseObject(p: var CborParser, skipNullFields, key, body: untyped) =
+template parseObject(
+    p: var CborParser, skipNullFields, validateUtf8, key, body: untyped
+) =
   parseObjectImpl(p, skipNullFields):
     var key = ""
-    p.parseString(key)
+    p.parseString(validateUtf8, key)
   do:
     body
 
@@ -369,6 +398,7 @@ template parseRawArrayLike(
       body
   exitNestedStructure(p)
 
+# XXX validate strings are utf8
 template parseRawStringLikeImpl(
     p: var CborParser, val: var CborBytes, rawLen, body: untyped
 ) =
@@ -445,6 +475,13 @@ proc parseInt*(
   toInt(val, T).valueOr:
     r.parser.raiseIntOverflow(val.integer, val.sign == CborSign.Neg)
 
+template validateUtf8(r: CborReader): untyped =
+  mixin validatesUtf8
+
+  type Flavor = r.Flavor
+  const validateUtf8 = validatesUtf8(Cbor, Flavor)
+  validateUtf8
+
 iterator parseStringLikeIt(
     r: var CborReader, limit: int, safeBreak: static[bool], T: type
 ): byte {.inline, raises: [IOError, CborReaderError].} =
@@ -457,7 +494,7 @@ iterator parseStringLikeIt(
       {.fatal: "`parseStringLikeIt` seq[byte] or string expected".}
   when safeBreak:
     var s: T
-    r.parser.parseStringLike(majorType, limit, s)
+    r.parser.parseStringLike(majorType, limit, r.validateUtf8, s)
     for x in s:
       yield x.byte
   else:
@@ -491,12 +528,17 @@ iterator parseByteStringIt*(
     yield x
 
 proc parseString*(
+    r: var CborReader, limit: int, validateUtf8: bool
+): string {.raises: [IOError, CborReaderError].} =
+  r.parser.parseString(limit, validateUtf8, result)
+
+proc parseString*(
     r: var CborReader, limit: int
 ): string {.raises: [IOError, CborReaderError].} =
-  r.parser.parseString(limit, result)
+  r.parser.parseString(limit, r.validateUtf8, result)
 
 proc parseString*(r: var CborReader): string {.raises: [IOError, CborReaderError].} =
-  r.parser.parseString(r.parser.conf.stringLengthLimit, result)
+  r.parser.parseString(r.parser.conf.stringLengthLimit, r.validateUtf8, result)
 
 iterator parseStringIt*(
     r: var CborReader, limit: int, safeBreak: static[bool] = true
@@ -505,6 +547,7 @@ iterator parseStringIt*(
   ## the iterator won't consume more than needed, but further
   ## parsing after breaking early will fail.
   ## If `safeBreak` is `true` the entire string is always consumed.
+  ## This does not provide utf-8 validation.
   for x in r.parseStringLikeIt(limit, safeBreak, string):
     yield x.char
 
@@ -530,11 +573,12 @@ template skipNullFields(r: CborReader): untyped =
   const skipNullFields = skipsNullFields(Cbor, Flavor)
   skipNullFields
 
+# XXX option to control validateUtf8
 template parseObject*(r: var CborReader, key: untyped, body: untyped) =
-  parseObject(r.parser, r.skipNullFields, key, body)
+  parseObject(r.parser, r.skipNullFields, r.validateUtf8, key, body)
 
 template parseObjectWithoutSkip*(r: var CborReader, key: untyped, body: untyped) =
-  parseObject(r.parser, false, key, body)
+  parseObject(r.parser, false, r.validateUtf8, key, body)
 
 template parseTag*(r: var CborReader, tag: untyped, body: untyped) =
   parseTag(r.parser, tag, body)
@@ -575,7 +619,7 @@ proc parseValue(
   of CborValueKind.Bytes:
     parseByteString(p, val)
   of CborValueKind.String:
-    parseString(p, val)
+    parseString(p, false, val)
   of CborValueKind.Array:
     parseArray(p, idx):
       parseValue(p, val)
@@ -595,8 +639,12 @@ proc parseValue(
     parseTag(p, tag):
       parseValue(p, val)
 
+proc skipSingleValue*(r: var CborReader) {.raises: [IOError, CborReaderError].} =
+  var val: CborVoid
+  parseValue(r.parser, val)
+
 proc parseValue(
-    p: var CborParser, val: var CborValueRef
+    p: var CborParser, validateUtf8: bool, val: var CborValueRef
 ) {.raises: [IOError, CborReaderError].} =
   val = CborValueRef(kind: p.cborKind())
   case val.kind
@@ -605,16 +653,16 @@ proc parseValue(
   of CborValueKind.Bytes:
     parseByteString(p, val.bytesVal)
   of CborValueKind.String:
-    parseString(p, val.strVal)
+    parseString(p, validateUtf8, val.strVal)
   of CborValueKind.Array:
     parseArray(p, idx):
       let lastPos = val.arrayVal.len
       val.arrayVal.setLen(lastPos + 1)
-      parseValue(p, val.arrayVal[lastPos])
+      parseValue(p, validateUtf8, val.arrayVal[lastPos])
   of CborValueKind.Object:
-    parseObject(p, false, key):
+    parseObject(p, false, validateUtf8, key):
       var v: CborValueRef
-      parseValue(p, v)
+      parseValue(p, validateUtf8, v)
       val.objVal[key] = v
   of CborValueKind.Bool:
     var sv: CborSimpleValue
@@ -633,24 +681,21 @@ proc parseValue(
     var tag: uint64
     parseTag(p, tag):
       val.tagVal = CborTag[CborValueRef](tag: tag)
-      parseValue(p, val.tagVal.val)
+      parseValue(p, validateUtf8, val.tagVal.val)
 
 proc parseValue*(
     r: var CborReader, val: var CborValueRef
 ) {.raises: [IOError, CborReaderError].} =
-  parseValue(r.parser, val)
+  parseValue(r.parser, r.validateUtf8, val)
 
 proc parseValue*(
     r: var CborReader
 ): CborValueRef {.raises: [IOError, CborReaderError].} =
-  parseValue(r.parser, result)
+  parseValue(r, result)
 
-proc parseValue*(
-    r: var CborReader, val: var CborBytes
+proc parseValue(
+    p: var CborParser, val: var CborBytes
 ) {.raises: [IOError, CborReaderError].} =
-  template p(): untyped =
-    r.parser
-
   let c = p.peek()
   case c.major
   of CborMajor.Unsigned, CborMajor.Negative:
@@ -661,24 +706,25 @@ proc parseValue*(
     parseRawStringLike(p, val, p.conf.stringLengthLimit)
   of CborMajor.Array:
     parseRawArrayLike(p, val, p.conf.arrayElementsLimit):
-      parseValue(r, val)
+      parseValue(p, val)
   of CborMajor.Map:
     parseRawArrayLike(p, val, p.conf.objectFieldsLimit):
-      parseValue(r, val)
-      parseValue(r, val)
+      parseValue(p, val)
+      parseValue(p, val)
   of CborMajor.Tag:
     enterNestedStructure(p)
     parseRawHead(p, val)
-    parseValue(r, val)
+    parseValue(p, val)
     exitNestedStructure(p)
   of CborMajor.SimpleOrFloat:
     parseRawHead(p, val)
 
+proc parseValue*(
+    r: var CborReader, val: var CborBytes
+) {.raises: [IOError, CborReaderError].} =
+  parseValue(r.parser, val)
+
 template parseObjectCustomKey*(r: var CborReader, keyAction, body: untyped) =
   parseObjectImpl(r.parser, r.skipNullFields, keyAction, body)
-
-proc skipSingleValue*(r: var CborReader) {.raises: [IOError, CborReaderError].} =
-  var val: CborVoid
-  r.parser.parseValue(val)
 
 {.pop.}

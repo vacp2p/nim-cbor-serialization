@@ -891,6 +891,16 @@ suite "toCbor tests":
       # clarity regarding the memory allocation approach
       Cbor.decode("0xF6".unhex, cstring)
 
+  test "Invalid UTF-8":
+    const cbor = "0x63e228a1"
+    check Cbor.encode("\xE2\x28\xA1").hex == cbor
+    expect CborInvalidUtf8Error:
+      discard Cbor.decode(cbor.unhex, string)
+
+  test "CborVoid skips invalid UTF-8":
+    const cbor = "0x63e228a1"
+    discard Cbor.decode(cbor.unhex, CborVoid)
+
 suite "Custom parser tests":
   test "Fall back to int parser":
     customVisit = TokenRegistry.default

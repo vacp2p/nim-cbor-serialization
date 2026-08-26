@@ -166,6 +166,9 @@ template allowsUnknownFields*(F: type Cbor, T: type DefaultFlavor): bool =
 template skipsNullFields*(F: type Cbor, T: type DefaultFlavor): bool =
   false
 
+template validatesUtf8*(F: type Cbor, T: type DefaultFlavor): bool =
+  true
+
 var DefaultFlavorEnumRep {.compileTime.} = EnumAsString
 template enumRep*(F: type Cbor, T: type DefaultFlavor): EnumRepresentation =
   DefaultFlavorEnumRep
@@ -200,6 +203,7 @@ template createCborFlavor*(
     omitOptionalFields = true,
     allowUnknownFields = true,
     skipNullFields = false,
+    validateUtf8 = true,
 ) {.dirty.} =
   bind EnumRepresentation
 
@@ -231,6 +235,9 @@ template createCborFlavor*(
 
   template skipsNullFields*(F: type Cbor, T: type FlavorName): bool =
     skipNullFields
+
+  template validatesUtf8*(F: type Cbor, T: type FlavorName): bool =
+    validateUtf8
 
   var `FlavorName EnumRep` {.compileTime.} = EnumRepresentation.EnumAsString
   template enumRep*(F: type Cbor, T: type FlavorName): EnumRepresentation =
