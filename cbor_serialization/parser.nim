@@ -125,29 +125,34 @@ proc parseStringLike[T: string or seq[byte]](
     validateUtf8: bool,
     val: var T,
 ) {.raises: [IOError, CborReaderError].} =
+  template utf8Validation(s, pos: untyped): untyped =
+    if not verifyUtf8(s):
+      p.raiseInvalidUtf8(pos, "Invalid utf-8 string")
+
   type ElmType = typeof val[0]
   val.setLen 0
   var L = p.lenMaybe()
   var i = 0
   var i0 {.used.} = 0
   parseStringLikeImpl(p, majorExpected, limit, strLen):
+    when val is string:
+      let pos = p.stream.pos
     i0 = i
-    let pos {.used.} = p.stream.pos
     if L > -1: # can prealloc safely
       val.setLen val.len.uint64 + strLen
       for _ in 0 ..< strLen:
         val[i] = p.read ElmType
         inc i
       when val is string:
-        if validateUtf8 and not verifyUtf8(toOpenArray(val, i0, i - 1)):
-          p.raiseInvalidUtf8(pos, "Invalid utf-8 string")
+        if validateUtf8:
+          utf8Validation(toOpenArray(val, i0, i - 1), pos)
     else:
       for _ in 0 ..< strLen:
         val.add p.read ElmType
         inc i
       when val is string:
-        if validateUtf8 and not verifyUtf8(toOpenArray(val, i0, i - 1)):
-          p.raiseInvalidUtf8(pos, "Invalid utf-8 string")
+        if validateUtf8:
+          utf8Validation(toOpenArray(val, i0, i - 1), pos)
 
 proc parseStringLike(
     p: var CborParser,
