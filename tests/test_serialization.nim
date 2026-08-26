@@ -897,6 +897,10 @@ suite "toCbor tests":
     expect CborInvalidUtf8Error:
       discard Cbor.decode(cbor.unhex, string)
 
+  test "CborVoid skips invalid UTF-8":
+    const cbor = "0x63e228a1"
+    discard Cbor.decode(cbor.unhex, CborVoid)
+
 suite "Custom parser tests":
   test "Fall back to int parser":
     customVisit = TokenRegistry.default
