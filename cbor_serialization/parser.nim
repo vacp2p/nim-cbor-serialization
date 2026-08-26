@@ -398,6 +398,7 @@ template parseRawArrayLike(
       body
   exitNestedStructure(p)
 
+# XXX validate strings are utf8
 template parseRawStringLikeImpl(
     p: var CborParser, val: var CborBytes, rawLen, body: untyped
 ) =
