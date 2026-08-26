@@ -135,14 +135,14 @@ proc parseStringLike[T: string or seq[byte]](
         val[i] = p.read ElmType
         inc i
       when val is string:
-        if not validateUtf8(toOpenArray(val, i0, i-1)):
+        if not validateUtf8(toOpenArray(val, i0, i - 1)):
           p.raiseInvalidUtf8(pos, "Invalid utf-8 string")
     else:
       for _ in 0 ..< strLen:
         val[i] = p.read ElmType
         inc i
       when val is string:
-        if not validateUtf8(toOpenArray(val, i0, i-1)):
+        if not validateUtf8(toOpenArray(val, i0, i - 1)):
           p.raiseInvalidUtf8(pos, "Invalid utf-8 string")
 
 proc parseStringLike(
